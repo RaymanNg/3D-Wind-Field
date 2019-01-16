@@ -25,7 +25,8 @@ var Util = (function () {
 				NetCDFdata.lonArray = new Float32Array(NetCDF.getDataVariable('lon').flat());
 				NetCDFdata.latArray = new Float32Array(NetCDF.getDataVariable('lat').flat());
 				NetCDFdata.levArray = new Float32Array(NetCDF.getDataVariable('lev').flat());
-				NetCDFdata.OMEGAarray = new Float32Array(NetCDF.getDataVariable('OMEGA').flat());
+				NetCDFdata.UArray = new Float32Array(NetCDF.getDataVariable('U').flat());
+				NetCDFdata.VArray = new Float32Array(NetCDF.getDataVariable('V').flat());
 
 				resolve(NetCDFdata);
 			});
@@ -43,10 +44,15 @@ var Util = (function () {
 
 	var setupTextures = function (particleTextureSize) {
 		textures = {};
-		textures.windField = new THREE.DataTexture(NetCDFdata.OMEGAarray,
+		textures.U = new THREE.DataTexture(NetCDFdata.UArray,
 			NetCDFdata.lonSize, NetCDFdata.latSize * NetCDFdata.levSize,
 			THREE.LuminanceFormat, THREE.FloatType);
-		textures.windField.needsUpdate = true;
+		textures.U.needsUpdate = true;
+
+		textures.V = new THREE.DataTexture(NetCDFdata.VArray,
+			NetCDFdata.lonSize, NetCDFdata.latSize * NetCDFdata.levSize,
+			THREE.LuminanceFormat, THREE.FloatType);
+		textures.V.needsUpdate = true;
 
 		let maxParticles = particleTextureSize * particleTextureSize;
 		let particlesArray = new Float32Array(3 * maxParticles);
@@ -73,8 +79,11 @@ var Util = (function () {
 		let updateShader = getShaderCode('glsl/update.frag');
 		let particleShaderMaterial = new THREE.ShaderMaterial({
 			uniforms: {
-				windField: {
-					value: textures.windField
+				U: {
+					value: textures.U
+				},
+				V: {
+					value: textures.V
 				},
 				windFieldDimensions: {
 					value: new THREE.Vector3(NetCDFdata.lonSize, NetCDFdata.latSize, NetCDFdata.levSize)

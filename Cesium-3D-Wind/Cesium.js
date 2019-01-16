@@ -13,3 +13,5 @@ let viewer = new Cesium.Viewer('cesiumContainer', {
     requestRenderMode: true,
     maximumRenderTimeChange: timeStep / 100
 });
+
+

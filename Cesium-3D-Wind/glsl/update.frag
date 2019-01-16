@@ -1,6 +1,7 @@
 precision highp sampler2D;
 
-uniform sampler2D windField;// (lon, lat*lev)
+uniform sampler2D U;// (lon, lat*lev)
+uniform sampler2D V;// (lon, lat*lev)
 uniform vec3 windFieldDimensions;// (lon, lat, lev)
 uniform sampler2D particles;
 
@@ -11,8 +12,11 @@ void main() {
     vec3 position = texel.rgb;// (lon, lat, lev)
     
 	vec2 index = vec2(position.x, position.y * windFieldDimensions.y + position.z);
-	vec3 windVector = texture2D(windField, index).rgb;
+	float u = texture2D(U, index).r;
+	float v = texture2D(V, index).r;
+	float w = 0.0;
+	vec3 windVector = vec3(u, v, w);
 	
-    vec3 nextPosition = position + 5.0*windVector;
+    vec3 nextPosition = position + windVector;
     gl_FragColor = vec4(nextPosition, 1.0);
 }

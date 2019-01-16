@@ -11,7 +11,7 @@
             "runtimeArgs": [
                 "--incognito"
             ],
-            "name": "Launch Cesium App",
+            "name": "Launch Cesium 3D Wind",
             "url": "http://localhost:5500",
             "webRoot": "${workspaceFolder:Web}"
         }
