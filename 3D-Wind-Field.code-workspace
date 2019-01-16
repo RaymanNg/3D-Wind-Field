@@ -1,13 +1,10 @@
 {
 	"folders": [
 		{
-			"path": "Cesium"
+			"path": "Cesium-3D-Wind"
 		},
 		{
 			"path": "DataProcess"
-		},
-		{
-			"path": "ThreeJS"
 		},
 		{
 			"path": "Util"
@@ -15,6 +12,6 @@
 	],
 	"settings": {
 		"java.configuration.updateBuildConfiguration": "interactive",
-		"liveServer.settings.multiRootWorkspaceName": "ThreeJS"
+		"liveServer.settings.multiRootWorkspaceName": "Cesium-3D-Wind"
 	}
 }
