@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ColorMap>
+  <ColorMapEntry color="#00007B" quantity="-0.001044628" />
+  <ColorMapEntry color="#2964FF" quantity="-0.00087473624" />
+  <ColorMapEntry color="#5EB3FF" quantity="-0.00070484448" />
+  <ColorMapEntry color="#89DCFF" quantity="-0.00053495272" />
+  <ColorMapEntry color="#A9F3FF" quantity="-0.00036506096" />
+  <ColorMapEntry color="#E1FDB8" quantity="-0.0001951692" />
+  <ColorMapEntry color="#FFE803" quantity="-2.52774399999998E-05" />
+  <ColorMapEntry color="#FF9E00" quantity="0.00014461432" />
+  <ColorMapEntry color="#FF3000" quantity="0.00031450608" />
+  <ColorMapEntry color="#DA0000" quantity="0.00048439784" />
+  <ColorMapEntry color="#870000" quantity="0.0006542896" />
+</ColorMap>

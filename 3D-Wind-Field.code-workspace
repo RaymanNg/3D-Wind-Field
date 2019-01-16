@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "Cesium"
+		},
+		{
+			"path": "DataProcess"
+		},
+		{
+			"path": "ThreeJS"
+		},
+		{
+			"path": "Util"
+		}
+	],
+	"settings": {
+		"java.configuration.updateBuildConfiguration": "interactive",
+		"liveServer.settings.multiRootWorkspaceName": "ThreeJS"
+	}
+}
