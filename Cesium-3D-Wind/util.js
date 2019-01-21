@@ -177,6 +177,7 @@ var Util = (function () {
 
 	return {
 		loadNetCDF: loadNetCDF,
+		getShaderCode: getShaderCode,
 		setupTextures: setupTextures,
 		initParticleSystem: initParticleSystem,
 		initParticlePoints: initParticlePoints,

@@ -7,13 +7,13 @@
         {
             "type": "chrome",
             "request": "launch",
-            "runtimeExecutable": "D:\\PortableApps\\PortableApps\\GoogleChromePortable\\GoogleChromePortable.exe",
+            "runtimeExecutable": "${env:CHROME_PATH}\\GoogleChromePortable.exe",
             "runtimeArgs": [
                 "--incognito"
             ],
             "name": "Launch Cesium 3D Wind",
             "url": "http://localhost:5500",
-            "webRoot": "${workspaceFolder:Web}"
+            "webRoot": "${workspaceFolder:Cesium-3D-Wind}"
         }
     ]
 }
