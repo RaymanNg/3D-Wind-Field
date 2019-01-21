@@ -4,9 +4,6 @@
 			"path": "Cesium-3D-Wind"
 		},
 		{
-			"path": "DataProcess"
-		},
-		{
 			"path": "Util"
 		}
 	],
