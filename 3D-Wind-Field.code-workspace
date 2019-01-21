@@ -11,7 +11,7 @@
 		}
 	],
 	"settings": {
-		"java.configuration.updateBuildConfiguration": "interactive",
-		"liveServer.settings.multiRootWorkspaceName": "Cesium-3D-Wind"
+		"liveServer.settings.multiRootWorkspaceName": "Cesium-3D-Wind",
+		"java.configuration.updateBuildConfiguration": "interactive"
 	}
 }
