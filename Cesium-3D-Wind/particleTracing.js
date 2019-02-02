@@ -103,12 +103,7 @@ var ParticleTracing = (function () {
 
     return {
         init: init,
-        animate: animate,
+        render: render,
         debug: debug
     }
 })();
-
-// ParticleTracing.init().then(() => {
-//     ParticleTracing.animate();
-//     ParticleTracing.debug();
-// });
