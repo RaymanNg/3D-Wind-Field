@@ -1,21 +1,22 @@
 uniform sampler2D colorTexture; 
+uniform sampler2D depthTexture;
+
+uniform sampler2D particleTrails;
+// uniform sampler2D particleDepthTexture;
 
 varying vec2 v_textureCoordinates; 
 
-const int KERNEL_WIDTH = 16; 
-
 void main() 
-{ 
-    vec2 step = 1.0 / czm_viewport.zw; 
-    vec2 integralPos = v_textureCoordinates - mod(v_textureCoordinates, 8.0 * step); 
-    vec3 averageValue = vec3(0.0); 
-    for (int i = 0; i < KERNEL_WIDTH; i++) 
-    { 
-        for (int j = 0; j < KERNEL_WIDTH; j++) 
-        { 
-            averageValue += texture2D(colorTexture, integralPos + step * vec2(i, j)).rgb; 
-        } 
-    } 
-    averageValue /= float(KERNEL_WIDTH * KERNEL_WIDTH); 
-    gl_FragColor = vec4(averageValue, 1.0); 
+{
+	vec4 cesiumColor = texture2D(colorTexture, v_textureCoordinates);
+	vec4 particleColor = texture2D(particleTrails, v_textureCoordinates);
+	
+//	float cesiumDepth = texture2D(depthTexture, v_textureCoordinates);
+//	float particleDepth = texture2D(particleDepthTexture, v_textureCoordinates);
+	
+//	if (particleDepth > cesiumDepth) {
+		gl_FragColor = particleColor;
+//	} else {
+//		gl_FragColor = cesiumColor;
+//	}
 }

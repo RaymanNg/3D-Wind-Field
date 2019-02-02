@@ -2,8 +2,8 @@
 <html lang="en">
 
 <head>
-  <script charset="UTF-8" src="lib/Cesium/Cesium.js"></script>
-  <link href="lib/Cesium/Widgets/widgets.css" rel="stylesheet" />
+  <script charset="UTF-8" src="lib/CesiumUnminified/Cesium.js"></script>
+  <link href="lib/CesiumUnminified/Widgets/widgets.css" rel="stylesheet" />
   <script src="lib/dat.gui.js"></script>
   <script src="lib/Stats.js"></script>
   <script src="lib/netcdfjs.js"></script>
@@ -12,6 +12,7 @@
 </head>
 
 <body>
+  <canvas id="canvas" style="display:none;"></canvas>
   <div id="cesiumContainer"></div>
   <script src="util.js"></script>
   <script src="particleTracing.js"></script>
