@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
 	"folders": [
 		{
@@ -11,4 +12,22 @@
 		"liveServer.settings.multiRootWorkspaceName": "Cesium-3D-Wind",
 		"java.configuration.updateBuildConfiguration": "interactive"
 	}
+=======
+{
+	"folders": [
+		{
+			"path": "Cesium-3D-Wind"
+		},
+		{
+			"path": "DataProcess"
+		},
+		{
+			"path": "Util"
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "Cesium-3D-Wind",
+		"java.configuration.updateBuildConfiguration": "interactive"
+	}
+>>>>>>> parent of 4e632e0... data process is unneeded now
 }
