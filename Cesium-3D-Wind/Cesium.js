@@ -38,6 +38,7 @@ var Wind3D = (function () {
 })();
 
 ParticleTracing.init().then(() => {
+    Wind3D.init();
     ParticleTracing.debug();
     setInterval(Wind3D.update, 100);
 });
