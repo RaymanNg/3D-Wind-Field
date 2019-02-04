@@ -15,7 +15,7 @@ void main()
 //	float particleDepth = texture2D(particleDepthTexture, v_textureCoordinates);
 	
 //	if (particleDepth > cesiumDepth) {
-		gl_FragColor = particleColor;
+		gl_FragColor = cesiumColor + particleColor;
 //	} else {
 //		gl_FragColor = cesiumColor;
 //	}
