@@ -1,45 +1,54 @@
 var ParticleTracing = (function () {
-    let canvas;
-    let camera, renderer;
+    /** @type {HTMLElement} */var particleTrailsCanvas;
 
-    let computeScene, pointsScene, trailsScene;
-    let scene, screen;
+    /** @type {THREE.WebGLRenderer} */var particleRenderer;
 
-    let maxParticles = 65536, fadeOpacity = 0.999;
-    let particleSystem, particlePoints, particleTrails;
-    let currentParticlePosition, nextParticlePosition;
+    /** @type {THREE.Scene} */var computeScene;
+    /** @type {THREE.Scene} */var pointsScene;
+    /** @type {THREE.Scene} */var trailsScene;
+    /** @type {THREE.Scene} */var scene;
 
-    let pointsTetxure, previousTrails, currentTrails;
+    var maxParticles = 65536;
+    var fadeOpacity = 0.996;
 
-    let spector;
+    /** @type {THREE.WebGLRenderTarget} */var currentParticlePosition;
+    /** @type {THREE.WebGLRenderTarget} */var nextParticlePosition;
+    /** @type {THREE.WebGLRenderTarget} */var pointsTetxure;
+    /** @type {THREE.WebGLRenderTarget} */var previousTrails;
+    /** @type {THREE.WebGLRenderTarget} */var currentTrails;
+
+    /** @type {THREE.Mesh} */var particleSystem;
+    /** @type {THREE.Mesh} */var particlePoints;
+    /** @type {THREE.Mesh} */var particleTrails;
+    /** @type {THREE.Mesh} */var trailsScreen;
+
+    var spector;
 
     var init = async function () {
-        canvas = document.getElementById('canvas');
-
-        computeScene = new THREE.Scene();
-        pointsScene = new THREE.Scene();
-        trailsScene = new THREE.Scene();
-        scene = new THREE.Scene();
-
-        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
-        camera.position.z = 9999.0;
-
-        renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(window.innerWidth, window.innerHeight);
-
-        let particleTextureSize = Math.round(Math.sqrt(maxParticles));
-        let textureOptions = {
-            format: THREE.RGBAFormat,
-            type: THREE.FloatType
-        };
-        currentParticlePosition = new THREE.WebGLRenderTarget(particleTextureSize, particleTextureSize, textureOptions);
-        nextParticlePosition = new THREE.WebGLRenderTarget(particleTextureSize, particleTextureSize, textureOptions);
-        pointsTetxure = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
-        previousTrails = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
-        currentTrails = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
-
         await Util.loadNetCDF('data/uv_0.nc').then(function () {
+            particleTrailsCanvas = document.getElementById('particleTrails');
+
+            particleRenderer = new THREE.WebGLRenderer({ canvas: particleTrailsCanvas, alpha: true });
+            particleRenderer.setPixelRatio(window.devicePixelRatio);
+            particleRenderer.setSize(window.innerWidth, window.innerHeight);
+
+            computeScene = new THREE.Scene();
+            pointsScene = new THREE.Scene();
+            trailsScene = new THREE.Scene();
+            scene = new THREE.Scene();
+
+            var particleTextureSize = Math.round(Math.sqrt(maxParticles));
+            var textureOptions = {
+                format: THREE.RGBAFormat,
+                type: THREE.FloatType
+            };
+
+            currentParticlePosition = new THREE.WebGLRenderTarget(particleTextureSize, particleTextureSize, textureOptions);
+            nextParticlePosition = new THREE.WebGLRenderTarget(particleTextureSize, particleTextureSize, textureOptions);
+            pointsTetxure = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+            previousTrails = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+            currentTrails = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+
             Util.setupTextures(particleTextureSize);
 
             particleSystem = Util.initParticleSystem(particleTextureSize);
@@ -51,40 +60,37 @@ var ParticleTracing = (function () {
             particleTrails = Util.initParticleTrails(pointsTetxure, previousTrails, fadeOpacity);
             trailsScene.add(particleTrails);
 
-            screen = Util.initScreen(previousTrails);
-            scene.add(screen);
+            trailsScreen = Util.initScreen(previousTrails.texture);
+            scene.add(trailsScreen);
         });
     }
 
     var swapTrails = function () {
-        let temp = previousTrails;
+        var temp = previousTrails;
         previousTrails = currentTrails;
         currentTrails = temp;
 
         particleTrails.material.uniforms.previousTrails.value = previousTrails.texture;
-        particleTrails.material.uniforms.previousTrails.needsUpdate = true;
         particleTrails.material.needsUpdate = true;
     }
 
     var swapParticlePosition = function () {
-        let temp = currentParticlePosition;
+        var temp = currentParticlePosition;
         currentParticlePosition = nextParticlePosition;
         nextParticlePosition = temp;
 
         particleSystem.material.uniforms.particles.value = currentParticlePosition.texture;
-        particleSystem.material.uniforms.particles.needsUpdate = true;
         particleSystem.material.needsUpdate = true;
 
         particlePoints.material.uniforms.particles.value = currentParticlePosition.texture;
-        particlePoints.material.uniforms.particles.needsUpdate = true;
         particlePoints.material.needsUpdate = true;
     }
 
     var render = function () {
-        renderer.render(pointsScene, camera, pointsTetxure);
-        renderer.render(trailsScene, camera, currentTrails);
-        renderer.render(scene, camera);
-        renderer.render(computeScene, camera, nextParticlePosition);
+        particleRenderer.render(pointsScene, camera, pointsTetxure);
+        particleRenderer.render(trailsScene, camera, currentTrails);
+        particleRenderer.render(scene, camera);
+        particleRenderer.render(computeScene, camera, nextParticlePosition);
 
         swapTrails();
         swapParticlePosition();
@@ -103,7 +109,9 @@ var ParticleTracing = (function () {
 
     return {
         init: init,
+        camera: camera,
         render: render,
+        animate: animate,
         debug: debug
     }
 })();
