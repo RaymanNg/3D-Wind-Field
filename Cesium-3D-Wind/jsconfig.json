@@ -1,0 +1,11 @@
+{
+    "typeAcquisition": {
+        "include": [
+            "three",
+            "cesium"
+        ]
+    },
+    "exclude": [
+        "lib"
+    ]
+}

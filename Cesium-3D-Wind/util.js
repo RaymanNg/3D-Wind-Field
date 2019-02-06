@@ -4,20 +4,20 @@ var Util = (function () {
 
 	var loadNetCDF = function (filePath) {
 		return new Promise((resolve) => {
-			let loader = new THREE.FileLoader();
+			var loader = new THREE.FileLoader();
 			loader.setResponseType('arraybuffer');
 			loader.load(filePath, (arraybuffer) => {
-				let NetCDF = new netcdfjs(arraybuffer);
+				var NetCDF = new netcdfjs(arraybuffer);
 				NetCDFdata = {};
 
-				let arrayToMap = (array) => {
+				var arrayToMap = (array) => {
 					return array.reduce(function (map, object) {
 						map[object.name] = object;
 						return map;
 					}, {});
 				}
 
-				let dimensions = arrayToMap(NetCDF.dimensions);
+				var dimensions = arrayToMap(NetCDF.dimensions);
 				NetCDFdata.lonSize = dimensions['lon'].size;
 				NetCDFdata.latSize = dimensions['lat'].size;
 				NetCDFdata.levSize = dimensions['lev'].size;
@@ -34,10 +34,19 @@ var Util = (function () {
 	}
 
 	var randomizeParticle = function (maxParticles, particlesArray) {
-		for (let i = 0; i < maxParticles; i++) {
-			particlesArray[3 * i] = 1000 - 2000 * Math.random();
-			particlesArray[3 * i + 1] = 1000 - 2000 * Math.random();
-			particlesArray[3 * i + 2] = 1000 - 2000 * Math.random();
+		NetCDFdata.lonMin = NetCDFdata.lonArray[0];
+		NetCDFdata.lonMax = NetCDFdata.lonArray[NetCDFdata.lonArray.length - 1];
+
+		NetCDFdata.latMin = NetCDFdata.latArray[0];
+		NetCDFdata.latMax = NetCDFdata.latArray[NetCDFdata.latArray.length - 1];
+
+		NetCDFdata.levMin = NetCDFdata.levArray[0];
+		NetCDFdata.levMax = NetCDFdata.levArray[NetCDFdata.levArray.length - 1];
+
+		for (var i = 0; i < maxParticles; i++) {
+			particlesArray[3 * i] = Math.random() * (NetCDFdata.lonMax - NetCDFdata.lonMin) + NetCDFdata.lonMin;
+			particlesArray[3 * i + 1] = Math.random() * (NetCDFdata.latMax - NetCDFdata.latMin) + NetCDFdata.latMin;
+			particlesArray[3 * i + 2] = Math.random() * (NetCDFdata.levMax - NetCDFdata.levMin) + NetCDFdata.levMin;
 		}
 		return particlesArray;
 	}
@@ -54,9 +63,10 @@ var Util = (function () {
 			THREE.LuminanceFormat, THREE.FloatType);
 		textures.V.needsUpdate = true;
 
-		let maxParticles = particleTextureSize * particleTextureSize;
-		let particlesArray = new Float32Array(3 * maxParticles);
+		var maxParticles = particleTextureSize * particleTextureSize;
+		var particlesArray = new Float32Array(3 * maxParticles);
 		particlesArray = randomizeParticle(maxParticles, particlesArray);
+
 		textures.particlePosition = new THREE.DataTexture(particlesArray,
 			particleTextureSize, particleTextureSize,
 			THREE.RGBFormat, THREE.FloatType);
@@ -66,18 +76,18 @@ var Util = (function () {
 	}
 
 	var getShaderCode = function (filePath) {
-		let request = new XMLHttpRequest();
+		var request = new XMLHttpRequest();
 		request.open('GET', filePath, false);
 		request.send(null);
 		return request.responseText;
 	}
 
 	var initParticleSystem = function (particleTextureSize) {
-		let fullscreenQuad = new THREE.PlaneBufferGeometry(2, 2);
+		var fullscreenQuad = new THREE.PlaneBufferGeometry(2, 2);
 
-		let fullscreenShader = getShaderCode('glsl/fullscreen.vert');
-		let updateShader = getShaderCode('glsl/update.frag');
-		let particleShaderMaterial = new THREE.ShaderMaterial({
+		var fullscreenShader = getShaderCode('glsl/fullscreen.vert');
+		var updateShader = getShaderCode('glsl/update.frag');
+		var particleShaderMaterial = new THREE.ShaderMaterial({
 			uniforms: {
 				U: {
 					value: textures.U
@@ -87,6 +97,13 @@ var Util = (function () {
 				},
 				windFieldDimensions: {
 					value: new THREE.Vector3(NetCDFdata.lonSize, NetCDFdata.latSize, NetCDFdata.levSize)
+				},
+				windFieldSteps: {
+					value: new THREE.Vector3(
+						(NetCDFdata.lonMax - NetCDFdata.lonMin) / NetCDFdata.lonArray.length,
+						(NetCDFdata.latMax - NetCDFdata.latMin) / NetCDFdata.latArray.length,
+						(NetCDFdata.levMax - NetCDFdata.levMin) / NetCDFdata.levArray.length
+					)
 				},
 				particles: {
 					value: textures.particlePosition
@@ -99,15 +116,15 @@ var Util = (function () {
 			fragmentShader: updateShader
 		});
 
-		let particleSystem = new THREE.Mesh(fullscreenQuad, particleShaderMaterial);
+		var particleSystem = new THREE.Mesh(fullscreenQuad, particleShaderMaterial);
 		return particleSystem;
 	}
 
 	var initParticlePoints = function (particleTextureSize, currentParticlePosition) {
-		let index = new THREE.BufferGeometry();
-		let particleIndex = [];
-		for (let u = 0; u < particleTextureSize; u++) {
-			for (let v = 0; v < particleTextureSize; v++) {
+		var index = new THREE.BufferGeometry();
+		var particleIndex = [];
+		for (var u = 0; u < particleTextureSize; u++) {
+			for (var v = 0; v < particleTextureSize; v++) {
 				particleIndex.push(u / particleTextureSize);
 				particleIndex.push(v / particleTextureSize);
 				particleIndex.push(0.0);
@@ -116,9 +133,9 @@ var Util = (function () {
 		particleIndex = new Float32Array(particleIndex);
 		index.addAttribute('position', new THREE.BufferAttribute(particleIndex, 3));
 
-		let pointDrawVert = getShaderCode('glsl/pointDraw.vert');
-		let pointDrawFrag = getShaderCode('glsl/pointDraw.frag');
-		let drawShaderMaterial = new THREE.ShaderMaterial({
+		var pointDrawVert = getShaderCode('glsl/pointDraw.vert');
+		var pointDrawFrag = getShaderCode('glsl/pointDraw.frag');
+		var drawShaderMaterial = new THREE.ShaderMaterial({
 			uniforms: {
 				particles: {
 					value: currentParticlePosition.texture
@@ -127,16 +144,16 @@ var Util = (function () {
 			vertexShader: pointDrawVert,
 			fragmentShader: pointDrawFrag
 		});
-		let particlePoints = new THREE.Points(index, drawShaderMaterial);
+		var particlePoints = new THREE.Points(index, drawShaderMaterial);
 		return particlePoints;
 	}
 
 	var initParticleTrails = function (pointsTetxure, previousTrails, fadeOpacity) {
-		let fullscreenQuad = new THREE.PlaneBufferGeometry(2, 2);
+		var fullscreenQuad = new THREE.PlaneBufferGeometry(2, 2);
 
-		let fullscreenShader = getShaderCode('glsl/fullscreen.vert');
-		let trailShader = getShaderCode('glsl/trailDraw.frag');
-		let trailShaderMaterial = new THREE.ShaderMaterial({
+		var fullscreenShader = getShaderCode('glsl/fullscreen.vert');
+		var trailShader = getShaderCode('glsl/trailDraw.frag');
+		var trailShaderMaterial = new THREE.ShaderMaterial({
 			uniforms: {
 				particlePoints: {
 					value: pointsTetxure.texture
@@ -152,26 +169,26 @@ var Util = (function () {
 			fragmentShader: trailShader
 		});
 
-		let particleTrails = new THREE.Mesh(fullscreenQuad, trailShaderMaterial);
+		var particleTrails = new THREE.Mesh(fullscreenQuad, trailShaderMaterial);
 		return particleTrails;
 	}
 
-	var initScreen = function (previousTrails) {
-		let fullscreenQuad = new THREE.PlaneBufferGeometry(2, 2);
+	var initScreen = function (textureToUse) {
+		var fullscreenQuad = new THREE.PlaneBufferGeometry(2, 2);
 
-		let fullscreenShader = getShaderCode('glsl/fullscreen.vert');
-		let screenShader = getShaderCode('glsl/screenDraw.frag');
-		let screenShaderMaterial = new THREE.ShaderMaterial({
+		var fullscreenShader = getShaderCode('glsl/fullscreen.vert');
+		var screenShader = getShaderCode('glsl/screenDraw.frag');
+		var screenShaderMaterial = new THREE.ShaderMaterial({
 			uniforms: {
 				screen: {
-					value: previousTrails.texture
+					value: textureToUse
 				}
 			},
 			vertexShader: fullscreenShader,
 			fragmentShader: screenShader
 		});
 
-		let screen = new THREE.Mesh(fullscreenQuad, screenShaderMaterial);
+		var screen = new THREE.Mesh(fullscreenQuad, screenShaderMaterial);
 		return screen;
 	}
 
