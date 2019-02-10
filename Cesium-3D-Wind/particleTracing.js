@@ -8,8 +8,10 @@ var ParticleTracing = (function () {
     /** @type {THREE.Scene} */var trailsScene;
     /** @type {THREE.Scene} */var scene;
 
-    var maxParticles = 65536;
-    var fadeOpacity = 0.996;
+    /** @type {THREE.OrthographicCamera} */var orthographicCamera;
+
+    const maxParticles = 65536;
+    const fadeOpacity = 0.5;
 
     /** @type {THREE.WebGLRenderTarget} */var currentParticlePosition;
     /** @type {THREE.WebGLRenderTarget} */var nextParticlePosition;
@@ -37,8 +39,13 @@ var ParticleTracing = (function () {
             trailsScene = new THREE.Scene();
             scene = new THREE.Scene();
 
-            var particleTextureSize = Math.round(Math.sqrt(maxParticles));
-            var textureOptions = {
+            orthographicCamera = new THREE.OrthographicCamera(
+                Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY,
+                Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY,
+                1, Number.POSITIVE_INFINITY);
+
+            const particleTextureSize = Math.round(Math.sqrt(maxParticles));
+            const textureOptions = {
                 format: THREE.RGBAFormat,
                 type: THREE.FloatType
             };
@@ -86,11 +93,23 @@ var ParticleTracing = (function () {
         particlePoints.material.needsUpdate = true;
     }
 
+    var setCamera = function (projectionArray, viewArray) {
+        var projectionMatrix = new THREE.Matrix4();
+        projectionMatrix.fromArray(projectionArray);
+
+        var viewMatrix = new THREE.Matrix4();
+        viewMatrix.fromArray(viewArray);
+
+        particlePoints.material.uniforms.cesiumProjection.value = projectionMatrix;
+        particlePoints.material.uniforms.cesiumView.value = viewMatrix;
+        particlePoints.material.needsUpdate = true;
+    }
+
     var render = function () {
-        particleRenderer.render(pointsScene, camera, pointsTetxure);
-        particleRenderer.render(trailsScene, camera, currentTrails);
-        particleRenderer.render(scene, camera);
-        particleRenderer.render(computeScene, camera, nextParticlePosition);
+        particleRenderer.render(pointsScene, orthographicCamera, pointsTetxure);
+        particleRenderer.render(trailsScene, orthographicCamera, currentTrails);
+        particleRenderer.render(scene, orthographicCamera);
+        particleRenderer.render(computeScene, orthographicCamera, nextParticlePosition);
 
         swapTrails();
         swapParticlePosition();
@@ -109,7 +128,7 @@ var ParticleTracing = (function () {
 
     return {
         init: init,
-        camera: camera,
+        setCamera: setCamera,
         render: render,
         animate: animate,
         debug: debug

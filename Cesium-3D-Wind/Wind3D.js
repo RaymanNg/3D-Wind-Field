@@ -22,7 +22,13 @@ var Wind3D = (function () {
     }
 
     var updateCamera = function () {
+        var cesiumProjection = viewer.camera.frustum.projectionMatrix;
+        var cesiumView = viewer.camera.viewMatrix;
 
+        var projectionArray = Cesium.Matrix4.toArray(cesiumProjection);
+        var viewArray = Cesium.Matrix4.toArray(cesiumView);
+
+        ParticleTracing.setCamera(projectionArray, viewArray);
     }
 
     var updateTexture = function () {
@@ -48,6 +54,5 @@ var Wind3D = (function () {
 ParticleTracing.init().then(() => {
     Wind3D.init();
     ParticleTracing.debug();
-    setInterval(Wind3D.updateCamera, 100);
-    ParticleTracing.animate();
+    setInterval(Wind3D.update, 300);
 });

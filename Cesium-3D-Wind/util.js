@@ -139,6 +139,12 @@ var Util = (function () {
 			uniforms: {
 				particles: {
 					value: currentParticlePosition.texture
+				},
+				cesiumProjection: {
+					value: new THREE.Matrix4()
+				},
+				cesiumView: {
+					value: new THREE.Matrix4()
 				}
 			},
 			vertexShader: pointDrawVert,
