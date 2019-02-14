@@ -1,58 +1,27 @@
 var Wind3D = (function () {
     Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJmYWEyMmExOS1lYjA2LTQ1YjItOTMwMS03ZWYwMzg1MWY3NWYiLCJpZCI6NDY4OCwic2NvcGVzIjpbImFzciIsImdjIl0sImlhdCI6MTU0MTQyMDMzMX0.e5QtAVvpj2oWYIiXyN5oEsFvxF6buKxhj-oOx0L1g7M';
 
+    const filePath = 'data/uv_0.nc';
+    const particlesTextureSize = 256;
+    const fadeOpacity = 0.996;
+
     /** @type {Cesium.Viewer} */
     var viewer;
-
-    /** @type {Cesium.PostProcessStage} */
-    var stage;
 
     var init = function () {
         viewer = new Cesium.Viewer('cesiumContainer', {
             shouldAnimate: true
         });
-        var fragmentShaderSource = Util.getShaderCode('glsl/postprocessing.frag');
-        stage = new Cesium.PostProcessStage({
-            fragmentShader: fragmentShaderSource,
-            uniforms: {
-                particleTrails: document.getElementById('particleTrails')
-            }
+
+        DataProcess.process(filePath, particlesTextureSize, fadeOpacity).then(function (data) {
+            viewer.scene.primitives.add(ParticleSystem.init(viewer.scene.context, data));
         });
-        viewer.scene.postProcessStages.add(stage);
-    }
-
-    var updateCamera = function () {
-        var cesiumProjection = viewer.camera.frustum.projectionMatrix;
-        var cesiumView = viewer.camera.viewMatrix;
-
-        var projectionArray = Cesium.Matrix4.toArray(cesiumProjection);
-        var viewArray = Cesium.Matrix4.toArray(cesiumView);
-
-        ParticleTracing.setCamera(projectionArray, viewArray);
-    }
-
-    var updateTexture = function () {
-        stage._texturesToCreate.push({
-            name: 'particleTrails',
-            source: document.getElementById('particleTrails')
-        });
-    }
-
-    var update = function () {
-        updateCamera();
-        ParticleTracing.render();
-        updateTexture();
     }
 
     return {
-        init: init,
-        update: update
+        init: init
     }
 
 })();
 
-ParticleTracing.init().then(() => {
-    Wind3D.init();
-    ParticleTracing.debug();
-    setInterval(Wind3D.update, 300);
-});
+Wind3D.init();

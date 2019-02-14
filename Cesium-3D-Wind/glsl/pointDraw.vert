@@ -1,8 +1,6 @@
 precision highp sampler2D;
 
 uniform sampler2D particles;
-uniform mat4 cesiumProjection;
-uniform mat4 cesiumView;
 
 vec3 convertCoordinate(vec3 lonLatLev) {
 	vec3 cartesian = vec3(0.0);
