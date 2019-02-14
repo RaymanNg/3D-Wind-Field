@@ -1,6 +1,9 @@
+attribute vec3 position;
+attribute vec2 st;
+
 varying vec2 textureCoordinate;
 
 void main() {
-    textureCoordinate = uv; // attribute uv will be added implicitly by three.js
-    gl_Position = vec4(position.xy, 0.0, 1.0); // attribute position will be added implicitly by three.js
+    textureCoordinate = st;
+    gl_Position = vec4(position.xyz, 1.0);
 }
