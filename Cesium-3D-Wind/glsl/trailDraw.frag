@@ -1,5 +1,3 @@
-precision highp sampler2D;
-
 uniform sampler2D particlePoints;
 uniform sampler2D previousTrails;
 uniform float fadeOpacity;
