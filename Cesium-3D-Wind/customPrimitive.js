@@ -5,6 +5,7 @@ class CustomPrimitive {
         var uniformMap = options.uniformMap;
         var vertexShaderFilePath = options.vertexShaderFilePath;
         var fragmentShaderFilePath = options.fragmentShaderFilePath;
+        var framebuffer = options.framebuffer;
 
         function createVertexArray(context) {
             var vertexArray = Cesium.VertexArray.fromGeometry({
@@ -47,15 +48,17 @@ class CustomPrimitive {
                 uniformMap: uniformMap,
                 modelMatrix: Cesium.Matrix4.IDENTITY,
                 shaderProgram: shaderProgram,
+                framebuffer: framebuffer,
                 pass: Cesium.Pass.OPAQUE,
                 renderState: renderState
             });
-
-            this.show = true;
-            this._command = undefined;
-            this._createCommand = createCommand;
         }
+
+        this.show = true;
+        this._command = undefined;
+        this._createCommand = createCommand;
     }
+
     update(frameState) {
         if (!this.show) {
             return;

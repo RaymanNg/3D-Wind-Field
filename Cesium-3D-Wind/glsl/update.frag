@@ -16,7 +16,7 @@ void main() {
 	windFieldIndex.z = windFieldIndex.z/windFieldSteps.z;
     
 	vec2 textureIndex = vec2(windFieldIndex.x, windFieldIndex.y * windFieldDimensions.y + windFieldIndex.z);
-	// quick and dirty estimation for unit conversion: longitude latitude degrees -> meters
+	// quick and dirty estimation for unit conversion: meters -> longitude latitude degrees
 	float u = texture2D(U, textureIndex).r / (111111.0 * cos(position.x));
 	float v = texture2D(V, textureIndex).r / 111111.0;
 	float w = 0.0;
