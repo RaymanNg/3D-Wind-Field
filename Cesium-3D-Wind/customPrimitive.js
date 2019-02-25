@@ -2,9 +2,11 @@ class CustomPrimitive {
     constructor(options) {
         var geometry = options.geometry;
         var attributeLocations = options.attributeLocations;
+        var primitiveType = options.primitiveType;
         var uniformMap = options.uniformMap;
         var vertexShaderFilePath = options.vertexShaderFilePath;
         var fragmentShaderFilePath = options.fragmentShaderFilePath;
+        var viewport = options.viewport;
         var framebuffer = options.framebuffer;
 
         function createVertexArray(context) {
@@ -39,12 +41,13 @@ class CustomPrimitive {
             var existing = undefined;
 
             var rawRenderState = Cesium.Appearance.getDefaultRenderState(translucent, closed, existing);
+            rawRenderState.viewport = viewport;
             var renderState = Cesium.RenderState.fromCache(rawRenderState);
 
             return new Cesium.DrawCommand({
                 owner: this,
                 vertexArray: createVertexArray(context),
-                primitiveType: Cesium.PrimitiveType.TRIANGLES,
+                primitiveType: primitiveType,
                 uniformMap: uniformMap,
                 modelMatrix: Cesium.Matrix4.IDENTITY,
                 shaderProgram: shaderProgram,

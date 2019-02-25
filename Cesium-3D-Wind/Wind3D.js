@@ -10,7 +10,12 @@ var Wind3D = (function () {
 
     var init = function () {
         viewer = new Cesium.Viewer('cesiumContainer', {
-            shouldAnimate: true
+            shouldAnimate: true,
+            imageryProvider: Cesium.createTileMapServiceImageryProvider({
+                url: Cesium.buildModuleUrl('Assets/Textures/NaturalEarthII')
+            }),
+            baseLayerPicker: false,
+            geocoder: false
         });
 
         DataProcess.process(filePath, particlesTextureSize, fadeOpacity).then(function (data) {
@@ -19,6 +24,8 @@ var Wind3D = (function () {
             // the order of primitives.add should respect the dependency of primitives
             viewer.scene.primitives.add(primitives.computePrimitive);
             viewer.scene.primitives.add(primitives.particlePointsPrimitive);
+
+            Util.debug(viewer.scene);
         });
     }
 

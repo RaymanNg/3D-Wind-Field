@@ -7,6 +7,6 @@ varying vec2 textureCoordinate;
 void main() {
     vec4 color = texture2D(particlePoints, textureCoordinate);
 	vec4 backgroundColor = texture2D(previousTrails, textureCoordinate);
-	backgroundColor = floor(fadeOpacity * 255.0 * backgroundColor) / 255.0; // a hack to make sure the backgroundColor will be strictly decreasing
+	backgroundColor = floor(fadeOpacity * 255.0 * backgroundColor) / 255.0; // a hack to make sure the backgroundColor will be strictly decreased
     gl_FragColor = color + backgroundColor;
 }

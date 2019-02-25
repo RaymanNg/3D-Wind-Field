@@ -6,10 +6,17 @@ var Util = (function () {
 		return request.responseText;
 	}
 
-	var debug = function () {
+	var debug = function (scene) {
 		spector = new SPECTOR.Spector();
 		spector.displayUI();
 		spector.spyCanvases();
+
+		var animate = function () {
+			scene.render();
+			requestAnimationFrame(animate);
+		}
+
+		animate();
 	}
 
 	return {
