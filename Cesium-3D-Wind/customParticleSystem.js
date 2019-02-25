@@ -5,20 +5,33 @@ var ParticleSystem = (function () {
     /** @type {Cesium.Texture} */var U;
     /** @type {Cesium.Texture} */var V;
 
+    /** @type {Cesium.Geometry} */var fullscreenQuad;
+    /** @type {Cesium.Primitive} */var computePrimitive;
+
     /** @type {Cesium.Texture} */var particlesTexture0;
     /** @type {Cesium.Texture} */var particlesTexture1;
 
     /** @type {Cesium.Framebuffer} */var particlesFramebuffer0;
     /** @type {Cesium.Framebuffer} */var particlesFramebuffer1;
 
+    // used for ping-pong render
     var fromParticles;
     var toParticles;
 
-    /** @type {Cesium.Geometry} */var fullscreenQuad;
-    /** @type {Cesium.Primitive} */var computePrimitive;
-
     /** @type {Cesium.Geometry} */var particlePoints;
     /** @type {Cesium.Primitive} */var particlePointsPrimitive;
+
+    /** @type {Cesium.Texture} */var trailsTexture0;
+    /** @type {Cesium.Texture} */var trailsTexture1;
+
+    /** @type {Cesium.Framebuffer} */var trailsFramebuffer0;
+    /** @type {Cesium.Framebuffer} */var trailsFramebuffer1;
+
+    // used for ping-pong render
+    var currentTrails;
+    var nextTrails;
+
+    /** @type {Cesium.Primitive} */var particleTrailsPrimitive;
 
     var createDataTexture = function (typedArray, options) {
         var source = {};
@@ -26,21 +39,22 @@ var ParticleSystem = (function () {
         options.source = source;
 
         var texture = new Cesium.Texture(options);
-
-        // texture.type = 'sampler2D'; 
-        // workaround for uniform type check, it is necessary only if
-        // we want to use Cesium.Texture as uniform value in Cesium.Material
-
         return texture;
     }
 
     var setupTextures = function () {
+        const sampler = new Cesium.Sampler({
+            minificationFilter: Cesium.TextureMinificationFilter.NEAREST,
+            magnificationFilter: Cesium.TextureMagnificationFilter.NEAREST
+        });
+
         const uvTextureOptions = {
             context: context,
             width: data.dimensions.lon,
             height: data.dimensions.lat * data.dimensions.lev,
             pixelFormat: Cesium.PixelFormat.RGB,
-            PixelDatatype: Cesium.PixelDatatype.FLOAT
+            PixelDatatype: Cesium.PixelDatatype.FLOAT,
+            sampler: sampler
         };
 
         U = createDataTexture(data.U.array, uvTextureOptions);
@@ -51,17 +65,18 @@ var ParticleSystem = (function () {
             width: data.particles.textureSize,
             height: data.particles.textureSize,
             pixelFormat: Cesium.PixelFormat.RGB,
-            PixelDatatype: Cesium.PixelDatatype.FLOAT
+            PixelDatatype: Cesium.PixelDatatype.FLOAT,
+            sampler: sampler
         };
 
         particlesTexture0 = createDataTexture(data.particles.array, particlesTextureOptions);
         particlesTexture1 = createDataTexture(data.particles.array, particlesTextureOptions);
     }
 
-    var setupFramebuffers = function () {
-        particlesFramebuffer0 = new Cesium.Framebuffer({
+    var createFramebuffer = function (colorTexture) {
+        var framebuffer = new Cesium.Framebuffer({
             context: context,
-            colorTextures: [particlesTexture0],
+            colorTextures: [colorTexture],
             depthTexture: new Cesium.Texture({
                 context: context,
                 width: data.particles.textureSize,
@@ -70,18 +85,12 @@ var ParticleSystem = (function () {
                 pixelDatatype: Cesium.PixelDatatype.UNSIGNED_SHORT
             })
         });
+        return framebuffer;
+    }
 
-        particlesFramebuffer1 = new Cesium.Framebuffer({
-            context: context,
-            colorTextures: [particlesTexture1],
-            depthTexture: new Cesium.Texture({
-                context: context,
-                width: data.particles.textureSize,
-                height: data.particles.textureSize,
-                pixelFormat: Cesium.PixelFormat.DEPTH_COMPONENT,
-                pixelDatatype: Cesium.PixelDatatype.UNSIGNED_SHORT
-            })
-        });
+    var setupFramebuffers = function () {
+        particlesFramebuffer0 = createFramebuffer(particlesTexture0);
+        particlesFramebuffer1 = createFramebuffer(particlesTexture1);
 
         fromParticles = particlesFramebuffer0;
         toParticles = particlesFramebuffer1;
@@ -115,7 +124,6 @@ var ParticleSystem = (function () {
                     ])
                 })
             }),
-            primitiveType: Cesium.PrimitiveType.TRIANGLES,
             indices: new Uint32Array([3, 2, 0, 0, 2, 1])
         });
 
@@ -149,16 +157,20 @@ var ParticleSystem = (function () {
             }
         }
 
+        var particleTextureSize = data.particles.textureSize;
+
         computePrimitive = new CustomPrimitive({
             geometry: fullscreenQuad,
             attributeLocations: attributeLocations,
+            primitiveType: Cesium.PrimitiveType.TRIANGLES,
             uniformMap: uniformMap,
             vertexShaderFilePath: 'glsl/fullscreen.vert',
             fragmentShaderFilePath: 'glsl/update.frag',
+            viewport: new Cesium.BoundingRectangle(0, 0, particleTextureSize, particleTextureSize),
             framebuffer: particlesFramebuffer1
         });
 
-        // redefine the update function for ping-pong render
+        // redefine the update function for ping-pong particles computation
         computePrimitive.update = function (frameState) {
             if (!this.show) {
                 return;
@@ -201,8 +213,7 @@ var ParticleSystem = (function () {
                     componentsPerAttribute: 2,
                     values: particleIndex
                 })
-            }),
-            primitiveType: Cesium.PrimitiveType.POINTS
+            })
         });
 
         var attributeLocations = {
@@ -218,11 +229,17 @@ var ParticleSystem = (function () {
         particlePointsPrimitive = new CustomPrimitive({
             geometry: particlePoints,
             attributeLocations: attributeLocations,
+            primitiveType: Cesium.PrimitiveType.POINTS,
             uniformMap: uniformMap,
             vertexShaderFilePath: 'glsl/pointDraw.vert',
             fragmentShaderFilePath: 'glsl/pointDraw.frag',
-            framebuffer: undefined
+            viewport: undefined, // undefined means let Cesium deal with it
+            framebuffer: undefined // undefined means let Cesium deal with it
         });
+    }
+
+    var initParticleTrailsPrimitive = function () {
+
     }
 
     var init = function (cesiumContext, windData) {
@@ -231,10 +248,10 @@ var ParticleSystem = (function () {
 
         setupTextures();
         setupFramebuffers();
+
         initComputePrimitive();
         initParticlePointPrimitive();
-
-        Util.debug();
+        initParticleTrailsPrimitive();
 
         return {
             computePrimitive: computePrimitive,
