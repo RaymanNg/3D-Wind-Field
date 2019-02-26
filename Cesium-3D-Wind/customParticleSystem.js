@@ -43,30 +43,29 @@ var ParticleSystem = (function () {
     }
 
     var setupTextures = function () {
-        const sampler = new Cesium.Sampler({
-            minificationFilter: Cesium.TextureMinificationFilter.NEAREST,
-            magnificationFilter: Cesium.TextureMagnificationFilter.NEAREST
-        });
-
         const uvTextureOptions = {
             context: context,
             width: data.dimensions.lon,
             height: data.dimensions.lat * data.dimensions.lev,
             pixelFormat: Cesium.PixelFormat.RGB,
-            PixelDatatype: Cesium.PixelDatatype.FLOAT,
-            sampler: sampler
+            pixelDatatype: Cesium.PixelDatatype.FLOAT
         };
 
         U = createDataTexture(data.U.array, uvTextureOptions);
         V = createDataTexture(data.V.array, uvTextureOptions);
+
+        const particlesTextureSampler = new Cesium.Sampler({
+            minificationFilter: Cesium.TextureMinificationFilter.NEAREST,
+            magnificationFilter: Cesium.TextureMagnificationFilter.NEAREST
+        });
 
         const particlesTextureOptions = {
             context: context,
             width: data.particles.textureSize,
             height: data.particles.textureSize,
             pixelFormat: Cesium.PixelFormat.RGB,
-            PixelDatatype: Cesium.PixelDatatype.FLOAT,
-            sampler: sampler
+            pixelDatatype: Cesium.PixelDatatype.FLOAT,
+            sampler: particlesTextureSampler
         };
 
         particlesTexture0 = createDataTexture(data.particles.array, particlesTextureOptions);

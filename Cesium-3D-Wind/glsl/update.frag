@@ -18,17 +18,21 @@ vec3 updatePosition(vec3 position, vec2 textureIndex) {
 	return updatedPosition;
 }
 
+float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
 void main() {
     vec4 texel = texture2D(particles, textureCoordinate); // texture coordinate must be normalized
     
 	vec3 position = texel.rgb;// (lon, lat, lev)
 	vec3 windFieldIndex = position;
-	windFieldIndex.x = windFieldIndex.x / windFieldSteps.x;
+	windFieldIndex.x = windFieldIndex.x / windFieldSteps.x; // the range of longitude is [0, 360]
 	windFieldIndex.y = windFieldIndex.y / windFieldSteps.y; // the range of latitude is [-90, 90]
 	windFieldIndex.z = windFieldIndex.z / windFieldSteps.z;
     
 	vec2 textureIndex = vec2(windFieldIndex.x, windFieldIndex.y * windFieldDimensions.z + windFieldIndex.z);
 	vec3 nextPosition = updatePosition(position, textureIndex);
 
-    gl_FragColor = vec4(position.xyz, 1.0);
+    gl_FragColor = vec4(nextPosition.xyz, 1.0);
 }

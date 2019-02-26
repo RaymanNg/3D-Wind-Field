@@ -52,8 +52,8 @@ class CustomPrimitive {
                 modelMatrix: Cesium.Matrix4.IDENTITY,
                 shaderProgram: shaderProgram,
                 framebuffer: framebuffer,
-                pass: Cesium.Pass.OPAQUE,
-                renderState: renderState
+                renderState: renderState,
+                pass: Cesium.Pass.OPAQUE
             });
         }
 
