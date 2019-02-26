@@ -22,20 +22,14 @@ vec3 convertCoordinate(vec3 lonLatLev) {
 	return cartesian;
 }
 
-float rand(vec2 seed){
-    return fract(sin(dot(seed.xy ,vec2(12.9898,78.233))) * 43758.5453);
-}
-
 void main() {
 	vec2 particleIndex = st;
     vec3 particlePosition = texture2D(particles, particleIndex).rgb;
-	particlePosition = vec3(360.0*rand(st.xy), 90.0*rand(st.yx), 0.0);
 	particlePosition = convertCoordinate(particlePosition);
 	
 	vec4 cesiumPosition = vec4(particlePosition, 1.0);
 	cesiumPosition = czm_modelViewProjection * cesiumPosition;
-	cesiumPosition.xyz = cesiumPosition.xyz / cesiumPosition.w;
+    gl_Position = cesiumPosition;
 	
-    gl_PointSize = 1.0;
-    gl_Position = vec4(cesiumPosition.xyz, 1.0);
+	gl_PointSize = 1.0;
 }

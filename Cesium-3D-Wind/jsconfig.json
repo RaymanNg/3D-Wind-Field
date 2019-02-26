@@ -1,11 +1,11 @@
 {
     "typeAcquisition": {
         "include": [
-            "three",
             "cesium"
         ]
     },
     "exclude": [
+        "data",
         "lib"
     ]
 }
