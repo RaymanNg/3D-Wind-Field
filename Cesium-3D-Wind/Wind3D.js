@@ -1,6 +1,6 @@
 var Wind3D = (function () {
     const filePath = 'data/uv_0.nc';
-    const particlesTextureSize = 256;
+    const particlesTextureSize = 128;
     const fadeOpacity = 0.996;
 
     /** @type {Cesium.Viewer} */

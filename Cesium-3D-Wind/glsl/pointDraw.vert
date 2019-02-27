@@ -28,8 +28,7 @@ void main() {
 	particlePosition = convertCoordinate(particlePosition);
 	
 	vec4 cesiumPosition = vec4(particlePosition, 1.0);
-	cesiumPosition = czm_modelViewProjection * cesiumPosition;
-    gl_Position = cesiumPosition;
+	gl_Position = czm_modelViewProjection * cesiumPosition;
 	
-	gl_PointSize = 1.0;
+	gl_PointSize = 2.0;
 }
