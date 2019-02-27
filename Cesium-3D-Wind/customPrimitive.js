@@ -6,7 +6,7 @@ class CustomPrimitive {
         var uniformMap = options.uniformMap;
         var vertexShaderFilePath = options.vertexShaderFilePath;
         var fragmentShaderFilePath = options.fragmentShaderFilePath;
-        var viewport = options.viewport;
+        var rawRenderState = options.rawRenderState;
         var framebuffer = options.framebuffer;
 
         function createVertexArray(context) {
@@ -36,12 +36,6 @@ class CustomPrimitive {
                 fragmentShaderSource: fragmentShaderSource
             });
 
-            var translucent = true;
-            var closed = false;
-            var existing = undefined;
-
-            var rawRenderState = Cesium.Appearance.getDefaultRenderState(translucent, closed, existing);
-            rawRenderState.viewport = viewport;
             var renderState = Cesium.RenderState.fromCache(rawRenderState);
 
             return new Cesium.DrawCommand({
@@ -62,6 +56,10 @@ class CustomPrimitive {
         this._createCommand = createCommand;
     }
 
+    preExecute() {
+        // this function will be executed before the command
+    }
+
     update(frameState) {
         if (!this.show) {
             return;
@@ -73,6 +71,7 @@ class CustomPrimitive {
 
         if (Cesium.defined(this._command)) {
             frameState.commandList.push(this._command);
+            this.preExecute();
         }
     }
 
