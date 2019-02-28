@@ -20,7 +20,7 @@ class CustomPrimitive {
             return vertexArray;
         };
 
-        function createCommand(context) {
+        function createDrawCommand(context) {
             var vertexShaderSource = new Cesium.ShaderSource({
                 sources: [Util.getShaderCode(vertexShaderFilePath)]
             });
@@ -52,8 +52,8 @@ class CustomPrimitive {
         }
 
         this.show = true;
-        this._command = undefined;
-        this._createCommand = createCommand;
+        this._drawCommand = undefined;
+        this._createDrawCommand = createDrawCommand;
     }
 
     preExecute() {
@@ -65,13 +65,13 @@ class CustomPrimitive {
             return;
         }
 
-        if (!Cesium.defined(this._command)) {
-            this._command = this._createCommand(frameState.context);
+        if (!Cesium.defined(this._drawCommand)) {
+            this._drawCommand = this._createDrawCommand(frameState.context);
         }
 
-        if (Cesium.defined(this._command)) {
-            frameState.commandList.push(this._command);
+        if (Cesium.defined(this._drawCommand)) {
             this.preExecute();
+            frameState.commandList.push(this._drawCommand);
         }
     }
 
@@ -80,8 +80,8 @@ class CustomPrimitive {
     }
 
     destroy() {
-        if (Cesium.defined(this._command)) {
-            this._command.shaderProgram = this._command.shaderProgram && this._command.shaderProgram.destroy();
+        if (Cesium.defined(this._drawCommand)) {
+            this._drawCommand.shaderProgram = this._drawCommand.shaderProgram && this._drawCommand.shaderProgram.destroy();
         }
         return Cesium.destroyObject(this);
     };

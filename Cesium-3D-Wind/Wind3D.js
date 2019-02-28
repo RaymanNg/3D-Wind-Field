@@ -22,8 +22,16 @@ var Wind3D = (function () {
             // the order of primitives.add should respect the dependency of primitives
             viewer.scene.primitives.add(primitives.computePrimitive);
             viewer.scene.primitives.add(primitives.particlePointsPrimitive);
+            viewer.scene.primitives.add(primitives.particleTrailsPrimitive);
+            viewer.scene.primitives.add(primitives.screenPrimitive);
 
-            Util.debug(viewer.scene);
+            var animate = function () {
+                var boundingRectangle = viewer.camera.computeViewRectangle(viewer.scene.globe.ellipsoid);
+                viewer.scene.render();
+                requestAnimationFrame(animate);
+            }
+
+            Util.debug(animate);
         });
     }
 
