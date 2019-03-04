@@ -24,13 +24,11 @@ var DataProcess = (function () {
                 data.dimensions.lat = dimensions['lat'].size;
                 data.dimensions.lev = dimensions['lev'].size;
 
-                // the range of longitude in current used NetCDF file is [0, 360]
                 data.lon = {};
                 data.lon.array = new Float32Array(NetCDF.getDataVariable('lon').flat());
                 data.lon.min = data.lon.array[0];
                 data.lon.max = data.lon.array[data.lon.array.length - 1];
 
-                // the range of latitude in current used NetCDF file is [-90, 90]
                 data.lat = {};
                 data.lat.array = new Float32Array(NetCDF.getDataVariable('lat').flat());
                 data.lat.min = data.lat.array[0];
@@ -60,37 +58,28 @@ var DataProcess = (function () {
         for (var i = 0; i < maxParticles; i++) {
             array[3 * i] = Math.random() * (max.lon - min.lon) + min.lon;
             array[3 * i + 1] = Math.random() * (max.lat - min.lat) + min.lat;
-            array[3 * i + 2] = Math.random() * (max.lev - min.lev) + min.lev;
+            array[3 * i + 2] = Math.random() * (data.lev.max - data.lev.min) + data.lev.min;
         }
 
         return array;
     }
 
-    var setupParticle = function (particlesTextureSize, fadeOpacity) {
+    var setupParticle = function (particlesTextureSize, minMax, fadeOpacity) {
         const maxParticles = particlesTextureSize * particlesTextureSize;
 
+        var min = minMax.min;
+        var max = minMax.max;
+
         data.particles = {};
-
-        var min = {
-            lon: data.lon.min,
-            lat: data.lat.min,
-            lev: data.lev.min,
-        };
-        var max = {
-            lon: data.lon.max,
-            lat: data.lat.max,
-            lev: data.lev.max,
-        };
-
         data.particles.array = randomizeParticle(maxParticles, min, max);
 
         data.particles.textureSize = particlesTextureSize;
         data.particles.fadeOpacity = fadeOpacity;
     }
 
-    var process = async function (filePath, particlesTextureSize, fadeOpacity) {
+    var process = async function (filePath, particlesTextureSize, minMax, fadeOpacity) {
         await loadNetCDF(filePath).then(function () {
-            setupParticle(particlesTextureSize, fadeOpacity);
+            setupParticle(particlesTextureSize, minMax, fadeOpacity);
         });
 
         return data;

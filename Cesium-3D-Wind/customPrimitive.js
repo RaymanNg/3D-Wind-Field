@@ -4,8 +4,8 @@ class CustomPrimitive {
         var attributeLocations = options.attributeLocations;
         var primitiveType = options.primitiveType;
         var uniformMap = options.uniformMap;
-        var vertexShaderFilePath = options.vertexShaderFilePath;
-        var fragmentShaderFilePath = options.fragmentShaderFilePath;
+        var vertexShaderSource = options.vertexShaderSource;
+        var fragmentShaderSource = options.fragmentShaderSource;
         var rawRenderState = options.rawRenderState;
         var framebuffer = options.framebuffer;
 
@@ -21,14 +21,6 @@ class CustomPrimitive {
         };
 
         function createDrawCommand(context) {
-            var vertexShaderSource = new Cesium.ShaderSource({
-                sources: [Util.getShaderCode(vertexShaderFilePath)]
-            });
-
-            var fragmentShaderSource = new Cesium.ShaderSource({
-                sources: [Util.getShaderCode(fragmentShaderFilePath)]
-            });
-
             var shaderProgram = Cesium.ShaderProgram.fromCache({
                 context: context,
                 attributeLocations: attributeLocations,
@@ -57,7 +49,7 @@ class CustomPrimitive {
     }
 
     preExecute() {
-        // this function will be executed before the command
+        // this function will be executed before the drawCommand
     }
 
     update(frameState) {
