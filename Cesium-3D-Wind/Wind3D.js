@@ -3,31 +3,43 @@ var Wind3D = (function () {
     const particlesTextureSize = 128;
     const fadeOpacity = 0.996;
 
-    /** @type {Cesium.Viewer} */
-    var viewer;
+    /** @type {Cesium.Viewer} */var viewer;
+    /** @type {Cesium.Scene} */var scene;
+    var particleSystem;
+
+    /** @type {Cesium.Rectangle} */var viewRectangle;
+    var minMax;
 
     var init = function () {
         viewer = new Cesium.Viewer('cesiumContainer', {
-            shouldAnimate: true,
-            imageryProvider: Cesium.createTileMapServiceImageryProvider({
-                url: Cesium.buildModuleUrl('Assets/Textures/NaturalEarthII')
-            }),
-            baseLayerPicker: false,
-            geocoder: false
+            scene3DOnly: true
         });
 
-        DataProcess.process(filePath, particlesTextureSize, fadeOpacity).then(function (data) {
-            var primitives = ParticleSystem.init(viewer.scene.context, data)
+        scene = viewer.scene;
+
+        viewRectangle = viewer.camera.computeViewRectangle(scene.globe.ellipsoid);
+        minMax = Util.rectangleToMinMax(viewRectangle);
+
+        // setup mouse event listener
+        var refreshParticle = function () {
+            viewRectangle = viewer.camera.computeViewRectangle(scene.globe.ellipsoid);
+            minMax = Util.rectangleToMinMax(viewRectangle);
+            particleSystem.refreshParticle(minMax);
+        }
+        viewer.screenSpaceEventHandler.setInputAction(refreshParticle, Cesium.ScreenSpaceEventType.LEFT_UP);
+        viewer.screenSpaceEventHandler.setInputAction(refreshParticle, Cesium.ScreenSpaceEventType.WHEEL);
+
+        DataProcess.process(filePath, particlesTextureSize, minMax, fadeOpacity).then(function (data) {
+            particleSystem = ParticleSystem.init(scene.context, data, scene);
 
             // the order of primitives.add should respect the dependency of primitives
-            viewer.scene.primitives.add(primitives.computePrimitive);
-            viewer.scene.primitives.add(primitives.particlePointsPrimitive);
-            viewer.scene.primitives.add(primitives.particleTrailsPrimitive);
-            viewer.scene.primitives.add(primitives.screenPrimitive);
+            scene.primitives.add(particleSystem.computePrimitive);
+            scene.primitives.add(particleSystem.particlePointsPrimitive);
+            scene.primitives.add(particleSystem.particleTrailsPrimitive);
+            scene.primitives.add(particleSystem.screenPrimitive);
 
             var animate = function () {
-                var boundingRectangle = viewer.camera.computeViewRectangle(viewer.scene.globe.ellipsoid);
-                viewer.scene.render();
+                scene.render();
                 requestAnimationFrame(animate);
             }
 
@@ -41,4 +53,5 @@ var Wind3D = (function () {
 
 })();
 
+Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJmYWEyMmExOS1lYjA2LTQ1YjItOTMwMS03ZWYwMzg1MWY3NWYiLCJpZCI6NDY4OCwic2NvcGVzIjpbImFzciIsImdjIl0sImlhdCI6MTU0MTQyMDMzMX0.e5QtAVvpj2oWYIiXyN5oEsFvxF6buKxhj-oOx0L1g7M';
 Wind3D.init();

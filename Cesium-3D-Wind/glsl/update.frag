@@ -51,7 +51,7 @@ vec3 updatePosition(vec3 lonLatLev, vec2 normalizedIndex2D) {
 	float u = texture2D(U, normalizedIndex2D).r / longLen;
 	float v = texture2D(V, normalizedIndex2D).r / latLen;
 	float w = 0.0;
-	vec3 windVector = vec3(u, v, w);
+	vec3 windVector = vec3(0.1, 0.0, w);
 	
     vec3 updatedPosition = lonLatLev + windVector;
 	return updatedPosition;
