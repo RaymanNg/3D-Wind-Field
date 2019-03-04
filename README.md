@@ -9,3 +9,7 @@ Open the 3D-Wind-Field.code-workspace file in VSCode, then use "liveserver" to c
 
 Besides, remember to remove the "runtimeExecutable" option in Cesium-3D-Wind\.vscode\launch.json file before 
 starting debug in VSCode
+
+## Rerference
+I find a good tutorial about doing custom render in Cesium
+https://github.com/cesiumlab/cesium-custom-primitive
