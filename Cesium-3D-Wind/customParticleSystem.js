@@ -1,8 +1,6 @@
 var ParticleSystem = (function () {
     var data;
     var context;
-    var scene;
-
     var clearCommand;
 
     var particleTextureSize;
@@ -180,24 +178,6 @@ var ParticleSystem = (function () {
         nextTrails = trailsFramebuffer1;
     }
 
-    var setupClearCommand = function () {
-        var rawRenderState = createRawRenderState({
-            // undefined value means let Cesium deal with it
-            viewport: undefined,
-            depthTest: {
-                enabled: true
-            },
-            depthMask: true
-        });
-
-        clearCommand = new Cesium.ClearCommand({
-            color: new Cesium.Color(0.0, 0.0, 0.0, 0.0),
-            depth: 1.0,
-            framebuffer: undefined,
-            renderState: Cesium.RenderState.fromCache(rawRenderState)
-        });
-    }
-
     var createRawRenderState = function (options) {
         var translucent = true;
         var closed = false;
@@ -315,7 +295,7 @@ var ParticleSystem = (function () {
 
         var uniformMap = {
             particles: function () {
-                return fromParticles.getColorTexture(0);
+                return toParticles.getColorTexture(0);
             }
         };
 
@@ -344,13 +324,9 @@ var ParticleSystem = (function () {
             vertexShaderSource: vertexShaderSource,
             fragmentShaderSource: fragmentShaderSource,
             rawRenderState: rawRenderState,
-            framebuffer: pointsFramebuffer
+            framebuffer: pointsFramebuffer,
+            clearFramebuffer: pointsFramebuffer
         });
-
-        particlePointsPrimitive.preExecute = function () {
-            clearCommand.framebuffer = pointsFramebuffer;
-            clearCommand.execute(context);
-        };
     }
 
     var initParticleTrailsPrimitive = function () {
@@ -380,7 +356,8 @@ var ParticleSystem = (function () {
         var rawRenderState = createRawRenderState({
             viewport: undefined,
             depthTest: {
-                enabled: false // disable depth test for the full control of depth information
+                enabled: true,
+                func: Cesium.DepthFunction.ALWAYS // always pass depth test for the full control of depth information
             },
             depthMask: true
         });
@@ -404,7 +381,8 @@ var ParticleSystem = (function () {
             vertexShaderSource: vertexShaderSource,
             fragmentShaderSource: fragmentShaderSource,
             rawRenderState: rawRenderState,
-            framebuffer: nextTrails
+            framebuffer: nextTrails,
+            clearFramebuffer: nextTrails
         });
 
         // clear framebuffer at initialization
@@ -421,9 +399,7 @@ var ParticleSystem = (function () {
             nextTrails = temp;
 
             this._drawCommand.framebuffer = nextTrails;
-
-            clearCommand.framebuffer = nextTrails;
-            clearCommand.execute(context);
+            this._clearCommand.framebuffer = nextTrails;
         }
     }
 
@@ -439,9 +415,6 @@ var ParticleSystem = (function () {
             },
             trailsDepthTexture: function () {
                 return nextTrails.depthTexture;
-            },
-            globeDepthTexture: function () {
-                return scene._view.sceneFramebuffer._depthStencilTexture;
             }
         };
 
@@ -498,10 +471,14 @@ var ParticleSystem = (function () {
         toParticles = particlesFramebuffer1;
     }
 
-    var init = function (cesiumContext, windData, cesiumScene) {
+    var init = function (cesiumContext, windData) {
         context = cesiumContext;
         data = windData;
-        scene = cesiumScene;
+        clearCommand = new Cesium.ClearCommand({
+            color: new Cesium.Color(0.0, 0.0, 0.0, 0.0),
+            depth: 1.0,
+            framebuffer: undefined
+        });
 
         particleTextureSize = data.particles.textureSize;
         maxParticles = particleTextureSize * particleTextureSize;
@@ -509,7 +486,6 @@ var ParticleSystem = (function () {
         setupGeometries();
         setupTextures();
         setupFramebuffers();
-        setupClearCommand();
 
         initComputePrimitive();
         initParticlePointPrimitive();

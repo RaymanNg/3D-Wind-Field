@@ -13,12 +13,12 @@ void main() {
 	vec4 trailsColor = texture2D(currentTrailsColor, textureCoordinate);
 	trailsColor = floor(fadeOpacity * 255.0 * trailsColor) / 255.0; // a hack to make sure the trailsColor will be strictly decreased
 	
-	float pointsdepth = texture2D(pointsDepthTexture, textureCoordinate).r;
+	float pointsDepth = texture2D(pointsDepthTexture, textureCoordinate).r;
 	float trailsDepth = texture2D(trailsDepthTexture, textureCoordinate).r;
 	
 	if (pointsColor.r > 0.99) { // to test pointsColor.r == 1.0
 		gl_FragColor = pointsColor;
-		gl_FragDepthEXT = pointsdepth;
+		gl_FragDepthEXT = pointsDepth;
 	} else {
 		gl_FragColor = trailsColor;
 		gl_FragDepthEXT = trailsDepth;
