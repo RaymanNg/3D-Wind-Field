@@ -1,6 +1,6 @@
 var Wind3D = (function () {
     const filePath = 'data/uv_0.nc';
-    const particlesTextureSize = 128;
+    const particlesTextureSize = 256;
     const fadeOpacity = 0.996;
 
     /** @type {Cesium.Viewer} */var viewer;
@@ -20,14 +20,12 @@ var Wind3D = (function () {
         viewRectangle = viewer.camera.computeViewRectangle(scene.globe.ellipsoid);
         minMax = Util.rectangleToMinMax(viewRectangle);
 
-        // setup mouse event listener
-        var refreshParticle = function () {
+        // setup camera event listener
+        viewer.camera.moveEnd.addEventListener(function () {
             viewRectangle = viewer.camera.computeViewRectangle(scene.globe.ellipsoid);
             minMax = Util.rectangleToMinMax(viewRectangle);
             particleSystem.refreshParticle(minMax);
-        }
-        viewer.screenSpaceEventHandler.setInputAction(refreshParticle, Cesium.ScreenSpaceEventType.LEFT_UP);
-        viewer.screenSpaceEventHandler.setInputAction(refreshParticle, Cesium.ScreenSpaceEventType.WHEEL);
+        });
 
         DataProcess.process(filePath, particlesTextureSize, minMax, fadeOpacity).then(function (data) {
             particleSystem = ParticleSystem.init(scene.context, data);
