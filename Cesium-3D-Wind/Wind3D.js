@@ -30,7 +30,7 @@ var Wind3D = (function () {
         viewer.screenSpaceEventHandler.setInputAction(refreshParticle, Cesium.ScreenSpaceEventType.WHEEL);
 
         DataProcess.process(filePath, particlesTextureSize, minMax, fadeOpacity).then(function (data) {
-            particleSystem = ParticleSystem.init(scene.context, data, scene);
+            particleSystem = ParticleSystem.init(scene.context, data);
 
             // the order of primitives.add should respect the dependency of primitives
             scene.primitives.add(particleSystem.computePrimitive);
