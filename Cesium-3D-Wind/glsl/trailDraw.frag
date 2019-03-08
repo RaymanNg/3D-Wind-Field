@@ -16,7 +16,7 @@ void main() {
 	float pointsDepth = texture2D(pointsDepthTexture, textureCoordinate).r;
 	float trailsDepth = texture2D(trailsDepthTexture, textureCoordinate).r;
 	
-	if (pointsColor.r > 0.99) { // to test pointsColor.r == 1.0
+	if (pointsDepth < trailsDepth) {
 		gl_FragColor = pointsColor;
 		gl_FragDepthEXT = pointsDepth;
 	} else {

@@ -64,9 +64,12 @@ var DataProcess = (function () {
         return array;
     }
 
-    var setupParticle = function (particlesTextureSize, minMax, fadeOpacity) {
-        const maxParticles = particlesTextureSize * particlesTextureSize;
+    var setupParticle = function (particleSystemOptions, minMax) {
+        const particlesTextureSize = particleSystemOptions.particlesTextureSize;
+        const fadeOpacity = particleSystemOptions.fadeOpacity;
+        const dropRate = particleSystemOptions.dropRate;
 
+        const maxParticles = particlesTextureSize * particlesTextureSize;
         var min = minMax.min;
         var max = minMax.max;
 
@@ -75,11 +78,12 @@ var DataProcess = (function () {
 
         data.particles.textureSize = particlesTextureSize;
         data.particles.fadeOpacity = fadeOpacity;
+        data.particles.dropRate = dropRate;
     }
 
-    var process = async function (filePath, particlesTextureSize, minMax, fadeOpacity) {
+    var process = async function (filePath, particleSystemOptions, minMax) {
         await loadNetCDF(filePath).then(function () {
-            setupParticle(particlesTextureSize, minMax, fadeOpacity);
+            setupParticle(particleSystemOptions, minMax);
         });
 
         return data;

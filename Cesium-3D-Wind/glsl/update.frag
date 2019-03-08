@@ -3,6 +3,10 @@ uniform vec3 minimum; // minimum of each dimension
 uniform vec3 maximum; // maximum of each dimension
 uniform vec3 interval; // interval of each dimension
 
+uniform vec2 lonRange;
+uniform vec2 latRange;
+uniform float dropRate;
+
 // the size of UV textures: width = lon, height = lat*lev
 uniform sampler2D U; // eastward wind 
 uniform sampler2D V; // northward wind
@@ -11,7 +15,16 @@ uniform sampler2D particles;
 
 varying vec2 textureCoordinate;
 
-vec2 mapPositionToNormalizedIndex2D(vec3 lonLatLev) {	
+vec2 mapPositionToNormalizedIndex2D(vec3 lonLatLev) {
+	// the range of longitude in my NetCDF file is [0, 360]
+	// the range of longitude in Cesium is [-Pi, Pi]
+	
+	// the range of latitude in my NetCDF file is [-90, 90]
+	// the range of latitude in Cesium [-Pi/2, Pi/2]
+	
+	const float longitudeOffset = 180.0;
+	lonLatLev.x = lonLatLev.x + longitudeOffset;
+	
 	vec3 index3D = vec3(0.0);
 	index3D.x = (lonLatLev.x - minimum.x) / interval.x;
 	index3D.y = (lonLatLev.y - minimum.y) / interval.y;
@@ -30,6 +43,15 @@ vec2 mapPositionToNormalizedIndex2D(vec3 lonLatLev) {
 	vec2 index2D = vec2(index3D.x, index3D.y * dimension.z + index3D.z);
 	vec2 normalizedIndex2D = vec2(index2D.x / dimension.x, index2D.y / (dimension.y * dimension.z));
 	return normalizedIndex2D;
+}
+
+// pseudo-random generator
+const vec3 randomConstants = vec3(12.9898, 78.233, 4375.85453);
+const vec2 normalRange = vec2(0.0, 1.0);
+float rand(vec2 seed, vec2 range) {
+    float temp = dot(randomConstants.xy, seed);
+	temp = fract(sin(temp) * (randomConstants.z + temp));
+    return temp * (range.y - range.x) + range.x;
 }
 
 vec3 updatePosition(vec3 lonLatLev, vec2 normalizedIndex2D) {
@@ -51,9 +73,9 @@ vec3 updatePosition(vec3 lonLatLev, vec2 normalizedIndex2D) {
 	float u = texture2D(U, normalizedIndex2D).r / longLen;
 	float v = texture2D(V, normalizedIndex2D).r / latLen;
 	float w = 0.0;
-	vec3 windVector = vec3(0.1, 0.0, w);
+	vec3 windVector = vec3(u, v, w);
 	
-    vec3 updatedPosition = lonLatLev + windVector;
+    vec3 updatedPosition = lonLatLev + 100.0*windVector;
 	return updatedPosition;
 }
 
@@ -63,6 +85,16 @@ void main() {
 	vec3 lonLatLev = texel.rgb;
 	vec2 normalizedIndex2D = mapPositionToNormalizedIndex2D(lonLatLev);
 	vec3 nextPosition = updatePosition(lonLatLev, normalizedIndex2D);
+	
+    // drop rate is a chance a particle will restart at random position, to avoid degeneration
+	vec2 seed = (lonLatLev.xy + textureCoordinate);
+    float drop = step(1.0 - dropRate, rand(seed, normalRange));
+	
+	float randomLon = rand(seed + 1.3, lonRange);
+	float randomLat = rand(seed + 2.1, latRange);
+	
+    vec3 randomPosition = vec3(randomLon, randomLat, nextPosition.z);
+	nextPosition = mix(nextPosition, randomPosition, drop);
 
     gl_FragColor = vec4(nextPosition.xyz, 1.0);
 }
