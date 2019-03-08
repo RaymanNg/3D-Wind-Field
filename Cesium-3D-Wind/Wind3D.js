@@ -1,7 +1,10 @@
 var Wind3D = (function () {
     const filePath = 'data/uv_0.nc';
-    const particlesTextureSize = 256;
-    const fadeOpacity = 0.996;
+    const particleSystemOptions = {
+        particlesTextureSize: 256,
+        fadeOpacity: 0.996,
+        dropRate: 0.03,
+    }
 
     /** @type {Cesium.Viewer} */var viewer;
     /** @type {Cesium.Scene} */var scene;
@@ -12,7 +15,12 @@ var Wind3D = (function () {
 
     var init = function () {
         viewer = new Cesium.Viewer('cesiumContainer', {
-            scene3DOnly: true
+            scene3DOnly: true,
+            imageryProvider: Cesium.createTileMapServiceImageryProvider({
+                url: Cesium.buildModuleUrl('Assets/Textures/NaturalEarthII')
+            }),
+            baseLayerPicker: false,
+            geocoder: false
         });
 
         scene = viewer.scene;
@@ -27,7 +35,7 @@ var Wind3D = (function () {
             particleSystem.refreshParticle(minMax);
         });
 
-        DataProcess.process(filePath, particlesTextureSize, minMax, fadeOpacity).then(function (data) {
+        DataProcess.process(filePath, particleSystemOptions, minMax).then(function (data) {
             particleSystem = ParticleSystem.init(scene.context, data);
 
             // the order of primitives.add should respect the dependency of primitives
@@ -51,5 +59,5 @@ var Wind3D = (function () {
 
 })();
 
-Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJmYWEyMmExOS1lYjA2LTQ1YjItOTMwMS03ZWYwMzg1MWY3NWYiLCJpZCI6NDY4OCwic2NvcGVzIjpbImFzciIsImdjIl0sImlhdCI6MTU0MTQyMDMzMX0.e5QtAVvpj2oWYIiXyN5oEsFvxF6buKxhj-oOx0L1g7M';
+//Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJmYWEyMmExOS1lYjA2LTQ1YjItOTMwMS03ZWYwMzg1MWY3NWYiLCJpZCI6NDY4OCwic2NvcGVzIjpbImFzciIsImdjIl0sImlhdCI6MTU0MTQyMDMzMX0.e5QtAVvpj2oWYIiXyN5oEsFvxF6buKxhj-oOx0L1g7M';
 Wind3D.init();

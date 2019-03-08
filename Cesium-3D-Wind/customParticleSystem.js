@@ -6,6 +6,8 @@ var ParticleSystem = (function () {
     var particleTextureSize;
     var maxParticles;
     var lonLatBound;
+    var lonRange = new Cesium.Cartesian2(-180.0, 180.0);
+    var latRange = new Cesium.Cartesian2(-90.0, 90.0);
 
     /** @type {Cesium.Texture} */var U;
     /** @type {Cesium.Texture} */var V;
@@ -184,7 +186,8 @@ var ParticleSystem = (function () {
         var existing = {
             viewport: options.viewport,
             depthTest: options.depthTest,
-            depthMask: options.depthMask
+            depthMask: options.depthMask,
+            blending: options.blending
         };
 
         var rawRenderState = Cesium.Appearance.getDefaultRenderState(translucent, closed, existing);
@@ -205,6 +208,7 @@ var ParticleSystem = (function () {
             (maximum.y - minimum.y) / dimension.y,
             (maximum.z - minimum.z) / dimension.z
         );
+        var dropRate = data.particles.dropRate;
 
         var uniformMap = {
             dimension: function () {
@@ -218,6 +222,15 @@ var ParticleSystem = (function () {
             },
             interval: function () {
                 return interval;
+            },
+            lonRange: function () {
+                return lonRange;
+            },
+            latRange: function () {
+                return latRange;
+            },
+            dropRate: function () {
+                return dropRate;
             },
             U: function () {
                 return U;
@@ -423,7 +436,10 @@ var ParticleSystem = (function () {
             depthTest: {
                 enabled: false
             },
-            depthMask: true
+            depthMask: true,
+            blending: {
+                enabled: true
+            }
         });
 
         // prevent Cesium from writing depth because the depth here should be written manually
@@ -459,6 +475,12 @@ var ParticleSystem = (function () {
         clearCommand.execute(context);
 
         lonLatBound = lonLatMinMax;
+
+        lonRange.x = lonLatBound.min.lon;
+        lonRange.y = lonLatBound.max.lon;
+        latRange.x = lonLatBound.min.lat;
+        latRange.y = lonLatBound.max.lat;
+
         data.particles.array = DataProcess.randomizeParticle(maxParticles, lonLatBound.min, lonLatBound.max);
 
         particlesTexture0 = createTexture(particlesTextureOptions, data.particles.array);
