@@ -58,7 +58,8 @@ var DataProcess = (function () {
         for (var i = 0; i < maxParticles; i++) {
             array[3 * i] = Math.random() * (max.lon - min.lon) + min.lon;
             array[3 * i + 1] = Math.random() * (max.lat - min.lat) + min.lat;
-            array[3 * i + 2] = Math.random() * (data.lev.max - data.lev.min) + data.lev.min;
+            // array[3 * i + 2] = Math.random() * (data.lev.max - data.lev.min) + data.lev.min;
+            array[3 * i + 2] = data.lev.min;
         }
 
         return array;
