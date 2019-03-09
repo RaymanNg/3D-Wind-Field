@@ -1,8 +1,8 @@
 var Wind3D = (function () {
     const filePath = 'data/uv_0.nc';
     const particleSystemOptions = {
-        particlesTextureSize: 32,
-        fadeOpacity: 0.999,
+        particlesTextureSize: 256,
+        fadeOpacity: 0.996,
         dropRate: 0.03,
     }
 
@@ -42,10 +42,6 @@ var Wind3D = (function () {
             scene.primitives.add(particleSystem.particlePointsPrimitive);
             scene.primitives.add(particleSystem.particleTrailsPrimitive);
             scene.primitives.add(particleSystem.screenPrimitive);
-
-            viewer.camera.flyTo({
-                destination: Cesium.Cartesian3.fromDegrees(0.0, -18.0, 1500000.0)
-            });
 
             var animate = function () {
                 scene.render();
