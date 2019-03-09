@@ -204,9 +204,9 @@ var ParticleSystem = (function () {
         var minimum = new Cesium.Cartesian3(data.lon.min, data.lat.min, data.lev.min);
         var maximum = new Cesium.Cartesian3(data.lon.max, data.lat.max, data.lev.max);
         var interval = new Cesium.Cartesian3(
-            (maximum.x - minimum.x) / dimension.x,
-            (maximum.y - minimum.y) / dimension.y,
-            (maximum.z - minimum.z) / dimension.z
+            (maximum.x - minimum.x) / (dimension.x - 1),
+            (maximum.y - minimum.y) / (dimension.y - 1),
+            (maximum.z - minimum.z) / (dimension.z - 1)
         );
         var dropRate = data.particles.dropRate;
 

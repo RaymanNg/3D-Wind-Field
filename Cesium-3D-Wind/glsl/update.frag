@@ -28,13 +28,11 @@ float rand(vec2 seed, vec2 range) {
 
 vec2 mapPositionToNormalizedIndex2D(vec3 lonLatLev) {
 	// the range of longitude in Cesium is [-Pi, Pi]
-	// the range of longitude in my NetCDF file is [0, 360]
+	// but the range of longitude in my NetCDF file is [0, 360]
+	// [0, 180] is corresponding to [0, 180]
+	// [180, 360] is corresponding to [-180, 0]
 	
-	// the range of latitude in Cesium [-Pi/2, Pi/2]
-	// the range of latitude in my NetCDF file is [-90, 90]
-
-	const float longitudeOffset = 180.0;
-	lonLatLev.x = lonLatLev.x + longitudeOffset;
+	lonLatLev.x = mod(lonLatLev.x, 360.0);
 	
 	vec3 index3D = vec3(0.0);
 	index3D.x = (lonLatLev.x - minimum.x) / interval.x;
@@ -51,7 +49,7 @@ vec2 mapPositionToNormalizedIndex2D(vec3 lonLatLev) {
 	//    |  0 1 2
 	//   0.0------1.0 s
 
-	vec2 index2D = vec2(index3D.x, index3D.y * dimension.z + index3D.z);
+	vec2 index2D = vec2(index3D.x, index3D.z * dimension.y + index3D.y);
 	vec2 normalizedIndex2D = vec2(index2D.x / dimension.x, index2D.y / (dimension.y * dimension.z));
 	return normalizedIndex2D;
 }
@@ -61,15 +59,17 @@ vec2 lengthOfLonLat(vec3 lonLatLev) {
 	// see https://en.wikipedia.org/wiki/Geographic_coordinate_system#Length_of_a_degree for detail
 	
 	// Calculate the length of a degree of latitude and longitude in meters
+	float lat = radians(lonLatLev.y);
+	
 	float term1 = 111132.92;
-	float term2 = 559.82 * cos(2.0 * lonLatLev.y);
-	float term3 = 1.175 * cos(4.0 * lonLatLev.y);
-	float term4 = 0.0023 * cos(6.0 * lonLatLev.y);
+	float term2 = 559.82 * cos(2.0 * lat);
+	float term3 = 1.175 * cos(4.0 * lat);
+	float term4 = 0.0023 * cos(6.0 * lat);
     float latLen = term1 - term2 + term3 - term4;
 	
-	float term5 = 111412.84 * cos(lonLatLev.y);
-	float term6 = 93.5 * cos(3.0 * lonLatLev.y);
-	float term7 = 0.118 * cos(5.0 * lonLatLev.y);
+	float term5 = 111412.84 * cos(lat);
+	float term6 = 93.5 * cos(3.0 * lat);
+	float term7 = 0.118 * cos(5.0 * lat);
     float longLen = term5 - term6 + term7;
 	
 	return vec2(longLen, latLen);
@@ -101,17 +101,19 @@ vec3 updatePosition(vec3 lonLatLev, vec2 normalizedIndex2D) {
 	vec2 bottomRightWindVec = getWindVector(vec3(bottomRight, lev));
 	
 	// manual bilinear interpolation
-	vec2 coef_a = fract(lonLat);
+	vec2 coef_a = abs(fract(lonLat));
 	vec2 topLeftRightMix = mix(topLeftWindVec, topRightWindVec, coef_a.x);
 	vec2 bottomLeftRightMix = mix(bottomLeftWindVec, bottomRightWindVec, coef_a.x);
 	vec2 mixWindVec = mix(bottomLeftRightMix, topLeftRightMix, coef_a.y);
+	mixWindVec = getWindVector(lonLatLev);
 	
 	float u = mixWindVec.x / lonLatLen.x;
 	float v = mixWindVec.y / lonLatLen.y;
 	float w = 0.0;
-	vec3 WindVec = vec3(u, 0.0, w);
 	
-    vec3 updatedPosition = lonLatLev + 100.0*WindVec;
+	vec3 WindVec = vec3(u, v, w);
+	
+    vec3 updatedPosition = lonLatLev + 100.0 * WindVec;
 	return updatedPosition;
 }
 
