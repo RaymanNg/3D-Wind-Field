@@ -8,7 +8,7 @@ class CustomPrimitive {
         var fragmentShaderSource = options.fragmentShaderSource;
         var rawRenderState = options.rawRenderState;
         var framebuffer = options.framebuffer;
-        var clearFramebuffer = options.clearFramebuffer;
+        var autoClear = options.autoClear;
 
         function createVertexArray(context) {
             var vertexArray = Cesium.VertexArray.fromGeometry({
@@ -49,15 +49,14 @@ class CustomPrimitive {
         this._createDrawCommand = createDrawCommand;
 
         this._clearCommand = undefined;
-        if (Cesium.defined(clearFramebuffer)) {
+        if (Cesium.defined(autoClear)) {
             this._clearCommand = new Cesium.ClearCommand({
                 color: new Cesium.Color(0.0, 0.0, 0.0, 0.0),
                 depth: 1.0,
-                framebuffer: clearFramebuffer,
+                framebuffer: framebuffer,
                 pass: Cesium.Pass.OPAQUE
             });
         }
-
     }
 
     preExecute() {
