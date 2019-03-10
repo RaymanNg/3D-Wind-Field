@@ -56,9 +56,9 @@ var DataProcess = (function () {
         var array = new Float32Array(3 * maxParticles);
 
         for (var i = 0; i < maxParticles; i++) {
-            array[3 * i] = Math.random() * (max.lon - min.lon) + min.lon;
-            array[3 * i + 1] = Math.random() * (max.lat - min.lat) + min.lat;
-            // array[3 * i + 2] = Math.random() * (data.lev.max - data.lev.min) + data.lev.min;
+            array[3 * i] = Cesium.Math.randomBetween(min.lon, max.lon);
+            array[3 * i + 1] = Cesium.Math.randomBetween(min.lat, max.lat);
+            // array[3 * i + 2] = Cesium.Math.randomBetween(min.lev, max.lev);
             array[3 * i + 2] = data.lev.min;
         }
 

@@ -11,7 +11,7 @@ var Wind3D = (function () {
     var particleSystem;
 
     /** @type {Cesium.Rectangle} */var viewRectangle;
-    var minMax;
+    var lonLatBound;
 
     var init = function () {
         viewer = new Cesium.Viewer('cesiumContainer', {
@@ -25,16 +25,16 @@ var Wind3D = (function () {
         scene = viewer.scene;
 
         viewRectangle = viewer.camera.computeViewRectangle(scene.globe.ellipsoid);
-        minMax = Util.rectangleToMinMax(viewRectangle);
+        lonLatBound = Util.rectangleToLonLatBound(viewRectangle);
 
         // setup camera event listener
         viewer.camera.moveEnd.addEventListener(function () {
             viewRectangle = viewer.camera.computeViewRectangle(scene.globe.ellipsoid);
-            minMax = Util.rectangleToMinMax(viewRectangle);
-            particleSystem.refreshParticle(minMax);
+            lonLatBound = Util.rectangleToLonLatBound(viewRectangle);
+            particleSystem.refreshParticle(lonLatBound);
         });
 
-        DataProcess.process(filePath, particleSystemOptions, minMax).then(function (data) {
+        DataProcess.process(filePath, particleSystemOptions, lonLatBound).then(function (data) {
             particleSystem = ParticleSystem.init(scene.context, data);
 
             // the order of primitives.add should respect the dependency of primitives

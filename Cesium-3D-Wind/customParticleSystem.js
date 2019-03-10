@@ -5,7 +5,6 @@ var ParticleSystem = (function () {
 
     var particleTextureSize;
     var maxParticles;
-    var lonLatBound;
     var lonRange = new Cesium.Cartesian2(-180.0, 180.0);
     var latRange = new Cesium.Cartesian2(-90.0, 90.0);
 
@@ -465,7 +464,7 @@ var ParticleSystem = (function () {
         });
     }
 
-    var refreshParticle = function (lonLatMinMax) {
+    var refreshParticle = function (lonLatBound) {
         clearCommand.framebuffer = pointsFramebuffer;
         clearCommand.execute(context);
 
@@ -473,8 +472,6 @@ var ParticleSystem = (function () {
         clearCommand.execute(context);
         clearCommand.framebuffer = nextTrails;
         clearCommand.execute(context);
-
-        lonLatBound = lonLatMinMax;
 
         lonRange.x = lonLatBound.min.lon;
         lonRange.y = lonLatBound.max.lon;
