@@ -109,6 +109,7 @@ var Util = (function () {
 		result.min.lat = Cesium.Math.clamp(south - height / 2, -90.0, 90.0);
 		result.max.lat = Cesium.Math.clamp(north + height / 2, -90.0, 90.0);
 
+		// extend the bound in high latitude area to make sure it can cover all the visible area
 		if (result.min.lat < -65.0) {
 			result.min.lat = -90.0;
 		}

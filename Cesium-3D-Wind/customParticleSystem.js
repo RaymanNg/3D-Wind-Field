@@ -395,6 +395,25 @@ class ParticleSystem {
 
         var maxParticles = this.data.particles.textureSize * this.data.particles.textureSize;
         this.data.particles.array = DataProcess.randomizeParticle(maxParticles, lonLatBound.min, lonLatBound.max);
+
+        this.fromParticles.destroy();
+        this.toParticles.destroy();
         this.setupParticleTexturesAndFramebuffers(this.data.particles.textureSize, this.data.particles.array);
+    }
+
+    canvasResize() {
+        this.fromParticles.destroy();
+        this.toParticles.destroy();
+        this.pointsFramebuffer.destroy();
+        this.currentTrails.destroy();
+        this.nextTrails.destroy();
+
+        this.setupAllTexturesAndFramebuffers(this.data);
+
+        this.computePrimitive._drawCommand.framebuffer = this.toParticles;
+        this.particlePointsPrimitive._clearCommand.framebuffer = this.pointsFramebuffer;
+        this.particlePointsPrimitive._drawCommand.framebuffer = this.pointsFramebuffer;
+        this.particleTrailsPrimitive._clearCommand.framebuffer = this.nextTrails;
+        this.particleTrailsPrimitive._drawCommand.framebuffer = this.nextTrails;
     }
 }
