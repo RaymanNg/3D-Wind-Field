@@ -26,18 +26,18 @@ var DataProcess = (function () {
 
                 data.lon = {};
                 data.lon.array = new Float32Array(NetCDF.getDataVariable('lon').flat());
-                data.lon.min = data.lon.array[0];
-                data.lon.max = data.lon.array[data.lon.array.length - 1];
+                data.lon.min = Math.min(...data.lon.array);
+                data.lon.max = Math.max(...data.lon.array);
 
                 data.lat = {};
                 data.lat.array = new Float32Array(NetCDF.getDataVariable('lat').flat());
-                data.lat.min = data.lat.array[0];
-                data.lat.max = data.lat.array[data.lat.array.length - 1];
+                data.lat.min = Math.min(...data.lat.array);
+                data.lat.max = Math.max(...data.lat.array);
 
                 data.lev = {};
                 data.lev.array = new Float32Array(NetCDF.getDataVariable('lev').flat());
-                data.lev.min = data.lev.array[0];
-                data.lev.max = data.lev.array[data.lev.array.length - 1];
+                data.lev.min = Math.min(...data.lev.array);
+                data.lev.max = Math.max(...data.lev.array);
 
                 data.U = {};
                 data.U.array = new Float32Array(NetCDF.getDataVariable('U').flat());

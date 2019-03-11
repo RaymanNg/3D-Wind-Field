@@ -113,7 +113,7 @@ vec3 updatePosition(vec3 lonLatLev, vec2 normalizedIndex2D) {
 	
 	vec3 WindVec = vec3(u, v, w);
 	
-    vec3 updatedPosition = lonLatLev + 100.0 * WindVec;
+    vec3 updatedPosition = lonLatLev + WindVec;
 	return updatedPosition;
 }
 

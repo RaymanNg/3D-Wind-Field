@@ -2,6 +2,7 @@ class Wind3D {
     constructor(filePath, particleSystemOptions) {
         this.viewer = new Cesium.Viewer('cesiumContainer', {
             scene3DOnly: true,
+            fullscreenElement: 'cesiumContainer',
             imageryProvider: Cesium.createTileMapServiceImageryProvider({
                 url: Cesium.buildModuleUrl('Assets/Textures/NaturalEarthII')
             }),
@@ -22,7 +23,7 @@ class Wind3D {
                 this.scene.primitives.add(this.particleSystem.particleTrailsPrimitive);
                 this.scene.primitives.add(this.particleSystem.screenPrimitive);
 
-                this.setupCameraEventListener();
+                this.setupEventListener();
             });
     }
 
@@ -32,8 +33,9 @@ class Wind3D {
         return lonLatBound;
     }
 
-    setupCameraEventListener() {
+    setupEventListener() {
         const that = this;
+
         this.camera.moveStart.addEventListener(function () {
             that.scene.primitives.show = false;
             that.particleSystem.clearFramebuffer();
@@ -43,6 +45,21 @@ class Wind3D {
             var lonLatBound = that.getLonLatBound();
             that.particleSystem.refreshParticle(lonLatBound);
             that.scene.primitives.show = true;
+        });
+
+        var resized = false;
+        window.addEventListener("resize", function () {
+            resized = true;
+            that.scene.primitives.show = false;
+        });
+
+        this.scene.preRender.addEventListener(function () {
+            if (resized) {
+                that.particleSystem.context = that.scene.context;
+                that.particleSystem.canvasResize();
+                resized = false;
+                that.scene.primitives.show = true;
+            }
         });
     }
 
