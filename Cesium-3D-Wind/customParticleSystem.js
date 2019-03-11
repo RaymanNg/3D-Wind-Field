@@ -12,7 +12,7 @@ class ParticleSystem {
         this.lonRange = new Cesium.Cartesian2(-180.0, 180.0);
         this.latRange = new Cesium.Cartesian2(-90.0, 90.0);
 
-        this.setupAllTexturesAndFramebuffers();
+        this.setupAllTexturesAndFramebuffers(this.data);
 
         this.initComputePrimitive();
         this.initParticlePointPrimitive();
@@ -20,11 +20,11 @@ class ParticleSystem {
         this.initScreenPrimitive();
     }
 
-    setupParticleTexturesAndFramebuffers(particlesArray) {
+    setupParticleTexturesAndFramebuffers(particlesTextureSize, particlesArray) {
         const particlesTextureOptions = {
             context: this.context,
-            width: this.data.particles.textureSize,
-            height: this.data.particles.textureSize,
+            width: particlesTextureSize,
+            height: particlesTextureSize,
             pixelFormat: Cesium.PixelFormat.RGB,
             pixelDatatype: Cesium.PixelDatatype.FLOAT,
             flipY: false,
@@ -42,21 +42,21 @@ class ParticleSystem {
         this.toParticles = this.particlesFramebuffer1;
     }
 
-    setupAllTexturesAndFramebuffers() {
-        this.setupParticleTexturesAndFramebuffers(this.data.particles.array);
+    setupAllTexturesAndFramebuffers(data) {
+        this.setupParticleTexturesAndFramebuffers(data.particles.textureSize, data.particles.array);
 
         const uvTextureOptions = {
             context: this.context,
-            width: this.data.dimensions.lon,
-            height: this.data.dimensions.lat * this.data.dimensions.lev,
+            width: data.dimensions.lon,
+            height: data.dimensions.lat * data.dimensions.lev,
             pixelFormat: Cesium.PixelFormat.LUMINANCE,
             pixelDatatype: Cesium.PixelDatatype.FLOAT,
             flipY: false, // the data we provide should not be flipped
             sampler: Util.getDataTextureSampler()
         };
 
-        this.U = Util.createTexture(uvTextureOptions, this.data.U.array);
-        this.V = Util.createTexture(uvTextureOptions, this.data.V.array);
+        this.U = Util.createTexture(uvTextureOptions, data.U.array);
+        this.V = Util.createTexture(uvTextureOptions, data.V.array);
 
         const colorTextureOptions = {
             context: this.context,
@@ -395,6 +395,6 @@ class ParticleSystem {
 
         var maxParticles = this.data.particles.textureSize * this.data.particles.textureSize;
         this.data.particles.array = DataProcess.randomizeParticle(maxParticles, lonLatBound.min, lonLatBound.max);
-        this.setupParticleTexturesAndFramebuffers(this.data.particles.array);
+        this.setupParticleTexturesAndFramebuffers(this.data.particles.textureSize, this.data.particles.array);
     }
 }

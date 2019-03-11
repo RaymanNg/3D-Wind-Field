@@ -15,7 +15,13 @@ class Wind3D {
         DataProcess.process(filePath, particleSystemOptions, lonLatBound).then(
             (data) => {
                 this.particleSystem = new ParticleSystem(this.scene.context, data);
-                this.addPrimitives();
+
+                // the order of primitives.add should respect the dependency of primitives
+                this.scene.primitives.add(this.particleSystem.computePrimitive);
+                this.scene.primitives.add(this.particleSystem.particlePointsPrimitive);
+                this.scene.primitives.add(this.particleSystem.particleTrailsPrimitive);
+                this.scene.primitives.add(this.particleSystem.screenPrimitive);
+
                 this.setupCameraEventListener();
             });
     }
@@ -26,14 +32,6 @@ class Wind3D {
         return lonLatBound;
     }
 
-    addPrimitives() {
-        // the order of primitives.add should respect the dependency of primitives
-        this.scene.primitives.add(this.particleSystem.computePrimitive);
-        this.scene.primitives.add(this.particleSystem.particlePointsPrimitive);
-        this.scene.primitives.add(this.particleSystem.particleTrailsPrimitive);
-        this.scene.primitives.add(this.particleSystem.screenPrimitive);
-    }
-
     setupCameraEventListener() {
         const that = this;
         this.camera.moveStart.addEventListener(function () {
@@ -42,7 +40,6 @@ class Wind3D {
         });
 
         this.camera.moveEnd.addEventListener(function () {
-            that.particleSystem.clearFramebuffer();
             var lonLatBound = that.getLonLatBound();
             that.particleSystem.refreshParticle(lonLatBound);
             that.scene.primitives.show = true;
