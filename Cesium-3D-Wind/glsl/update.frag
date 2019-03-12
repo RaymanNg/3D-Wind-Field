@@ -32,11 +32,7 @@ float rand(vec2 seed, vec2 range) {
 }
 
 vec2 mapPositionToNormalizedIndex2D(vec3 lonLatLev) {
-	// the range of longitude in Cesium is [-Pi, Pi]
-	// but the range of longitude in my NetCDF file is [0, 360]
-	// [0, 180] is corresponding to [0, 180]
-	// [180, 360] is corresponding to [-180, 0]
-	
+	// ensure the longitude is in [0, 360]
 	lonLatLev.x = mod(lonLatLev.x, 360.0);
 	
 	vec3 index3D = vec3(0.0);
@@ -140,7 +136,8 @@ void main() {
 	vec2 seed = (lonLatLev.xy + textureCoordinate);
     float drop = step(1.0 - dropRate, rand(seed, normalRange));
 	
-	float randomLon = rand(seed + 1.3, lonRange);
+	// ensure the longitude is in [0, 360]
+	float randomLon = mod(rand(seed + 1.3, lonRange), 360.0);
 	float randomLat = rand(seed + 2.1, latRange);
 	
     vec3 randomPosition = vec3(randomLon, randomLat, updatedPosition.z);

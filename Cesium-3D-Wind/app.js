@@ -5,8 +5,8 @@ const particleSystemOptions = {
     particlesTextureSize: 256,
     fadeOpacity: 0.996,
     dropRate: 0.03,
-    uvMinFactor: 0.1,
-    uvMaxFactor: 10.0
+    uvMinFactor: 0.05,
+    uvMaxFactor: 2.0
 }
 
 var wind3D = new Wind3D(filePath, particleSystemOptions);

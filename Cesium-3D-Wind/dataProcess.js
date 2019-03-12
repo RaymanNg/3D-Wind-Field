@@ -63,12 +63,12 @@ var DataProcess = (function () {
         });
     }
 
-    var randomizeParticle = function (maxParticles, min, max) {
+    var randomizeParticle = function (maxParticles, lonLatRange) {
         var array = new Float32Array(3 * maxParticles);
 
         for (var i = 0; i < maxParticles; i++) {
-            array[3 * i] = Cesium.Math.randomBetween(min.lon, max.lon);
-            array[3 * i + 1] = Cesium.Math.randomBetween(min.lat, max.lat);
+            array[3 * i] = Cesium.Math.randomBetween(lonLatRange.lon.min, lonLatRange.lon.max);
+            array[3 * i + 1] = Cesium.Math.randomBetween(lonLatRange.lat.min, lonLatRange.lat.max);
             // array[3 * i + 2] = Cesium.Math.randomBetween(min.lev, max.lev);
             array[3 * i + 2] = data.lev.min;
         }
@@ -76,26 +76,24 @@ var DataProcess = (function () {
         return array;
     }
 
-    var setupParticle = function (particleSystemOptions, minMax) {
+    var setupParticle = function (particleSystemOptions, lonLatRange) {
         const particlesTextureSize = particleSystemOptions.particlesTextureSize;
         const fadeOpacity = particleSystemOptions.fadeOpacity;
         const dropRate = particleSystemOptions.dropRate;
 
         const maxParticles = particlesTextureSize * particlesTextureSize;
-        var min = minMax.min;
-        var max = minMax.max;
 
         data.particles = {};
-        data.particles.array = randomizeParticle(maxParticles, min, max);
+        data.particles.array = randomizeParticle(maxParticles, lonLatRange);
 
         data.particles.textureSize = particlesTextureSize;
         data.particles.fadeOpacity = fadeOpacity;
         data.particles.dropRate = dropRate;
     }
 
-    var process = async function (filePath, particleSystemOptions, minMax) {
+    var process = async function (filePath, particleSystemOptions, lonLatRange) {
         await loadNetCDF(filePath).then(function () {
-            setupParticle(particleSystemOptions, minMax);
+            setupParticle(particleSystemOptions, lonLatRange);
         });
 
         return data;

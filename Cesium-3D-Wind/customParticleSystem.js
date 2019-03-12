@@ -23,7 +23,7 @@ class ParticleSystem {
     }
 
     setupUnifroms(pixelSize) {
-        this.lonRange = new Cesium.Cartesian2(-180.0, 180.0);
+        this.lonRange = new Cesium.Cartesian2(0.0, 360.0);
         this.latRange = new Cesium.Cartesian2(-90.0, 90.0);
         this.uSpeedRange = new Cesium.Cartesian3(
             this.uvMinFactor * pixelSize,
@@ -408,13 +408,13 @@ class ParticleSystem {
         this.clearCommand.execute(this.context);
     }
 
-    refreshParticle(lonLatBound, pixelSize) {
+    refreshParticle(lonLatRange, pixelSize) {
         this.clearFramebuffer();
 
-        this.lonRange.x = lonLatBound.min.lon;
-        this.lonRange.y = lonLatBound.max.lon;
-        this.latRange.x = lonLatBound.min.lat;
-        this.latRange.y = lonLatBound.max.lat;
+        this.lonRange.x = lonLatRange.lon.min;
+        this.lonRange.y = lonLatRange.lon.max;
+        this.latRange.x = lonLatRange.lat.min;
+        this.latRange.y = lonLatRange.lat.max;
 
         this.uSpeedRange.x = this.uvMinFactor * pixelSize;
         this.uSpeedRange.y = this.uvMaxFactor * pixelSize;
@@ -422,7 +422,7 @@ class ParticleSystem {
         this.vSpeedRange.y = this.uvMaxFactor * pixelSize;
 
         var maxParticles = this.data.particles.textureSize * this.data.particles.textureSize;
-        this.data.particles.array = DataProcess.randomizeParticle(maxParticles, lonLatBound.min, lonLatBound.max);
+        this.data.particles.array = DataProcess.randomizeParticle(maxParticles, lonLatRange);
 
         this.fromParticles.destroy();
         this.toParticles.destroy();
