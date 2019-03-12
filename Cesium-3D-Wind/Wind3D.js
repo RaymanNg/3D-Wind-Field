@@ -9,10 +9,21 @@ class Wind3D {
         this.scene = this.viewer.scene;
         this.camera = this.viewer.camera;
 
+        this.globeBoundingSphere = Cesium.BoundingSphere.fromEllipsoid(this.scene.globe.ellipsoid);
+
         var lonLatBound = this.getLonLatBound();
+        var pixelSize = this.camera.getPixelSize(
+            this.globeBoundingSphere,
+            this.scene.drawingBufferWidth,
+            this.scene.drawingBufferHeight
+        );
+
         DataProcess.process(filePath, particleSystemOptions, lonLatBound).then(
             (data) => {
-                this.particleSystem = new ParticleSystem(this.scene.context, data);
+                this.particleSystem = new ParticleSystem(
+                    this.scene.context, data,
+                    particleSystemOptions, pixelSize
+                );
 
                 // the order of primitives.add should respect the dependency of primitives
                 this.scene.primitives.add(this.particleSystem.computePrimitive);
@@ -39,7 +50,12 @@ class Wind3D {
 
         this.camera.moveEnd.addEventListener(function () {
             var lonLatBound = that.getLonLatBound();
-            that.particleSystem.refreshParticle(lonLatBound);
+            var pixelSize = that.camera.getPixelSize(
+                that.globeBoundingSphere,
+                that.scene.drawingBufferWidth,
+                that.scene.drawingBufferHeight
+            );
+            that.particleSystem.refreshParticle(lonLatBound, pixelSize);
             that.scene.primitives.show = true;
         });
 

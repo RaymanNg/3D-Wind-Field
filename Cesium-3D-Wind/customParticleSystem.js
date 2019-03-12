@@ -1,5 +1,6 @@
 class ParticleSystem {
-    constructor(cesiumContext, windData) {
+    constructor(cesiumContext, windData,
+        particleSystemOptions, pixelSize) {
         this.context = cesiumContext;
         this.data = windData;
 
@@ -9,8 +10,9 @@ class ParticleSystem {
             framebuffer: undefined
         });
 
-        this.lonRange = new Cesium.Cartesian2(-180.0, 180.0);
-        this.latRange = new Cesium.Cartesian2(-90.0, 90.0);
+        this.uvMinFactor = particleSystemOptions.uvMinFactor;
+        this.uvMaxFactor = particleSystemOptions.uvMaxFactor;
+        this.setupUnifroms(pixelSize);
 
         this.setupAllTexturesAndFramebuffers(this.data);
 
@@ -18,6 +20,21 @@ class ParticleSystem {
         this.initParticlePointPrimitive();
         this.initParticleTrailsPrimitive();
         this.initScreenPrimitive();
+    }
+
+    setupUnifroms(pixelSize) {
+        this.lonRange = new Cesium.Cartesian2(-180.0, 180.0);
+        this.latRange = new Cesium.Cartesian2(-90.0, 90.0);
+        this.uSpeedRange = new Cesium.Cartesian3(
+            this.uvMinFactor * pixelSize,
+            this.uvMaxFactor * pixelSize,
+            this.data.U.max - this.data.U.min
+        );
+        this.vSpeedRange = new Cesium.Cartesian3(
+            this.uvMinFactor * pixelSize,
+            this.uvMaxFactor * pixelSize,
+            this.data.V.max - this.data.V.min
+        );
     }
 
     setupParticleTexturesAndFramebuffers(particlesTextureSize, particlesArray) {
@@ -117,6 +134,15 @@ class ParticleSystem {
 
         const that = this;
         const uniformMap = {
+            U: function () {
+                return that.U;
+            },
+            V: function () {
+                return that.V;
+            },
+            particles: function () {
+                return that.fromParticles.getColorTexture(0);
+            },
             dimension: function () {
                 return dimension;
             },
@@ -129,6 +155,12 @@ class ParticleSystem {
             interval: function () {
                 return interval;
             },
+            uSpeedRange: function () {
+                return that.uSpeedRange;
+            },
+            vSpeedRange: function () {
+                return that.vSpeedRange;
+            },
             lonRange: function () {
                 return that.lonRange;
             },
@@ -137,15 +169,6 @@ class ParticleSystem {
             },
             dropRate: function () {
                 return dropRate;
-            },
-            U: function () {
-                return that.U;
-            },
-            V: function () {
-                return that.V;
-            },
-            particles: function () {
-                return that.fromParticles.getColorTexture(0);
             }
         }
 
@@ -385,13 +408,18 @@ class ParticleSystem {
         this.clearCommand.execute(this.context);
     }
 
-    refreshParticle(lonLatBound) {
+    refreshParticle(lonLatBound, pixelSize) {
         this.clearFramebuffer();
 
         this.lonRange.x = lonLatBound.min.lon;
         this.lonRange.y = lonLatBound.max.lon;
         this.latRange.x = lonLatBound.min.lat;
         this.latRange.y = lonLatBound.max.lat;
+
+        this.uSpeedRange.x = this.uvMinFactor * pixelSize;
+        this.uSpeedRange.y = this.uvMaxFactor * pixelSize;
+        this.vSpeedRange.x = this.uvMinFactor * pixelSize;
+        this.vSpeedRange.y = this.uvMaxFactor * pixelSize;
 
         var maxParticles = this.data.particles.textureSize * this.data.particles.textureSize;
         this.data.particles.array = DataProcess.randomizeParticle(maxParticles, lonLatBound.min, lonLatBound.max);

@@ -1,7 +1,17 @@
+// the size of UV textures: width = lon, height = lat*lev
+uniform sampler2D U; // eastward wind 
+uniform sampler2D V; // northward wind
+
+uniform sampler2D particles;
+
 uniform vec3 dimension; // (lon, lat, lev)
 uniform vec3 minimum; // minimum of each dimension
 uniform vec3 maximum; // maximum of each dimension
 uniform vec3 interval; // interval of each dimension
+
+// use to map wind speed to suitable new range
+uniform vec3 uSpeedRange; // (map_min, map_max, uMax - uMin);
+uniform vec3 vSpeedRange;
 
 // range (min, max)
 uniform vec2 lonRange;
@@ -9,12 +19,6 @@ uniform vec2 latRange;
 
 // drop rate is a chance a particle will restart at random position to avoid degeneration
 uniform float dropRate;
-
-// the size of UV textures: width = lon, height = lat*lev
-uniform sampler2D U; // eastward wind 
-uniform sampler2D V; // northward wind
-
-uniform sampler2D particles;
 
 varying vec2 textureCoordinate;
 
@@ -110,6 +114,9 @@ vec2 interpolate(vec3 lonLatLev) {
 
 vec3 updatePosition(vec3 lonLatLev, vec2 normalizedIndex2D) {
 	vec2 mixWindVec = interpolate(lonLatLev);
+	
+	mixWindVec.x = mix(uSpeedRange.x, uSpeedRange.y,  mixWindVec.x / uSpeedRange.z);
+	mixWindVec.y = mix(vSpeedRange.x, vSpeedRange.y,  mixWindVec.y / vSpeedRange.z);
 	
 	vec2 lonLatLen = lengthOfLonLat(lonLatLev);
 	float u = mixWindVec.x / lonLatLen.x;
