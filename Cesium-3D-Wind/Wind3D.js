@@ -3,6 +3,7 @@ class Wind3D {
         this.viewer = new Cesium.Viewer('cesiumContainer', {
             scene3DOnly: true,
             fullscreenElement: 'cesiumContainer',
+            terrainProvider: Cesium.createWorldTerrain(),
             baseLayerPicker: false
         });
         this.scene = this.viewer.scene;
@@ -59,6 +60,7 @@ class Wind3D {
 
     debug() {
         const that = this;
+
         var animate = function () {
             that.scene.render();
             requestAnimationFrame(animate);

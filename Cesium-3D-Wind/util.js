@@ -116,7 +116,7 @@ var Util = (function () {
 		if (result.min.lat < -65.0) {
 			result.min.lat = -90.0;
 		}
-		if (result.max.lat > -65.0) {
+		if (result.max.lat > 65.0) {
 			result.max.lat = 90.0;
 		}
 
