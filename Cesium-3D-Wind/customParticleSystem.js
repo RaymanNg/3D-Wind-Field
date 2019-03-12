@@ -401,13 +401,14 @@ class ParticleSystem {
         this.setupParticleTexturesAndFramebuffers(this.data.particles.textureSize, this.data.particles.array);
     }
 
-    canvasResize() {
+    canvasResize(cesiumContext) {
         this.fromParticles.destroy();
         this.toParticles.destroy();
         this.pointsFramebuffer.destroy();
         this.currentTrails.destroy();
         this.nextTrails.destroy();
 
+        this.context = cesiumContext;
         this.setupAllTexturesAndFramebuffers(this.data);
 
         this.computePrimitive._drawCommand.framebuffer = this.toParticles;

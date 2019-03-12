@@ -3,11 +3,7 @@ class Wind3D {
         this.viewer = new Cesium.Viewer('cesiumContainer', {
             scene3DOnly: true,
             fullscreenElement: 'cesiumContainer',
-            imageryProvider: Cesium.createTileMapServiceImageryProvider({
-                url: Cesium.buildModuleUrl('Assets/Textures/NaturalEarthII')
-            }),
-            baseLayerPicker: false,
-            geocoder: false
+            baseLayerPicker: false
         });
         this.scene = this.viewer.scene;
         this.camera = this.viewer.camera;
@@ -38,7 +34,6 @@ class Wind3D {
 
         this.camera.moveStart.addEventListener(function () {
             that.scene.primitives.show = false;
-            that.particleSystem.clearFramebuffer();
         });
 
         this.camera.moveEnd.addEventListener(function () {
@@ -55,21 +50,24 @@ class Wind3D {
 
         this.scene.preRender.addEventListener(function () {
             if (resized) {
-                that.particleSystem.context = that.scene.context;
-                that.particleSystem.canvasResize();
+                that.particleSystem.canvasResize(that.scene.context);
                 resized = false;
                 that.scene.primitives.show = true;
             }
         });
     }
 
-    startRender() {
+    debug() {
         const that = this;
         var animate = function () {
             that.scene.render();
             requestAnimationFrame(animate);
         }
 
-        Util.debug(animate);
+        var spector = new SPECTOR.Spector();
+        spector.displayUI();
+        spector.spyCanvases();
+
+        animate();
     }
 }
