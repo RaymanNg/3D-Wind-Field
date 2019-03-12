@@ -109,10 +109,9 @@ vec2 interpolate(vec3 lonLatLev) {
 }
 
 vec3 updatePosition(vec3 lonLatLev, vec2 normalizedIndex2D) {
-	vec2 lonLatLen = lengthOfLonLat(lonLatLev);
-	
 	vec2 mixWindVec = interpolate(lonLatLev);
-
+	
+	vec2 lonLatLen = lengthOfLonLat(lonLatLev);
 	float u = mixWindVec.x / lonLatLen.x;
 	float v = mixWindVec.y / lonLatLen.y;
 	float w = 0.0;

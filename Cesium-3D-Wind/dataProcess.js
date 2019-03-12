@@ -24,26 +24,37 @@ var DataProcess = (function () {
                 data.dimensions.lat = dimensions['lat'].size;
                 data.dimensions.lev = dimensions['lev'].size;
 
+                var variables = arrayToMap(NetCDF.variables);
+                var lonAttributes = arrayToMap(variables['lon'].attributes);
+                var latAttributes = arrayToMap(variables['lat'].attributes);
+                var levAttributes = arrayToMap(variables['lev'].attributes);
+                var uAttributes = arrayToMap(variables['U'].attributes);
+                var vAttributes = arrayToMap(variables['V'].attributes);
+
                 data.lon = {};
                 data.lon.array = new Float32Array(NetCDF.getDataVariable('lon').flat());
-                data.lon.min = Math.min(...data.lon.array);
-                data.lon.max = Math.max(...data.lon.array);
+                data.lon.min = lonAttributes['min'].value;
+                data.lon.max = lonAttributes['max'].value;
 
                 data.lat = {};
                 data.lat.array = new Float32Array(NetCDF.getDataVariable('lat').flat());
-                data.lat.min = Math.min(...data.lat.array);
-                data.lat.max = Math.max(...data.lat.array);
+                data.lat.min = latAttributes['min'].value;
+                data.lat.max = latAttributes['max'].value;
 
                 data.lev = {};
                 data.lev.array = new Float32Array(NetCDF.getDataVariable('lev').flat());
-                data.lev.min = Math.min(...data.lev.array);
-                data.lev.max = Math.max(...data.lev.array);
+                data.lev.min = levAttributes['min'].value;
+                data.lev.max = levAttributes['max'].value;
 
                 data.U = {};
                 data.U.array = new Float32Array(NetCDF.getDataVariable('U').flat());
+                data.U.min = uAttributes['min'].value;
+                data.U.max = uAttributes['max'].value;
 
                 data.V = {};
                 data.V.array = new Float32Array(NetCDF.getDataVariable('V').flat());
+                data.V.min = vAttributes['min'].value;
+                data.V.max = vAttributes['max'].value;
 
                 resolve(data);
             };
