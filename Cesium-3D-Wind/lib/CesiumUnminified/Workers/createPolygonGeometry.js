@@ -1144,6 +1144,100 @@ define('Core/Math',[
         return absDiff <= absoluteEpsilon || absDiff <= relativeEpsilon * Math.max(Math.abs(left), Math.abs(right));
     };
 
+    /**
+     * Determines if the left value is less than the right value. If the two values are within
+     * <code>absoluteEpsilon</code> of each other, they are considered equal and this function returns false.
+     *
+     * @param {Number} left The first number to compare.
+     * @param {Number} right The second number to compare.
+     * @param {Number} absoluteEpsilon The absolute epsilon to use in comparison.
+     * @returns {Boolean} <code>true</code> if <code>left</code> is less than <code>right</code> by more than
+     *          <code>absoluteEpsilon<code>. <code>false</code> if <code>left</code> is greater or if the two
+     *          values are nearly equal.
+     */
+    CesiumMath.lessThan = function(left, right, absoluteEpsilon) {
+                if (!defined(left)) {
+            throw new DeveloperError('first is required.');
+        }
+        if (!defined(right)) {
+            throw new DeveloperError('second is required.');
+        }
+        if (!defined(absoluteEpsilon)) {
+            throw new DeveloperError('relativeEpsilon is required.');
+        }
+                return left - right < -absoluteEpsilon;
+    };
+
+    /**
+     * Determines if the left value is less than or equal to the right value. If the two values are within
+     * <code>absoluteEpsilon</code> of each other, they are considered equal and this function returns true.
+     *
+     * @param {Number} left The first number to compare.
+     * @param {Number} right The second number to compare.
+     * @param {Number} absoluteEpsilon The absolute epsilon to use in comparison.
+     * @returns {Boolean} <code>true</code> if <code>left</code> is less than <code>right</code> or if the
+     *          the values are nearly equal.
+     */
+    CesiumMath.lessThanOrEquals = function(left, right, absoluteEpsilon) {
+                if (!defined(left)) {
+            throw new DeveloperError('first is required.');
+        }
+        if (!defined(right)) {
+            throw new DeveloperError('second is required.');
+        }
+        if (!defined(absoluteEpsilon)) {
+            throw new DeveloperError('relativeEpsilon is required.');
+        }
+                return left - right < absoluteEpsilon;
+    };
+
+    /**
+     * Determines if the left value is greater the right value. If the two values are within
+     * <code>absoluteEpsilon</code> of each other, they are considered equal and this function returns false.
+     *
+     * @param {Number} left The first number to compare.
+     * @param {Number} right The second number to compare.
+     * @param {Number} absoluteEpsilon The absolute epsilon to use in comparison.
+     * @returns {Boolean} <code>true</code> if <code>left</code> is greater than <code>right</code> by more than
+     *          <code>absoluteEpsilon<code>. <code>false</code> if <code>left</code> is less or if the two
+     *          values are nearly equal.
+     */
+    CesiumMath.greaterThan = function(left, right, absoluteEpsilon) {
+                if (!defined(left)) {
+            throw new DeveloperError('first is required.');
+        }
+        if (!defined(right)) {
+            throw new DeveloperError('second is required.');
+        }
+        if (!defined(absoluteEpsilon)) {
+            throw new DeveloperError('relativeEpsilon is required.');
+        }
+                return left - right > absoluteEpsilon;
+    };
+
+    /**
+     * Determines if the left value is greater than or equal to the right value. If the two values are within
+     * <code>absoluteEpsilon</code> of each other, they are considered equal and this function returns true.
+     *
+     * @param {Number} left The first number to compare.
+     * @param {Number} right The second number to compare.
+     * @param {Number} absoluteEpsilon The absolute epsilon to use in comparison.
+     * @returns {Boolean} <code>true</code> if <code>left</code> is greater than <code>right</code> or if the
+     *          the values are nearly equal.
+     */
+    CesiumMath.greaterThanOrEquals = function(left, right, absoluteEpsilon) {
+                if (!defined(left)) {
+            throw new DeveloperError('first is required.');
+        }
+        if (!defined(right)) {
+            throw new DeveloperError('second is required.');
+        }
+        if (!defined(absoluteEpsilon)) {
+            throw new DeveloperError('relativeEpsilon is required.');
+        }
+                return left - right > -absoluteEpsilon;
+    };
+
     var factorials = [1];
 
     /**
@@ -3565,6 +3659,46 @@ define('Core/Ellipsoid',[
     };
 
     return Ellipsoid;
+});
+
+define('Core/ArcType',[
+        './freezeObject'
+    ], function(
+        freezeObject) {
+    'use strict';
+
+    /**
+     * ArcType defines the path that should be taken connecting vertices.
+     *
+     * @exports ArcType
+     */
+    var ArcType = {
+        /**
+         * Straight line that does not conform to the surface of the ellipsoid.
+         *
+         * @type {Number}
+         * @constant
+         */
+        NONE : 0,
+
+        /**
+         * Follow geodesic path.
+         *
+         * @type {Number}
+         * @constant
+         */
+        GEODESIC : 1,
+
+        /**
+         * Follow rhumb or loxodrome path.
+         *
+         * @type {Number}
+         * @constant
+         */
+        RHUMB : 2
+    };
+
+    return freezeObject(ArcType);
 });
 
 define('Core/arrayFill',[
@@ -12158,14 +12292,771 @@ define('Core/Fullscreen',[
     return Fullscreen;
 });
 
+/**
+  @license
+  when.js - https://github.com/cujojs/when
+
+  MIT License (c) copyright B Cavalier & J Hann
+
+ * A lightweight CommonJS Promises/A and when() implementation
+ * when is part of the cujo.js family of libraries (http://cujojs.com/)
+ *
+ * Licensed under the MIT License at:
+ * http://www.opensource.org/licenses/mit-license.php
+ *
+ * @version 1.7.1
+ */
+
+(function(define) { 'use strict';
+define('ThirdParty/when',[],function () {
+	var reduceArray, slice, undef;
+
+	//
+	// Public API
+	//
+
+	when.defer     = defer;     // Create a deferred
+	when.resolve   = resolve;   // Create a resolved promise
+	when.reject    = reject;    // Create a rejected promise
+
+	when.join      = join;      // Join 2 or more promises
+
+	when.all       = all;       // Resolve a list of promises
+	when.map       = map;       // Array.map() for promises
+	when.reduce    = reduce;    // Array.reduce() for promises
+
+	when.any       = any;       // One-winner race
+	when.some      = some;      // Multi-winner race
+
+	when.chain     = chain;     // Make a promise trigger another resolver
+
+	when.isPromise = isPromise; // Determine if a thing is a promise
+
+	/**
+	 * Register an observer for a promise or immediate value.
+	 *
+	 * @param {*} promiseOrValue
+	 * @param {function?} [onFulfilled] callback to be called when promiseOrValue is
+	 *   successfully fulfilled.  If promiseOrValue is an immediate value, callback
+	 *   will be invoked immediately.
+	 * @param {function?} [onRejected] callback to be called when promiseOrValue is
+	 *   rejected.
+	 * @param {function?} [onProgress] callback to be called when progress updates
+	 *   are issued for promiseOrValue.
+	 * @returns {Promise} a new {@link Promise} that will complete with the return
+	 *   value of callback or errback or the completion value of promiseOrValue if
+	 *   callback and/or errback is not supplied.
+	 */
+	function when(promiseOrValue, onFulfilled, onRejected, onProgress) {
+		// Get a trusted promise for the input promiseOrValue, and then
+		// register promise handlers
+		return resolve(promiseOrValue).then(onFulfilled, onRejected, onProgress);
+	}
+
+	/**
+	 * Returns promiseOrValue if promiseOrValue is a {@link Promise}, a new Promise if
+	 * promiseOrValue is a foreign promise, or a new, already-fulfilled {@link Promise}
+	 * whose value is promiseOrValue if promiseOrValue is an immediate value.
+	 *
+	 * @param {*} promiseOrValue
+	 * @returns Guaranteed to return a trusted Promise.  If promiseOrValue is a when.js {@link Promise}
+	 *   returns promiseOrValue, otherwise, returns a new, already-resolved, when.js {@link Promise}
+	 *   whose resolution value is:
+	 *   * the resolution value of promiseOrValue if it's a foreign promise, or
+	 *   * promiseOrValue if it's a value
+	 */
+	function resolve(promiseOrValue) {
+		var promise, deferred;
+
+		if(promiseOrValue instanceof Promise) {
+			// It's a when.js promise, so we trust it
+			promise = promiseOrValue;
+
+		} else {
+			// It's not a when.js promise. See if it's a foreign promise or a value.
+			if(isPromise(promiseOrValue)) {
+				// It's a thenable, but we don't know where it came from, so don't trust
+				// its implementation entirely.  Introduce a trusted middleman when.js promise
+				deferred = defer();
+
+				// IMPORTANT: This is the only place when.js should ever call .then() on an
+				// untrusted promise. Don't expose the return value to the untrusted promise
+				promiseOrValue.then(
+					function(value)  { deferred.resolve(value); },
+					function(reason) { deferred.reject(reason); },
+					function(update) { deferred.progress(update); }
+				);
+
+				promise = deferred.promise;
+
+			} else {
+				// It's a value, not a promise.  Create a resolved promise for it.
+				promise = fulfilled(promiseOrValue);
+			}
+		}
+
+		return promise;
+	}
+
+	/**
+	 * Returns a rejected promise for the supplied promiseOrValue.  The returned
+	 * promise will be rejected with:
+	 * - promiseOrValue, if it is a value, or
+	 * - if promiseOrValue is a promise
+	 *   - promiseOrValue's value after it is fulfilled
+	 *   - promiseOrValue's reason after it is rejected
+	 * @param {*} promiseOrValue the rejected value of the returned {@link Promise}
+	 * @returns {Promise} rejected {@link Promise}
+	 */
+	function reject(promiseOrValue) {
+		return when(promiseOrValue, rejected);
+	}
+
+	/**
+	 * Trusted Promise constructor.  A Promise created from this constructor is
+	 * a trusted when.js promise.  Any other duck-typed promise is considered
+	 * untrusted.
+	 * @constructor
+	 * @name Promise
+	 */
+	function Promise(then) {
+		this.then = then;
+	}
+
+	Promise.prototype = {
+		/**
+		 * Register a callback that will be called when a promise is
+		 * fulfilled or rejected.  Optionally also register a progress handler.
+		 * Shortcut for .then(onFulfilledOrRejected, onFulfilledOrRejected, onProgress)
+		 * @param {function?} [onFulfilledOrRejected]
+		 * @param {function?} [onProgress]
+		 * @returns {Promise}
+		 */
+		always: function(onFulfilledOrRejected, onProgress) {
+			return this.then(onFulfilledOrRejected, onFulfilledOrRejected, onProgress);
+		},
+
+		/**
+		 * Register a rejection handler.  Shortcut for .then(undefined, onRejected)
+		 * @param {function?} onRejected
+		 * @returns {Promise}
+		 */
+		otherwise: function(onRejected) {
+			return this.then(undef, onRejected);
+		},
+
+		/**
+		 * Shortcut for .then(function() { return value; })
+		 * @param  {*} value
+		 * @returns {Promise} a promise that:
+		 *  - is fulfilled if value is not a promise, or
+		 *  - if value is a promise, will fulfill with its value, or reject
+		 *    with its reason.
+		 */
+		yield: function(value) {
+			return this.then(function() {
+				return value;
+			});
+		},
+
+		/**
+		 * Assumes that this promise will fulfill with an array, and arranges
+		 * for the onFulfilled to be called with the array as its argument list
+		 * i.e. onFulfilled.spread(undefined, array).
+		 * @param {function} onFulfilled function to receive spread arguments
+		 * @returns {Promise}
+		 */
+		spread: function(onFulfilled) {
+			return this.then(function(array) {
+				// array may contain promises, so resolve its contents.
+				return all(array, function(array) {
+					return onFulfilled.apply(undef, array);
+				});
+			});
+		}
+	};
+
+	/**
+	 * Create an already-resolved promise for the supplied value
+	 * @private
+	 *
+	 * @param {*} value
+	 * @returns {Promise} fulfilled promise
+	 */
+	function fulfilled(value) {
+		var p = new Promise(function(onFulfilled) {
+			// TODO: Promises/A+ check typeof onFulfilled
+			try {
+				return resolve(onFulfilled ? onFulfilled(value) : value);
+			} catch(e) {
+				return rejected(e);
+			}
+		});
+
+		return p;
+	}
+
+	/**
+	 * Create an already-rejected {@link Promise} with the supplied
+	 * rejection reason.
+	 * @private
+	 *
+	 * @param {*} reason
+	 * @returns {Promise} rejected promise
+	 */
+	function rejected(reason) {
+		var p = new Promise(function(_, onRejected) {
+			// TODO: Promises/A+ check typeof onRejected
+			try {
+				return onRejected ? resolve(onRejected(reason)) : rejected(reason);
+			} catch(e) {
+				return rejected(e);
+			}
+		});
+
+		return p;
+	}
+
+	/**
+	 * Creates a new, Deferred with fully isolated resolver and promise parts,
+	 * either or both of which may be given out safely to consumers.
+	 * The Deferred itself has the full API: resolve, reject, progress, and
+	 * then. The resolver has resolve, reject, and progress.  The promise
+	 * only has then.
+	 *
+	 * @returns {Deferred}
+	 */
+	function defer() {
+		var deferred, promise, handlers, progressHandlers,
+			_then, _progress, _resolve;
+
+		/**
+		 * The promise for the new deferred
+		 * @type {Promise}
+		 */
+		promise = new Promise(then);
+
+		/**
+		 * The full Deferred object, with {@link Promise} and {@link Resolver} parts
+		 * @class Deferred
+		 * @name Deferred
+		 */
+		deferred = {
+			then:     then, // DEPRECATED: use deferred.promise.then
+			resolve:  promiseResolve,
+			reject:   promiseReject,
+			// TODO: Consider renaming progress() to notify()
+			progress: promiseProgress,
+
+			promise:  promise,
+
+			resolver: {
+				resolve:  promiseResolve,
+				reject:   promiseReject,
+				progress: promiseProgress
+			}
+		};
+
+		handlers = [];
+		progressHandlers = [];
+
+		/**
+		 * Pre-resolution then() that adds the supplied callback, errback, and progback
+		 * functions to the registered listeners
+		 * @private
+		 *
+		 * @param {function?} [onFulfilled] resolution handler
+		 * @param {function?} [onRejected] rejection handler
+		 * @param {function?} [onProgress] progress handler
+		 */
+		_then = function(onFulfilled, onRejected, onProgress) {
+			// TODO: Promises/A+ check typeof onFulfilled, onRejected, onProgress
+			var deferred, progressHandler;
+
+			deferred = defer();
+
+			progressHandler = typeof onProgress === 'function'
+				? function(update) {
+					try {
+						// Allow progress handler to transform progress event
+						deferred.progress(onProgress(update));
+					} catch(e) {
+						// Use caught value as progress
+						deferred.progress(e);
+					}
+				}
+				: function(update) { deferred.progress(update); };
+
+			handlers.push(function(promise) {
+				promise.then(onFulfilled, onRejected)
+					.then(deferred.resolve, deferred.reject, progressHandler);
+			});
+
+			progressHandlers.push(progressHandler);
+
+			return deferred.promise;
+		};
+
+		/**
+		 * Issue a progress event, notifying all progress listeners
+		 * @private
+		 * @param {*} update progress event payload to pass to all listeners
+		 */
+		_progress = function(update) {
+			processQueue(progressHandlers, update);
+			return update;
+		};
+
+		/**
+		 * Transition from pre-resolution state to post-resolution state, notifying
+		 * all listeners of the resolution or rejection
+		 * @private
+		 * @param {*} value the value of this deferred
+		 */
+		_resolve = function(value) {
+			value = resolve(value);
+
+			// Replace _then with one that directly notifies with the result.
+			_then = value.then;
+			// Replace _resolve so that this Deferred can only be resolved once
+			_resolve = resolve;
+			// Make _progress a noop, to disallow progress for the resolved promise.
+			_progress = noop;
+
+			// Notify handlers
+			processQueue(handlers, value);
+
+			// Free progressHandlers array since we'll never issue progress events
+			progressHandlers = handlers = undef;
+
+			return value;
+		};
+
+		return deferred;
+
+		/**
+		 * Wrapper to allow _then to be replaced safely
+		 * @param {function?} [onFulfilled] resolution handler
+		 * @param {function?} [onRejected] rejection handler
+		 * @param {function?} [onProgress] progress handler
+		 * @returns {Promise} new promise
+		 */
+		function then(onFulfilled, onRejected, onProgress) {
+			// TODO: Promises/A+ check typeof onFulfilled, onRejected, onProgress
+			return _then(onFulfilled, onRejected, onProgress);
+		}
+
+		/**
+		 * Wrapper to allow _resolve to be replaced
+		 */
+		function promiseResolve(val) {
+			return _resolve(val);
+		}
+
+		/**
+		 * Wrapper to allow _reject to be replaced
+		 */
+		function promiseReject(err) {
+			return _resolve(rejected(err));
+		}
+
+		/**
+		 * Wrapper to allow _progress to be replaced
+		 */
+		function promiseProgress(update) {
+			return _progress(update);
+		}
+	}
+
+	/**
+	 * Determines if promiseOrValue is a promise or not.  Uses the feature
+	 * test from http://wiki.commonjs.org/wiki/Promises/A to determine if
+	 * promiseOrValue is a promise.
+	 *
+	 * @param {*} promiseOrValue anything
+	 * @returns {boolean} true if promiseOrValue is a {@link Promise}
+	 */
+	function isPromise(promiseOrValue) {
+		return promiseOrValue && typeof promiseOrValue.then === 'function';
+	}
+
+	/**
+	 * Initiates a competitive race, returning a promise that will resolve when
+	 * howMany of the supplied promisesOrValues have resolved, or will reject when
+	 * it becomes impossible for howMany to resolve, for example, when
+	 * (promisesOrValues.length - howMany) + 1 input promises reject.
+	 *
+	 * @param {Array} promisesOrValues array of anything, may contain a mix
+	 *      of promises and values
+	 * @param howMany {number} number of promisesOrValues to resolve
+	 * @param {function?} [onFulfilled] resolution handler
+	 * @param {function?} [onRejected] rejection handler
+	 * @param {function?} [onProgress] progress handler
+	 * @returns {Promise} promise that will resolve to an array of howMany values that
+	 * resolved first, or will reject with an array of (promisesOrValues.length - howMany) + 1
+	 * rejection reasons.
+	 */
+	function some(promisesOrValues, howMany, onFulfilled, onRejected, onProgress) {
+
+		checkCallbacks(2, arguments);
+
+		return when(promisesOrValues, function(promisesOrValues) {
+
+			var toResolve, toReject, values, reasons, deferred, fulfillOne, rejectOne, progress, len, i;
+
+			len = promisesOrValues.length >>> 0;
+
+			toResolve = Math.max(0, Math.min(howMany, len));
+			values = [];
+
+			toReject = (len - toResolve) + 1;
+			reasons = [];
+
+			deferred = defer();
+
+			// No items in the input, resolve immediately
+			if (!toResolve) {
+				deferred.resolve(values);
+
+			} else {
+				progress = deferred.progress;
+
+				rejectOne = function(reason) {
+					reasons.push(reason);
+					if(!--toReject) {
+						fulfillOne = rejectOne = noop;
+						deferred.reject(reasons);
+					}
+				};
+
+				fulfillOne = function(val) {
+					// This orders the values based on promise resolution order
+					// Another strategy would be to use the original position of
+					// the corresponding promise.
+					values.push(val);
+
+					if (!--toResolve) {
+						fulfillOne = rejectOne = noop;
+						deferred.resolve(values);
+					}
+				};
+
+				for(i = 0; i < len; ++i) {
+					if(i in promisesOrValues) {
+						when(promisesOrValues[i], fulfiller, rejecter, progress);
+					}
+				}
+			}
+
+			return deferred.then(onFulfilled, onRejected, onProgress);
+
+			function rejecter(reason) {
+				rejectOne(reason);
+			}
+
+			function fulfiller(val) {
+				fulfillOne(val);
+			}
+
+		});
+	}
+
+	/**
+	 * Initiates a competitive race, returning a promise that will resolve when
+	 * any one of the supplied promisesOrValues has resolved or will reject when
+	 * *all* promisesOrValues have rejected.
+	 *
+	 * @param {Array|Promise} promisesOrValues array of anything, may contain a mix
+	 *      of {@link Promise}s and values
+	 * @param {function?} [onFulfilled] resolution handler
+	 * @param {function?} [onRejected] rejection handler
+	 * @param {function?} [onProgress] progress handler
+	 * @returns {Promise} promise that will resolve to the value that resolved first, or
+	 * will reject with an array of all rejected inputs.
+	 */
+	function any(promisesOrValues, onFulfilled, onRejected, onProgress) {
+
+		function unwrapSingleResult(val) {
+			return onFulfilled ? onFulfilled(val[0]) : val[0];
+		}
+
+		return some(promisesOrValues, 1, unwrapSingleResult, onRejected, onProgress);
+	}
+
+	/**
+	 * Return a promise that will resolve only once all the supplied promisesOrValues
+	 * have resolved. The resolution value of the returned promise will be an array
+	 * containing the resolution values of each of the promisesOrValues.
+	 * @memberOf when
+	 *
+	 * @param {Array|Promise} promisesOrValues array of anything, may contain a mix
+	 *      of {@link Promise}s and values
+	 * @param {function?} [onFulfilled] resolution handler
+	 * @param {function?} [onRejected] rejection handler
+	 * @param {function?} [onProgress] progress handler
+	 * @returns {Promise}
+	 */
+	function all(promisesOrValues, onFulfilled, onRejected, onProgress) {
+		checkCallbacks(1, arguments);
+		return map(promisesOrValues, identity).then(onFulfilled, onRejected, onProgress);
+	}
+
+	/**
+	 * Joins multiple promises into a single returned promise.
+	 * @returns {Promise} a promise that will fulfill when *all* the input promises
+	 * have fulfilled, or will reject when *any one* of the input promises rejects.
+	 */
+	function join(/* ...promises */) {
+		return map(arguments, identity);
+	}
+
+	/**
+	 * Traditional map function, similar to `Array.prototype.map()`, but allows
+	 * input to contain {@link Promise}s and/or values, and mapFunc may return
+	 * either a value or a {@link Promise}
+	 *
+	 * @param {Array|Promise} promise array of anything, may contain a mix
+	 *      of {@link Promise}s and values
+	 * @param {function} mapFunc mapping function mapFunc(value) which may return
+	 *      either a {@link Promise} or value
+	 * @returns {Promise} a {@link Promise} that will resolve to an array containing
+	 *      the mapped output values.
+	 */
+	function map(promise, mapFunc) {
+		return when(promise, function(array) {
+			var results, len, toResolve, resolve, i, d;
+
+			// Since we know the resulting length, we can preallocate the results
+			// array to avoid array expansions.
+			toResolve = len = array.length >>> 0;
+			results = [];
+			d = defer();
+
+			if(!toResolve) {
+				d.resolve(results);
+			} else {
+
+				resolve = function resolveOne(item, i) {
+					when(item, mapFunc).then(function(mapped) {
+						results[i] = mapped;
+
+						if(!--toResolve) {
+							d.resolve(results);
+						}
+					}, d.reject);
+				};
+
+				// Since mapFunc may be async, get all invocations of it into flight
+				for(i = 0; i < len; i++) {
+					if(i in array) {
+						resolve(array[i], i);
+					} else {
+						--toResolve;
+					}
+				}
+
+			}
+
+			return d.promise;
+
+		});
+	}
+
+	/**
+	 * Traditional reduce function, similar to `Array.prototype.reduce()`, but
+	 * input may contain promises and/or values, and reduceFunc
+	 * may return either a value or a promise, *and* initialValue may
+	 * be a promise for the starting value.
+	 *
+	 * @param {Array|Promise} promise array or promise for an array of anything,
+	 *      may contain a mix of promises and values.
+	 * @param {function} reduceFunc reduce function reduce(currentValue, nextValue, index, total),
+	 *      where total is the total number of items being reduced, and will be the same
+	 *      in each call to reduceFunc.
+	 * @returns {Promise} that will resolve to the final reduced value
+	 */
+	function reduce(promise, reduceFunc /*, initialValue */) {
+		var args = slice.call(arguments, 1);
+
+		return when(promise, function(array) {
+			var total;
+
+			total = array.length;
+
+			// Wrap the supplied reduceFunc with one that handles promises and then
+			// delegates to the supplied.
+			args[0] = function (current, val, i) {
+				return when(current, function (c) {
+					return when(val, function (value) {
+						return reduceFunc(c, value, i, total);
+					});
+				});
+			};
+
+			return reduceArray.apply(array, args);
+		});
+	}
+
+	/**
+	 * Ensure that resolution of promiseOrValue will trigger resolver with the
+	 * value or reason of promiseOrValue, or instead with resolveValue if it is provided.
+	 *
+	 * @param promiseOrValue
+	 * @param {Object} resolver
+	 * @param {function} resolver.resolve
+	 * @param {function} resolver.reject
+	 * @param {*} [resolveValue]
+	 * @returns {Promise}
+	 */
+	function chain(promiseOrValue, resolver, resolveValue) {
+		var useResolveValue = arguments.length > 2;
+
+		return when(promiseOrValue,
+			function(val) {
+				val = useResolveValue ? resolveValue : val;
+				resolver.resolve(val);
+				return val;
+			},
+			function(reason) {
+				resolver.reject(reason);
+				return rejected(reason);
+			},
+			resolver.progress
+		);
+	}
+
+	//
+	// Utility functions
+	//
+
+	/**
+	 * Apply all functions in queue to value
+	 * @param {Array} queue array of functions to execute
+	 * @param {*} value argument passed to each function
+	 */
+	function processQueue(queue, value) {
+		var handler, i = 0;
+
+		while (handler = queue[i++]) {
+			handler(value);
+		}
+	}
+
+	/**
+	 * Helper that checks arrayOfCallbacks to ensure that each element is either
+	 * a function, or null or undefined.
+	 * @private
+	 * @param {number} start index at which to start checking items in arrayOfCallbacks
+	 * @param {Array} arrayOfCallbacks array to check
+	 * @throws {Error} if any element of arrayOfCallbacks is something other than
+	 * a functions, null, or undefined.
+	 */
+	function checkCallbacks(start, arrayOfCallbacks) {
+		// TODO: Promises/A+ update type checking and docs
+		var arg, i = arrayOfCallbacks.length;
+
+		while(i > start) {
+			arg = arrayOfCallbacks[--i];
+
+			if (arg != null && typeof arg != 'function') {
+				throw new Error('arg '+i+' must be a function');
+			}
+		}
+	}
+
+	/**
+	 * No-Op function used in method replacement
+	 * @private
+	 */
+	function noop() {}
+
+	slice = [].slice;
+
+	// ES5 reduce implementation if native not available
+	// See: http://es5.github.com/#x15.4.4.21 as there are many
+	// specifics and edge cases.
+	reduceArray = [].reduce ||
+		function(reduceFunc /*, initialValue */) {
+			/*jshint maxcomplexity: 7*/
+
+			// ES5 dictates that reduce.length === 1
+
+			// This implementation deviates from ES5 spec in the following ways:
+			// 1. It does not check if reduceFunc is a Callable
+
+			var arr, args, reduced, len, i;
+
+			i = 0;
+			// This generates a jshint warning, despite being valid
+			// "Missing 'new' prefix when invoking a constructor."
+			// See https://github.com/jshint/jshint/issues/392
+			arr = Object(this);
+			len = arr.length >>> 0;
+			args = arguments;
+
+			// If no initialValue, use first item of array (we know length !== 0 here)
+			// and adjust i to start at second item
+			if(args.length <= 1) {
+				// Skip to the first real element in the array
+				for(;;) {
+					if(i in arr) {
+						reduced = arr[i++];
+						break;
+					}
+
+					// If we reached the end of the array without finding any real
+					// elements, it's a TypeError
+					if(++i >= len) {
+						throw new TypeError();
+					}
+				}
+			} else {
+				// If initialValue provided, use it
+				reduced = args[1];
+			}
+
+			// Do the actual reduce
+			for(;i < len; ++i) {
+				// Skip holes
+				if(i in arr) {
+					reduced = reduceFunc(reduced, arr[i], i, arr);
+				}
+			}
+
+			return reduced;
+		};
+
+	function identity(x) {
+		return x;
+	}
+
+	return when;
+});
+})(typeof define == 'function' && define.amd
+	? define
+	: function (factory) { typeof exports === 'object'
+		? (module.exports = factory())
+		: (this.when      = factory());
+	}
+	// Boilerplate for AMD, Node, and browser global
+);
+
 define('Core/FeatureDetection',[
         './defaultValue',
         './defined',
-        './Fullscreen'
+        './defineProperties',
+        './DeveloperError',
+        './Fullscreen',
+        './RuntimeError',
+        '../ThirdParty/when'
     ], function(
         defaultValue,
         defined,
-        Fullscreen) {
+        defineProperties,
+        DeveloperError,
+        Fullscreen,
+        RuntimeError,
+        when) {
     'use strict';
     /*global CanvasPixelArray*/
 
@@ -12359,6 +13250,53 @@ define('Core/FeatureDetection',[
         return supportsImageRenderingPixelated() ? imageRenderingValueResult : undefined;
     }
 
+    function supportsWebP() {
+                if (!supportsWebP.initialized) {
+            throw new DeveloperError('You must call FeatureDetection.supportsWebP.initialize and wait for the promise to resolve before calling FeatureDetection.supportsWebP');
+        }
+                return supportsWebP._result;
+    }
+    supportsWebP._promise = undefined;
+    supportsWebP._result = undefined;
+    supportsWebP.initialize = function() {
+        // From https://developers.google.com/speed/webp/faq#how_can_i_detect_browser_support_for_webp
+        if (defined(supportsWebP._promise)) {
+            return supportsWebP._promise;
+        }
+
+        var supportsWebPDeferred = when.defer();
+        supportsWebP._promise = supportsWebPDeferred.promise;
+        if (isEdge()) {
+            // Edge's WebP support with WebGL is incomplete.
+            // See bug report: https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/19221241/
+            supportsWebP._result = false;
+            supportsWebPDeferred.resolve(supportsWebP._result);
+            return supportsWebPDeferred.promise;
+        }
+
+        var image = new Image();
+        image.onload = function () {
+            supportsWebP._result = (image.width > 0) && (image.height > 0);
+            supportsWebPDeferred.resolve(supportsWebP._result);
+        };
+
+        image.onerror = function () {
+            supportsWebP._result = false;
+            supportsWebPDeferred.resolve(supportsWebP._result);
+        };
+
+        image.src = 'data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA';
+
+        return supportsWebPDeferred.promise;
+    };
+    defineProperties(supportsWebP, {
+        initialized: {
+            get: function() {
+                return defined(supportsWebP._result);
+            }
+        }
+    });
+
     var typedArrayTypes = [];
     if (typeof ArrayBuffer !== 'undefined') {
         typedArrayTypes.push(Int8Array, Uint8Array, Int16Array, Uint16Array, Int32Array, Uint32Array, Float32Array, Float64Array);
@@ -12395,6 +13333,7 @@ define('Core/FeatureDetection',[
         hardwareConcurrency : defaultValue(theNavigator.hardwareConcurrency, 3),
         supportsPointerEvents : supportsPointerEvents,
         supportsImageRenderingPixelated: supportsImageRenderingPixelated,
+        supportsWebP: supportsWebP,
         imageRenderingValue: imageRenderingValue,
         typedArrayTypes: typedArrayTypes
     };
@@ -13388,6 +14327,899 @@ define('Core/ComponentDatatype',[
     };
 
     return freezeObject(ComponentDatatype);
+});
+
+define('Core/EllipsoidGeodesic',[
+        './Cartesian3',
+        './Cartographic',
+        './Check',
+        './defaultValue',
+        './defined',
+        './defineProperties',
+        './Ellipsoid',
+        './Math'
+    ], function(
+        Cartesian3,
+        Cartographic,
+        Check,
+        defaultValue,
+        defined,
+        defineProperties,
+        Ellipsoid,
+        CesiumMath) {
+    'use strict';
+
+    function setConstants(ellipsoidGeodesic) {
+        var uSquared = ellipsoidGeodesic._uSquared;
+        var a = ellipsoidGeodesic._ellipsoid.maximumRadius;
+        var b = ellipsoidGeodesic._ellipsoid.minimumRadius;
+        var f = (a - b) / a;
+
+        var cosineHeading = Math.cos(ellipsoidGeodesic._startHeading);
+        var sineHeading = Math.sin(ellipsoidGeodesic._startHeading);
+
+        var tanU = (1 - f) * Math.tan(ellipsoidGeodesic._start.latitude);
+
+        var cosineU = 1.0 / Math.sqrt(1.0 + tanU * tanU);
+        var sineU = cosineU * tanU;
+
+        var sigma = Math.atan2(tanU, cosineHeading);
+
+        var sineAlpha = cosineU * sineHeading;
+        var sineSquaredAlpha = sineAlpha * sineAlpha;
+
+        var cosineSquaredAlpha = 1.0 - sineSquaredAlpha;
+        var cosineAlpha = Math.sqrt(cosineSquaredAlpha);
+
+        var u2Over4 = uSquared / 4.0;
+        var u4Over16 = u2Over4 * u2Over4;
+        var u6Over64 = u4Over16 * u2Over4;
+        var u8Over256 = u4Over16 * u4Over16;
+
+        var a0 = (1.0 + u2Over4 - 3.0 * u4Over16 / 4.0 + 5.0 * u6Over64 / 4.0 - 175.0 * u8Over256 / 64.0);
+        var a1 = (1.0 - u2Over4 + 15.0 * u4Over16 / 8.0 - 35.0 * u6Over64 / 8.0);
+        var a2 = (1.0 - 3.0 * u2Over4 + 35.0 * u4Over16 / 4.0);
+        var a3 = (1.0 - 5.0 * u2Over4);
+
+        var distanceRatio = a0 * sigma - a1 * Math.sin(2.0 * sigma) * u2Over4 / 2.0 - a2 * Math.sin(4.0 * sigma) * u4Over16 / 16.0 -
+                            a3 * Math.sin(6.0 * sigma) * u6Over64 / 48.0 - Math.sin(8.0 * sigma) * 5.0 * u8Over256 / 512;
+
+        var constants = ellipsoidGeodesic._constants;
+
+        constants.a = a;
+        constants.b = b;
+        constants.f = f;
+        constants.cosineHeading = cosineHeading;
+        constants.sineHeading = sineHeading;
+        constants.tanU = tanU;
+        constants.cosineU = cosineU;
+        constants.sineU = sineU;
+        constants.sigma = sigma;
+        constants.sineAlpha = sineAlpha;
+        constants.sineSquaredAlpha = sineSquaredAlpha;
+        constants.cosineSquaredAlpha = cosineSquaredAlpha;
+        constants.cosineAlpha = cosineAlpha;
+        constants.u2Over4 = u2Over4;
+        constants.u4Over16 = u4Over16;
+        constants.u6Over64 = u6Over64;
+        constants.u8Over256 = u8Over256;
+        constants.a0 = a0;
+        constants.a1 = a1;
+        constants.a2 = a2;
+        constants.a3 = a3;
+        constants.distanceRatio = distanceRatio;
+    }
+
+    function computeC(f, cosineSquaredAlpha) {
+        return f * cosineSquaredAlpha * (4.0 + f * (4.0 - 3.0 * cosineSquaredAlpha)) / 16.0;
+    }
+
+    function computeDeltaLambda(f, sineAlpha, cosineSquaredAlpha, sigma, sineSigma, cosineSigma, cosineTwiceSigmaMidpoint) {
+        var C = computeC(f, cosineSquaredAlpha);
+
+        return (1.0 - C) * f * sineAlpha * (sigma + C * sineSigma * (cosineTwiceSigmaMidpoint +
+                C * cosineSigma * (2.0 * cosineTwiceSigmaMidpoint * cosineTwiceSigmaMidpoint - 1.0)));
+    }
+
+    function vincentyInverseFormula(ellipsoidGeodesic, major, minor, firstLongitude, firstLatitude, secondLongitude, secondLatitude) {
+        var eff = (major - minor) / major;
+        var l = secondLongitude - firstLongitude;
+
+        var u1 = Math.atan((1 - eff) * Math.tan(firstLatitude));
+        var u2 = Math.atan((1 - eff) * Math.tan(secondLatitude));
+
+        var cosineU1 = Math.cos(u1);
+        var sineU1 = Math.sin(u1);
+        var cosineU2 = Math.cos(u2);
+        var sineU2 = Math.sin(u2);
+
+        var cc = cosineU1 * cosineU2;
+        var cs = cosineU1 * sineU2;
+        var ss = sineU1 * sineU2;
+        var sc = sineU1 * cosineU2;
+
+        var lambda = l;
+        var lambdaDot = CesiumMath.TWO_PI;
+
+        var cosineLambda = Math.cos(lambda);
+        var sineLambda = Math.sin(lambda);
+
+        var sigma;
+        var cosineSigma;
+        var sineSigma;
+        var cosineSquaredAlpha;
+        var cosineTwiceSigmaMidpoint;
+
+        do {
+            cosineLambda = Math.cos(lambda);
+            sineLambda = Math.sin(lambda);
+
+            var temp = cs - sc * cosineLambda;
+            sineSigma = Math.sqrt(cosineU2 * cosineU2 * sineLambda * sineLambda + temp * temp);
+            cosineSigma = ss + cc * cosineLambda;
+
+            sigma = Math.atan2(sineSigma, cosineSigma);
+
+            var sineAlpha;
+
+            if (sineSigma === 0.0) {
+                sineAlpha = 0.0;
+                cosineSquaredAlpha = 1.0;
+            } else {
+                sineAlpha = cc * sineLambda / sineSigma;
+                cosineSquaredAlpha = 1.0 - sineAlpha * sineAlpha;
+            }
+
+            lambdaDot = lambda;
+
+            cosineTwiceSigmaMidpoint = cosineSigma - 2.0 * ss / cosineSquaredAlpha;
+
+            if (isNaN(cosineTwiceSigmaMidpoint)) {
+                cosineTwiceSigmaMidpoint = 0.0;
+            }
+
+            lambda = l + computeDeltaLambda(eff, sineAlpha, cosineSquaredAlpha,
+                                            sigma, sineSigma, cosineSigma, cosineTwiceSigmaMidpoint);
+        } while (Math.abs(lambda - lambdaDot) > CesiumMath.EPSILON12);
+
+        var uSquared = cosineSquaredAlpha * (major * major - minor * minor) / (minor * minor);
+        var A = 1.0 + uSquared * (4096.0 + uSquared * (uSquared * (320.0 - 175.0 * uSquared) - 768.0)) / 16384.0;
+        var B = uSquared * (256.0 + uSquared * (uSquared * (74.0 - 47.0 * uSquared) - 128.0)) / 1024.0;
+
+        var cosineSquaredTwiceSigmaMidpoint = cosineTwiceSigmaMidpoint * cosineTwiceSigmaMidpoint;
+        var deltaSigma = B * sineSigma * (cosineTwiceSigmaMidpoint + B * (cosineSigma *
+                (2.0 * cosineSquaredTwiceSigmaMidpoint - 1.0) - B * cosineTwiceSigmaMidpoint *
+                (4.0 * sineSigma * sineSigma - 3.0) * (4.0 * cosineSquaredTwiceSigmaMidpoint - 3.0) / 6.0) / 4.0);
+
+        var distance = minor * A * (sigma - deltaSigma);
+
+        var startHeading = Math.atan2(cosineU2 * sineLambda, cs - sc * cosineLambda);
+        var endHeading = Math.atan2(cosineU1 * sineLambda, cs * cosineLambda - sc);
+
+        ellipsoidGeodesic._distance = distance;
+        ellipsoidGeodesic._startHeading = startHeading;
+        ellipsoidGeodesic._endHeading = endHeading;
+        ellipsoidGeodesic._uSquared = uSquared;
+    }
+
+    var scratchCart1 = new Cartesian3();
+    var scratchCart2 = new Cartesian3();
+    function computeProperties(ellipsoidGeodesic, start, end, ellipsoid) {
+        var firstCartesian = Cartesian3.normalize(ellipsoid.cartographicToCartesian(start, scratchCart2), scratchCart1);
+        var lastCartesian = Cartesian3.normalize(ellipsoid.cartographicToCartesian(end, scratchCart2), scratchCart2);
+
+                Check.typeOf.number.greaterThanOrEquals('value', Math.abs(Math.abs(Cartesian3.angleBetween(firstCartesian, lastCartesian)) - Math.PI), 0.0125);
+        
+        vincentyInverseFormula(ellipsoidGeodesic, ellipsoid.maximumRadius, ellipsoid.minimumRadius,
+                               start.longitude, start.latitude, end.longitude, end.latitude);
+
+        ellipsoidGeodesic._start = Cartographic.clone(start, ellipsoidGeodesic._start);
+        ellipsoidGeodesic._end = Cartographic.clone(end, ellipsoidGeodesic._end);
+        ellipsoidGeodesic._start.height = 0;
+        ellipsoidGeodesic._end.height = 0;
+
+        setConstants(ellipsoidGeodesic);
+    }
+
+    /**
+     * Initializes a geodesic on the ellipsoid connecting the two provided planetodetic points.
+     *
+     * @alias EllipsoidGeodesic
+     * @constructor
+     *
+     * @param {Cartographic} [start] The initial planetodetic point on the path.
+     * @param {Cartographic} [end] The final planetodetic point on the path.
+     * @param {Ellipsoid} [ellipsoid=Ellipsoid.WGS84] The ellipsoid on which the geodesic lies.
+     */
+    function EllipsoidGeodesic(start, end, ellipsoid) {
+        var e = defaultValue(ellipsoid, Ellipsoid.WGS84);
+        this._ellipsoid = e;
+        this._start = new Cartographic();
+        this._end = new Cartographic();
+
+        this._constants = {};
+        this._startHeading = undefined;
+        this._endHeading = undefined;
+        this._distance = undefined;
+        this._uSquared = undefined;
+
+        if (defined(start) && defined(end)) {
+            computeProperties(this, start, end, e);
+        }
+    }
+
+    defineProperties(EllipsoidGeodesic.prototype, {
+        /**
+         * Gets the ellipsoid.
+         * @memberof EllipsoidGeodesic.prototype
+         * @type {Ellipsoid}
+         * @readonly
+         */
+        ellipsoid : {
+            get : function() {
+                return this._ellipsoid;
+            }
+        },
+
+        /**
+         * Gets the surface distance between the start and end point
+         * @memberof EllipsoidGeodesic.prototype
+         * @type {Number}
+         * @readonly
+         */
+        surfaceDistance : {
+            get : function() {
+                                Check.defined('distance', this._distance);
+                
+                return this._distance;
+            }
+        },
+
+        /**
+         * Gets the initial planetodetic point on the path.
+         * @memberof EllipsoidGeodesic.prototype
+         * @type {Cartographic}
+         * @readonly
+         */
+        start : {
+            get : function() {
+                return this._start;
+            }
+        },
+
+        /**
+         * Gets the final planetodetic point on the path.
+         * @memberof EllipsoidGeodesic.prototype
+         * @type {Cartographic}
+         * @readonly
+         */
+        end : {
+            get : function() {
+                return this._end;
+            }
+        },
+
+        /**
+         * Gets the heading at the initial point.
+         * @memberof EllipsoidGeodesic.prototype
+         * @type {Number}
+         * @readonly
+         */
+        startHeading : {
+            get : function() {
+                                Check.defined('distance', this._distance);
+                
+                return this._startHeading;
+            }
+        },
+
+        /**
+         * Gets the heading at the final point.
+         * @memberof EllipsoidGeodesic.prototype
+         * @type {Number}
+         * @readonly
+         */
+        endHeading : {
+            get : function() {
+                                Check.defined('distance', this._distance);
+                
+                return this._endHeading;
+            }
+        }
+    });
+
+    /**
+     * Sets the start and end points of the geodesic
+     *
+     * @param {Cartographic} start The initial planetodetic point on the path.
+     * @param {Cartographic} end The final planetodetic point on the path.
+     */
+    EllipsoidGeodesic.prototype.setEndPoints = function(start, end) {
+                Check.defined('start', start);
+        Check.defined('end', end);
+        
+        computeProperties(this, start, end, this._ellipsoid);
+    };
+
+    /**
+     * Provides the location of a point at the indicated portion along the geodesic.
+     *
+     * @param {Number} fraction The portion of the distance between the initial and final points.
+     * @param {Cartographic} result The object in which to store the result.
+     * @returns {Cartographic} The location of the point along the geodesic.
+     */
+    EllipsoidGeodesic.prototype.interpolateUsingFraction = function(fraction, result) {
+        return this.interpolateUsingSurfaceDistance(this._distance * fraction, result);
+    };
+
+    /**
+     * Provides the location of a point at the indicated distance along the geodesic.
+     *
+     * @param {Number} distance The distance from the inital point to the point of interest along the geodesic
+     * @param {Cartographic} result The object in which to store the result.
+     * @returns {Cartographic} The location of the point along the geodesic.
+     *
+     * @exception {DeveloperError} start and end must be set before calling function interpolateUsingSurfaceDistance
+     */
+    EllipsoidGeodesic.prototype.interpolateUsingSurfaceDistance = function(distance, result) {
+                Check.defined('distance', this._distance);
+        
+        var constants = this._constants;
+
+        var s = constants.distanceRatio + distance / constants.b;
+
+        var cosine2S = Math.cos(2.0 * s);
+        var cosine4S = Math.cos(4.0 * s);
+        var cosine6S = Math.cos(6.0 * s);
+        var sine2S = Math.sin(2.0 * s);
+        var sine4S = Math.sin(4.0 * s);
+        var sine6S = Math.sin(6.0 * s);
+        var sine8S = Math.sin(8.0 * s);
+
+        var s2 = s * s;
+        var s3 = s * s2;
+
+        var u8Over256 = constants.u8Over256;
+        var u2Over4 = constants.u2Over4;
+        var u6Over64 = constants.u6Over64;
+        var u4Over16 = constants.u4Over16;
+        var sigma = 2.0 * s3 * u8Over256 * cosine2S / 3.0 +
+            s * (1.0 - u2Over4 + 7.0 * u4Over16 / 4.0 - 15.0 * u6Over64 / 4.0 + 579.0 * u8Over256 / 64.0 -
+            (u4Over16 - 15.0 * u6Over64 / 4.0 + 187.0 * u8Over256 / 16.0) * cosine2S -
+            (5.0 * u6Over64 / 4.0 - 115.0 * u8Over256 / 16.0) * cosine4S -
+            29.0 * u8Over256 * cosine6S / 16.0) +
+            (u2Over4 / 2.0 - u4Over16 + 71.0 * u6Over64 / 32.0 - 85.0 * u8Over256 / 16.0) * sine2S +
+            (5.0 * u4Over16 / 16.0 - 5.0 * u6Over64 / 4.0 + 383.0 * u8Over256 / 96.0) * sine4S -
+            s2 * ((u6Over64 - 11.0 * u8Over256 / 2.0) * sine2S + 5.0 * u8Over256 * sine4S / 2.0) +
+            (29.0 * u6Over64 / 96.0 - 29.0 * u8Over256 / 16.0) * sine6S +
+            539.0 * u8Over256 * sine8S / 1536.0;
+
+        var theta = Math.asin(Math.sin(sigma) * constants.cosineAlpha);
+        var latitude = Math.atan(constants.a / constants.b * Math.tan(theta));
+
+        // Redefine in terms of relative argument of latitude.
+        sigma = sigma - constants.sigma;
+
+        var cosineTwiceSigmaMidpoint = Math.cos(2.0 * constants.sigma + sigma);
+
+        var sineSigma = Math.sin(sigma);
+        var cosineSigma = Math.cos(sigma);
+
+        var cc = constants.cosineU * cosineSigma;
+        var ss = constants.sineU * sineSigma;
+
+        var lambda = Math.atan2(sineSigma * constants.sineHeading, cc - ss * constants.cosineHeading);
+
+        var l = lambda - computeDeltaLambda(constants.f, constants.sineAlpha, constants.cosineSquaredAlpha,
+                                            sigma, sineSigma, cosineSigma, cosineTwiceSigmaMidpoint);
+
+        if (defined(result)) {
+            result.longitude = this._start.longitude + l;
+            result.latitude = latitude;
+            result.height = 0.0;
+            return result;
+        }
+
+        return new Cartographic(this._start.longitude + l, latitude, 0.0);
+    };
+
+    return EllipsoidGeodesic;
+});
+
+define('Core/EllipsoidRhumbLine',[
+        './Cartesian3',
+        './Cartographic',
+        './Check',
+        './defaultValue',
+        './defined',
+        './defineProperties',
+        './DeveloperError',
+        './Ellipsoid',
+        './Math'
+    ], function(
+        Cartesian3,
+        Cartographic,
+        Check,
+        defaultValue,
+        defined,
+        defineProperties,
+        DeveloperError,
+        Ellipsoid,
+        CesiumMath) {
+    'use strict';
+
+    function calculateM(ellipticity, major, latitude) {
+        if (ellipticity === 0.0) { // sphere
+            return major * latitude;
+        }
+
+        var e2 = ellipticity * ellipticity;
+        var e4 = e2 * e2;
+        var e6 = e4 * e2;
+        var e8 = e6 * e2;
+        var e10 = e8 * e2;
+        var e12 = e10 * e2;
+        var phi = latitude;
+        var sin2Phi = Math.sin(2 * phi);
+        var sin4Phi = Math.sin(4 * phi);
+        var sin6Phi = Math.sin(6 * phi);
+        var sin8Phi = Math.sin(8 * phi);
+        var sin10Phi = Math.sin(10 * phi);
+        var sin12Phi = Math.sin(12 * phi);
+
+        return major * ((1 - e2 / 4 - 3 * e4 / 64 - 5 * e6 / 256 - 175 * e8 / 16384 - 441 * e10 / 65536 - 4851 * e12 / 1048576) * phi
+                     - (3 * e2 / 8 + 3 * e4 / 32 + 45 * e6 / 1024 + 105 * e8 / 4096 + 2205 * e10 / 131072 + 6237 * e12 / 524288) * sin2Phi
+                     + (15 * e4 / 256 + 45 * e6 / 1024 + 525 * e8 / 16384 + 1575 * e10 / 65536 + 155925 * e12 / 8388608) * sin4Phi
+                     - (35 * e6 / 3072 + 175 * e8 / 12288 + 3675 * e10 / 262144 + 13475 * e12 / 1048576) * sin6Phi
+                     + (315 * e8 / 131072 + 2205 * e10 / 524288 + 43659 * e12 / 8388608) * sin8Phi
+                     - (693 * e10 / 1310720 + 6237 * e12 / 5242880) * sin10Phi
+                     + 1001 * e12 / 8388608 * sin12Phi);
+    }
+
+    function calculateInverseM(M, ellipticity, major) {
+        var d = M / major;
+
+        if (ellipticity === 0.0) { // sphere
+            return d;
+        }
+
+        var d2 = d * d;
+        var d3 = d2 * d;
+        var d4 = d3 * d;
+        var e = ellipticity;
+        var e2 = e * e;
+        var e4 = e2 * e2;
+        var e6 = e4 * e2;
+        var e8 = e6 * e2;
+        var e10 = e8 * e2;
+        var e12 = e10 * e2;
+        var sin2D = Math.sin(2 * d);
+        var cos2D = Math.cos(2 * d);
+        var sin4D = Math.sin(4 * d);
+        var cos4D = Math.cos(4 * d);
+        var sin6D = Math.sin(6 * d);
+        var cos6D = Math.cos(6 * d);
+        var sin8D = Math.sin(8 * d);
+        var cos8D = Math.cos(8 * d);
+        var sin10D = Math.sin(10 * d);
+        var cos10D = Math.cos(10 * d);
+        var sin12D = Math.sin(12 * d);
+
+        return d + d * e2 / 4 + 7 * d * e4 / 64 + 15 * d * e6 / 256 + 579 * d * e8 / 16384 + 1515 * d * e10 / 65536 + 16837 * d * e12 / 1048576
+            + (3 * d * e4 / 16 + 45 * d * e6 / 256 - d * (32 * d2 - 561) * e8 / 4096 - d * (232 * d2 - 1677) * e10 / 16384 + d * (399985 - 90560 * d2 + 512 * d4) * e12 / 5242880) * cos2D
+            + (21 * d * e6 / 256 + 483 * d * e8 / 4096 - d * (224 * d2 - 1969) * e10 / 16384 - d * (33152 * d2 - 112599) * e12 / 1048576) * cos4D
+            + (151 * d * e8 / 4096 + 4681 * d * e10 / 65536 + 1479 * d * e12 / 16384 - 453 * d3 * e12 / 32768) * cos6D
+            + (1097 * d * e10 / 65536 + 42783 * d * e12 / 1048576) * cos8D
+            + 8011 * d * e12 / 1048576 * cos10D
+            + (3 * e2 / 8 + 3 * e4 / 16 + 213 * e6 / 2048 - 3 * d2 * e6 / 64 + 255 * e8 / 4096 - 33 * d2 * e8 / 512 + 20861 * e10 / 524288 - 33 * d2 * e10 / 512 + d4 * e10 / 1024 + 28273 * e12 / 1048576 - 471 * d2 * e12 / 8192 + 9 * d4 * e12 / 4096) * sin2D
+            + (21 * e4 / 256 + 21 * e6 / 256 + 533 * e8 / 8192 - 21 * d2 * e8 / 512 + 197 * e10 / 4096 - 315 * d2 * e10 / 4096 + 584039 * e12 / 16777216 - 12517 * d2 * e12 / 131072 + 7 * d4 * e12 / 2048) * sin4D
+            + (151 * e6 / 6144 + 151 * e8 / 4096 + 5019 * e10 / 131072 - 453 * d2 * e10 / 16384 + 26965 * e12 / 786432 - 8607 * d2 * e12 / 131072) * sin6D
+            + (1097 * e8 / 131072 + 1097 * e10 / 65536 + 225797 * e12 / 10485760 - 1097 * d2 * e12 / 65536) * sin8D
+            + (8011 * e10 / 2621440 + 8011 * e12 / 1048576) * sin10D
+            + 293393 * e12 / 251658240 * sin12D;
+    }
+
+    function calculateSigma(ellipticity, latitude) {
+        if (ellipticity === 0.0) { // sphere
+            return Math.log(Math.tan(0.5 * (CesiumMath.PI_OVER_TWO + latitude)));
+        }
+
+        var eSinL = ellipticity * Math.sin(latitude);
+        return Math.log(Math.tan(0.5 * (CesiumMath.PI_OVER_TWO + latitude))) - (ellipticity / 2.0 * Math.log((1 + eSinL) / (1 - eSinL)));
+    }
+
+    function calculateHeading(ellipsoidRhumbLine, firstLongitude, firstLatitude, secondLongitude, secondLatitude) {
+        var sigma1 = calculateSigma(ellipsoidRhumbLine._ellipticity, firstLatitude);
+        var sigma2 = calculateSigma(ellipsoidRhumbLine._ellipticity, secondLatitude);
+        return Math.atan2(CesiumMath.negativePiToPi(secondLongitude - firstLongitude), sigma2 - sigma1);
+    }
+
+    function calculateArcLength(ellipsoidRhumbLine, major, minor, firstLongitude, firstLatitude, secondLongitude, secondLatitude) {
+        var heading = ellipsoidRhumbLine._heading;
+        var deltaLongitude = secondLongitude - firstLongitude;
+
+        var distance = 0.0;
+
+        //Check to see if the rhumb line has constant latitude
+        //This equation will diverge if heading gets close to 90 degrees
+        if (CesiumMath.equalsEpsilon(Math.abs(heading), CesiumMath.PI_OVER_TWO, CesiumMath.EPSILON8)) { //If heading is close to 90 degrees
+            if (major === minor) {
+                distance = major * Math.cos(firstLatitude) * CesiumMath.negativePiToPi(deltaLongitude);
+            } else {
+                var sinPhi = Math.sin(firstLatitude);
+                distance = major * Math.cos(firstLatitude) * CesiumMath.negativePiToPi(deltaLongitude) / Math.sqrt(1 - ellipsoidRhumbLine._ellipticitySquared * sinPhi * sinPhi);
+            }
+        } else {
+            var M1 = calculateM(ellipsoidRhumbLine._ellipticity, major, firstLatitude);
+            var M2 = calculateM(ellipsoidRhumbLine._ellipticity, major, secondLatitude);
+
+            distance = (M2 - M1) / Math.cos(heading);
+        }
+        return Math.abs(distance);
+    }
+
+    var scratchCart1 = new Cartesian3();
+    var scratchCart2 = new Cartesian3();
+
+    function computeProperties(ellipsoidRhumbLine, start, end, ellipsoid) {
+        var firstCartesian = Cartesian3.normalize(ellipsoid.cartographicToCartesian(start, scratchCart2), scratchCart1);
+        var lastCartesian = Cartesian3.normalize(ellipsoid.cartographicToCartesian(end, scratchCart2), scratchCart2);
+
+                Check.typeOf.number.greaterThanOrEquals('value', Math.abs(Math.abs(Cartesian3.angleBetween(firstCartesian, lastCartesian)) - Math.PI), 0.0125);
+        
+        var major = ellipsoid.maximumRadius;
+        var minor = ellipsoid.minimumRadius;
+        var majorSquared = major * major;
+        var minorSquared = minor * minor;
+        ellipsoidRhumbLine._ellipticitySquared = (majorSquared - minorSquared) / majorSquared;
+        ellipsoidRhumbLine._ellipticity = Math.sqrt(ellipsoidRhumbLine._ellipticitySquared);
+
+        ellipsoidRhumbLine._start = Cartographic.clone(start, ellipsoidRhumbLine._start);
+        ellipsoidRhumbLine._start.height = 0;
+
+        ellipsoidRhumbLine._end = Cartographic.clone(end, ellipsoidRhumbLine._end);
+        ellipsoidRhumbLine._end.height = 0;
+
+        ellipsoidRhumbLine._heading = calculateHeading(ellipsoidRhumbLine, start.longitude, start.latitude, end.longitude, end.latitude);
+        ellipsoidRhumbLine._distance = calculateArcLength(ellipsoidRhumbLine, ellipsoid.maximumRadius, ellipsoid.minimumRadius,
+                                                          start.longitude, start.latitude, end.longitude, end.latitude);
+    }
+
+    function interpolateUsingSurfaceDistance(start, heading, distance, major, ellipticity, result)
+    {
+        var ellipticitySquared = ellipticity * ellipticity;
+
+        var longitude;
+        var latitude;
+        var deltaLongitude;
+
+        //Check to see if the rhumb line has constant latitude
+        //This won't converge if heading is close to 90 degrees
+        if (Math.abs(CesiumMath.PI_OVER_TWO - Math.abs(heading)) > CesiumMath.EPSILON8) {
+            //Calculate latitude of the second point
+            var M1 = calculateM(ellipticity, major, start.latitude);
+            var deltaM = distance * Math.cos(heading);
+            var M2 = M1 + deltaM;
+            latitude = calculateInverseM(M2, ellipticity, major);
+
+            //Now find the longitude of the second point
+            var sigma1 = calculateSigma(ellipticity, start.latitude);
+            var sigma2 = calculateSigma(ellipticity, latitude);
+            deltaLongitude = Math.tan(heading) * (sigma2 - sigma1);
+            longitude = CesiumMath.negativePiToPi(start.longitude + deltaLongitude);
+        } else { //If heading is close to 90 degrees
+            latitude = start.latitude;
+            var localRad;
+
+            if (ellipticity === 0.0) { // sphere
+                localRad = major * Math.cos(start.latitude);
+            } else {
+                var sinPhi = Math.sin(start.latitude);
+                localRad = major * Math.cos(start.latitude) / Math.sqrt(1 - ellipticitySquared * sinPhi * sinPhi);
+            }
+
+            deltaLongitude = distance / localRad;
+            if (heading > 0.0) {
+                longitude = CesiumMath.negativePiToPi(start.longitude + deltaLongitude);
+            } else {
+                longitude = CesiumMath.negativePiToPi(start.longitude - deltaLongitude);
+            }
+        }
+
+        if (defined(result)) {
+            result.longitude = longitude;
+            result.latitude = latitude;
+            result.height = 0;
+
+            return result;
+        }
+
+        return new Cartographic(longitude, latitude, 0);
+    }
+
+    /**
+     * Initializes a rhumb line on the ellipsoid connecting the two provided planetodetic points.
+     *
+     * @alias EllipsoidRhumbLine
+     * @constructor
+     *
+     * @param {Cartographic} [start] The initial planetodetic point on the path.
+     * @param {Cartographic} [end] The final planetodetic point on the path.
+     * @param {Ellipsoid} [ellipsoid=Ellipsoid.WGS84] The ellipsoid on which the rhumb line lies.
+     *
+     * @exception {DeveloperError} angle between start and end must be at least 0.0125 radians.
+     */
+    function EllipsoidRhumbLine(start, end, ellipsoid) {
+        var e = defaultValue(ellipsoid, Ellipsoid.WGS84);
+        this._ellipsoid = e;
+        this._start = new Cartographic();
+        this._end = new Cartographic();
+
+        this._heading = undefined;
+        this._distance = undefined;
+        this._ellipticity = undefined;
+        this._ellipticitySquared = undefined;
+
+        if (defined(start) && defined(end)) {
+            computeProperties(this, start, end, e);
+        }
+    }
+
+    defineProperties(EllipsoidRhumbLine.prototype, {
+        /**
+         * Gets the ellipsoid.
+         * @memberof EllipsoidRhumbLine.prototype
+         * @type {Ellipsoid}
+         * @readonly
+         */
+        ellipsoid : {
+            get : function() {
+                return this._ellipsoid;
+            }
+        },
+
+        /**
+         * Gets the surface distance between the start and end point
+         * @memberof EllipsoidRhumbLine.prototype
+         * @type {Number}
+         * @readonly
+         */
+        surfaceDistance : {
+            get : function() {
+                                Check.defined('distance', this._distance);
+                
+                return this._distance;
+            }
+        },
+
+        /**
+         * Gets the initial planetodetic point on the path.
+         * @memberof EllipsoidRhumbLine.prototype
+         * @type {Cartographic}
+         * @readonly
+         */
+        start : {
+            get : function() {
+                return this._start;
+            }
+        },
+
+        /**
+         * Gets the final planetodetic point on the path.
+         * @memberof EllipsoidRhumbLine.prototype
+         * @type {Cartographic}
+         * @readonly
+         */
+        end : {
+            get : function() {
+                return this._end;
+            }
+        },
+
+        /**
+         * Gets the heading from the start point to the end point.
+         * @memberof EllipsoidRhumbLine.prototype
+         * @type {Number}
+         * @readonly
+         */
+        heading : {
+            get : function() {
+                                Check.defined('distance', this._distance);
+                
+                return this._heading;
+            }
+        }
+    });
+
+    /**
+     * Create a rhumb line using an initial position with a heading and distance.
+     *
+     * @param {Cartographic} start The initial planetodetic point on the path.
+     * @param {Number} heading The heading in radians.
+     * @param {Number} distance The rhumb line distance between the start and end point.
+     * @param {Ellipsoid} [ellipsoid=Ellipsoid.WGS84] The ellipsoid on which the rhumb line lies.
+     * @param {EllipsoidRhumbLine} [result] The object in which to store the result.
+     * @returns {EllipsoidRhumbLine} The EllipsoidRhumbLine object.
+     */
+    EllipsoidRhumbLine.fromStartHeadingDistance = function(start, heading, distance, ellipsoid, result) {
+                Check.defined('start', start);
+        Check.defined('heading', heading);
+        Check.defined('distance', distance);
+        Check.typeOf.number.greaterThan('distance', distance, 0.0);
+        
+        var e = defaultValue(ellipsoid, Ellipsoid.WGS84);
+        var major = e.maximumRadius;
+        var minor = e.minimumRadius;
+        var majorSquared = major * major;
+        var minorSquared = minor * minor;
+        var ellipticity = Math.sqrt((majorSquared - minorSquared) / majorSquared);
+
+        heading = CesiumMath.negativePiToPi(heading);
+        var end = interpolateUsingSurfaceDistance(start, heading, distance, e.maximumRadius, ellipticity);
+
+        if (!defined(result) || (defined(ellipsoid) && !ellipsoid.equals(result.ellipsoid))) {
+            return new EllipsoidRhumbLine(start, end, e);
+        }
+
+        result.setEndPoints(start, end);
+        return result;
+    };
+
+    /**
+     * Sets the start and end points of the rhumb line.
+     *
+     * @param {Cartographic} start The initial planetodetic point on the path.
+     * @param {Cartographic} end The final planetodetic point on the path.
+     */
+    EllipsoidRhumbLine.prototype.setEndPoints = function(start, end) {
+                Check.defined('start', start);
+        Check.defined('end', end);
+        
+        computeProperties(this, start, end, this._ellipsoid);
+    };
+
+    /**
+     * Provides the location of a point at the indicated portion along the rhumb line.
+     *
+     * @param {Number} fraction The portion of the distance between the initial and final points.
+     * @param {Cartographic} [result] The object in which to store the result.
+     * @returns {Cartographic} The location of the point along the rhumb line.
+     */
+    EllipsoidRhumbLine.prototype.interpolateUsingFraction = function(fraction, result) {
+        return this.interpolateUsingSurfaceDistance(fraction * this._distance, result);
+    };
+
+    /**
+     * Provides the location of a point at the indicated distance along the rhumb line.
+     *
+     * @param {Number} distance The distance from the inital point to the point of interest along the rhumbLine.
+     * @param {Cartographic} [result] The object in which to store the result.
+     * @returns {Cartographic} The location of the point along the rhumb line.
+     *
+     * @exception {DeveloperError} start and end must be set before calling function interpolateUsingSurfaceDistance
+     */
+    EllipsoidRhumbLine.prototype.interpolateUsingSurfaceDistance = function(distance, result) {
+                Check.typeOf.number('distance', distance);
+        if (!defined(this._distance) || this._distance === 0.0) {
+            throw new DeveloperError('EllipsoidRhumbLine must have distinct start and end set.');
+        }
+        
+        return interpolateUsingSurfaceDistance(this._start, this._heading, distance, this._ellipsoid.maximumRadius, this._ellipticity, result);
+    };
+
+    /**
+     * Provides the location of a point at the indicated longitude along the rhumb line.
+     * If the longitude is outside the range of start and end points, the first intersection with the longitude from the start point in the direction of the heading is returned. This follows the spiral property of a rhumb line.
+     *
+     * @param {Number} intersectionLongitude The longitude, in radians, at which to find the intersection point from the starting point using the heading.
+     * @param {Cartographic} [result] The object in which to store the result.
+     * @returns {Cartographic} The location of the intersection point along the rhumb line, undefined if there is no intersection or infinite intersections.
+     *
+     * @exception {DeveloperError} start and end must be set before calling function findIntersectionWithLongitude.
+     */
+    EllipsoidRhumbLine.prototype.findIntersectionWithLongitude = function(intersectionLongitude, result) {
+                Check.typeOf.number('intersectionLongitude', intersectionLongitude);
+        if (!defined(this._distance) || this._distance === 0.0) {
+            throw new DeveloperError('EllipsoidRhumbLine must have distinct start and end set.');
+        }
+        
+        var ellipticity = this._ellipticity;
+        var heading = this._heading;
+        var absHeading = Math.abs(heading);
+        var start = this._start;
+
+        intersectionLongitude = CesiumMath.negativePiToPi(intersectionLongitude);
+
+        if (CesiumMath.equalsEpsilon(Math.abs(intersectionLongitude), Math.PI, CesiumMath.EPSILON14)) {
+            intersectionLongitude = CesiumMath.sign(start.longitude) * Math.PI;
+        }
+
+        if (!defined(result)) {
+            result = new Cartographic();
+        }
+
+        // If heading is -PI/2 or PI/2, this is an E-W rhumb line
+        // If heading is 0 or PI, this is an N-S rhumb line
+        if (Math.abs(CesiumMath.PI_OVER_TWO - absHeading) <= CesiumMath.EPSILON8) {
+            result.longitude = intersectionLongitude;
+            result.latitude = start.latitude;
+            result.height = 0;
+            return result;
+        } else if (CesiumMath.equalsEpsilon(Math.abs(CesiumMath.PI_OVER_TWO - absHeading), CesiumMath.PI_OVER_TWO, CesiumMath.EPSILON8)) {
+            if (CesiumMath.equalsEpsilon(intersectionLongitude, start.longitude, CesiumMath.EPSILON12)) {
+                return undefined;
+            }
+
+            result.longitude = intersectionLongitude;
+            result.latitude = CesiumMath.PI_OVER_TWO * CesiumMath.sign(CesiumMath.PI_OVER_TWO - heading);
+            result.height = 0;
+            return result;
+        }
+
+        // Use iterative solver from Equation 9 from http://edwilliams.org/ellipsoid/ellipsoid.pdf
+        var phi1 = start.latitude;
+        var eSinPhi1 = ellipticity * Math.sin(phi1);
+        var leftComponent = Math.tan(0.5 * (CesiumMath.PI_OVER_TWO + phi1)) * Math.exp((intersectionLongitude - start.longitude) / Math.tan(heading));
+        var denominator = (1 + eSinPhi1) / (1 - eSinPhi1);
+
+        var newPhi = start.latitude;
+        var phi;
+        do {
+            phi = newPhi;
+            var eSinPhi = ellipticity * Math.sin(phi);
+            var numerator = (1 + eSinPhi) / (1 - eSinPhi);
+            newPhi = 2 * Math.atan(leftComponent * Math.pow(numerator / denominator, ellipticity / 2)) - CesiumMath.PI_OVER_TWO;
+        } while (!CesiumMath.equalsEpsilon(newPhi, phi, CesiumMath.EPSILON12));
+
+        result.longitude = intersectionLongitude;
+        result.latitude = newPhi;
+        result.height = 0;
+        return result;
+    };
+
+    /**
+     * Provides the location of a point at the indicated latitude along the rhumb line.
+     * If the latitude is outside the range of start and end points, the first intersection with the latitude from that start point in the direction of the heading is returned. This follows the spiral property of a rhumb line.
+     *
+     * @param {Number} intersectionLatitude The latitude, in radians, at which to find the intersection point from the starting point using the heading.
+     * @param {Cartographic} [result] The object in which to store the result.
+     * @returns {Cartographic} The location of the intersection point along the rhumb line, undefined if there is no intersection or infinite intersections.
+     *
+     * @exception {DeveloperError} start and end must be set before calling function findIntersectionWithLongitude.
+     */
+    EllipsoidRhumbLine.prototype.findIntersectionWithLatitude = function(intersectionLatitude, result) {
+                Check.typeOf.number('intersectionLatitude', intersectionLatitude);
+        if (!defined(this._distance) || this._distance === 0.0) {
+            throw new DeveloperError('EllipsoidRhumbLine must have distinct start and end set.');
+        }
+        
+        var ellipticity = this._ellipticity;
+        var heading = this._heading;
+        var start = this._start;
+
+        // If start and end have same latitude, return undefined since it's either no intersection or infinite intersections
+        if (CesiumMath.equalsEpsilon(Math.abs(heading), CesiumMath.PI_OVER_TWO, CesiumMath.EPSILON8)) {
+            return;
+        }
+
+        // Can be solved using the same equations from interpolateUsingSurfaceDistance
+        var sigma1 = calculateSigma(ellipticity, start.latitude);
+        var sigma2 = calculateSigma(ellipticity, intersectionLatitude);
+        var deltaLongitude = Math.tan(heading) * (sigma2 - sigma1);
+        var longitude = CesiumMath.negativePiToPi(start.longitude + deltaLongitude);
+
+        if (defined(result)) {
+            result.longitude = longitude;
+            result.latitude = intersectionLatitude;
+            result.height = 0;
+
+            return result;
+        }
+
+        return new Cartographic(longitude, intersectionLatitude, 0);
+    };
+
+    return EllipsoidRhumbLine;
 });
 
 define('Core/AxisAlignedBoundingBox',[
@@ -15543,755 +17375,6 @@ define('Core/Plane',[
 
     return Plane;
 });
-
-/**
-  @license
-  when.js - https://github.com/cujojs/when
-
-  MIT License (c) copyright B Cavalier & J Hann
-
- * A lightweight CommonJS Promises/A and when() implementation
- * when is part of the cujo.js family of libraries (http://cujojs.com/)
- *
- * Licensed under the MIT License at:
- * http://www.opensource.org/licenses/mit-license.php
- *
- * @version 1.7.1
- */
-
-(function(define) { 'use strict';
-define('ThirdParty/when',[],function () {
-	var reduceArray, slice, undef;
-
-	//
-	// Public API
-	//
-
-	when.defer     = defer;     // Create a deferred
-	when.resolve   = resolve;   // Create a resolved promise
-	when.reject    = reject;    // Create a rejected promise
-
-	when.join      = join;      // Join 2 or more promises
-
-	when.all       = all;       // Resolve a list of promises
-	when.map       = map;       // Array.map() for promises
-	when.reduce    = reduce;    // Array.reduce() for promises
-
-	when.any       = any;       // One-winner race
-	when.some      = some;      // Multi-winner race
-
-	when.chain     = chain;     // Make a promise trigger another resolver
-
-	when.isPromise = isPromise; // Determine if a thing is a promise
-
-	/**
-	 * Register an observer for a promise or immediate value.
-	 *
-	 * @param {*} promiseOrValue
-	 * @param {function?} [onFulfilled] callback to be called when promiseOrValue is
-	 *   successfully fulfilled.  If promiseOrValue is an immediate value, callback
-	 *   will be invoked immediately.
-	 * @param {function?} [onRejected] callback to be called when promiseOrValue is
-	 *   rejected.
-	 * @param {function?} [onProgress] callback to be called when progress updates
-	 *   are issued for promiseOrValue.
-	 * @returns {Promise} a new {@link Promise} that will complete with the return
-	 *   value of callback or errback or the completion value of promiseOrValue if
-	 *   callback and/or errback is not supplied.
-	 */
-	function when(promiseOrValue, onFulfilled, onRejected, onProgress) {
-		// Get a trusted promise for the input promiseOrValue, and then
-		// register promise handlers
-		return resolve(promiseOrValue).then(onFulfilled, onRejected, onProgress);
-	}
-
-	/**
-	 * Returns promiseOrValue if promiseOrValue is a {@link Promise}, a new Promise if
-	 * promiseOrValue is a foreign promise, or a new, already-fulfilled {@link Promise}
-	 * whose value is promiseOrValue if promiseOrValue is an immediate value.
-	 *
-	 * @param {*} promiseOrValue
-	 * @returns Guaranteed to return a trusted Promise.  If promiseOrValue is a when.js {@link Promise}
-	 *   returns promiseOrValue, otherwise, returns a new, already-resolved, when.js {@link Promise}
-	 *   whose resolution value is:
-	 *   * the resolution value of promiseOrValue if it's a foreign promise, or
-	 *   * promiseOrValue if it's a value
-	 */
-	function resolve(promiseOrValue) {
-		var promise, deferred;
-
-		if(promiseOrValue instanceof Promise) {
-			// It's a when.js promise, so we trust it
-			promise = promiseOrValue;
-
-		} else {
-			// It's not a when.js promise. See if it's a foreign promise or a value.
-			if(isPromise(promiseOrValue)) {
-				// It's a thenable, but we don't know where it came from, so don't trust
-				// its implementation entirely.  Introduce a trusted middleman when.js promise
-				deferred = defer();
-
-				// IMPORTANT: This is the only place when.js should ever call .then() on an
-				// untrusted promise. Don't expose the return value to the untrusted promise
-				promiseOrValue.then(
-					function(value)  { deferred.resolve(value); },
-					function(reason) { deferred.reject(reason); },
-					function(update) { deferred.progress(update); }
-				);
-
-				promise = deferred.promise;
-
-			} else {
-				// It's a value, not a promise.  Create a resolved promise for it.
-				promise = fulfilled(promiseOrValue);
-			}
-		}
-
-		return promise;
-	}
-
-	/**
-	 * Returns a rejected promise for the supplied promiseOrValue.  The returned
-	 * promise will be rejected with:
-	 * - promiseOrValue, if it is a value, or
-	 * - if promiseOrValue is a promise
-	 *   - promiseOrValue's value after it is fulfilled
-	 *   - promiseOrValue's reason after it is rejected
-	 * @param {*} promiseOrValue the rejected value of the returned {@link Promise}
-	 * @returns {Promise} rejected {@link Promise}
-	 */
-	function reject(promiseOrValue) {
-		return when(promiseOrValue, rejected);
-	}
-
-	/**
-	 * Trusted Promise constructor.  A Promise created from this constructor is
-	 * a trusted when.js promise.  Any other duck-typed promise is considered
-	 * untrusted.
-	 * @constructor
-	 * @name Promise
-	 */
-	function Promise(then) {
-		this.then = then;
-	}
-
-	Promise.prototype = {
-		/**
-		 * Register a callback that will be called when a promise is
-		 * fulfilled or rejected.  Optionally also register a progress handler.
-		 * Shortcut for .then(onFulfilledOrRejected, onFulfilledOrRejected, onProgress)
-		 * @param {function?} [onFulfilledOrRejected]
-		 * @param {function?} [onProgress]
-		 * @returns {Promise}
-		 */
-		always: function(onFulfilledOrRejected, onProgress) {
-			return this.then(onFulfilledOrRejected, onFulfilledOrRejected, onProgress);
-		},
-
-		/**
-		 * Register a rejection handler.  Shortcut for .then(undefined, onRejected)
-		 * @param {function?} onRejected
-		 * @returns {Promise}
-		 */
-		otherwise: function(onRejected) {
-			return this.then(undef, onRejected);
-		},
-
-		/**
-		 * Shortcut for .then(function() { return value; })
-		 * @param  {*} value
-		 * @returns {Promise} a promise that:
-		 *  - is fulfilled if value is not a promise, or
-		 *  - if value is a promise, will fulfill with its value, or reject
-		 *    with its reason.
-		 */
-		yield: function(value) {
-			return this.then(function() {
-				return value;
-			});
-		},
-
-		/**
-		 * Assumes that this promise will fulfill with an array, and arranges
-		 * for the onFulfilled to be called with the array as its argument list
-		 * i.e. onFulfilled.spread(undefined, array).
-		 * @param {function} onFulfilled function to receive spread arguments
-		 * @returns {Promise}
-		 */
-		spread: function(onFulfilled) {
-			return this.then(function(array) {
-				// array may contain promises, so resolve its contents.
-				return all(array, function(array) {
-					return onFulfilled.apply(undef, array);
-				});
-			});
-		}
-	};
-
-	/**
-	 * Create an already-resolved promise for the supplied value
-	 * @private
-	 *
-	 * @param {*} value
-	 * @returns {Promise} fulfilled promise
-	 */
-	function fulfilled(value) {
-		var p = new Promise(function(onFulfilled) {
-			// TODO: Promises/A+ check typeof onFulfilled
-			try {
-				return resolve(onFulfilled ? onFulfilled(value) : value);
-			} catch(e) {
-				return rejected(e);
-			}
-		});
-
-		return p;
-	}
-
-	/**
-	 * Create an already-rejected {@link Promise} with the supplied
-	 * rejection reason.
-	 * @private
-	 *
-	 * @param {*} reason
-	 * @returns {Promise} rejected promise
-	 */
-	function rejected(reason) {
-		var p = new Promise(function(_, onRejected) {
-			// TODO: Promises/A+ check typeof onRejected
-			try {
-				return onRejected ? resolve(onRejected(reason)) : rejected(reason);
-			} catch(e) {
-				return rejected(e);
-			}
-		});
-
-		return p;
-	}
-
-	/**
-	 * Creates a new, Deferred with fully isolated resolver and promise parts,
-	 * either or both of which may be given out safely to consumers.
-	 * The Deferred itself has the full API: resolve, reject, progress, and
-	 * then. The resolver has resolve, reject, and progress.  The promise
-	 * only has then.
-	 *
-	 * @returns {Deferred}
-	 */
-	function defer() {
-		var deferred, promise, handlers, progressHandlers,
-			_then, _progress, _resolve;
-
-		/**
-		 * The promise for the new deferred
-		 * @type {Promise}
-		 */
-		promise = new Promise(then);
-
-		/**
-		 * The full Deferred object, with {@link Promise} and {@link Resolver} parts
-		 * @class Deferred
-		 * @name Deferred
-		 */
-		deferred = {
-			then:     then, // DEPRECATED: use deferred.promise.then
-			resolve:  promiseResolve,
-			reject:   promiseReject,
-			// TODO: Consider renaming progress() to notify()
-			progress: promiseProgress,
-
-			promise:  promise,
-
-			resolver: {
-				resolve:  promiseResolve,
-				reject:   promiseReject,
-				progress: promiseProgress
-			}
-		};
-
-		handlers = [];
-		progressHandlers = [];
-
-		/**
-		 * Pre-resolution then() that adds the supplied callback, errback, and progback
-		 * functions to the registered listeners
-		 * @private
-		 *
-		 * @param {function?} [onFulfilled] resolution handler
-		 * @param {function?} [onRejected] rejection handler
-		 * @param {function?} [onProgress] progress handler
-		 */
-		_then = function(onFulfilled, onRejected, onProgress) {
-			// TODO: Promises/A+ check typeof onFulfilled, onRejected, onProgress
-			var deferred, progressHandler;
-
-			deferred = defer();
-
-			progressHandler = typeof onProgress === 'function'
-				? function(update) {
-					try {
-						// Allow progress handler to transform progress event
-						deferred.progress(onProgress(update));
-					} catch(e) {
-						// Use caught value as progress
-						deferred.progress(e);
-					}
-				}
-				: function(update) { deferred.progress(update); };
-
-			handlers.push(function(promise) {
-				promise.then(onFulfilled, onRejected)
-					.then(deferred.resolve, deferred.reject, progressHandler);
-			});
-
-			progressHandlers.push(progressHandler);
-
-			return deferred.promise;
-		};
-
-		/**
-		 * Issue a progress event, notifying all progress listeners
-		 * @private
-		 * @param {*} update progress event payload to pass to all listeners
-		 */
-		_progress = function(update) {
-			processQueue(progressHandlers, update);
-			return update;
-		};
-
-		/**
-		 * Transition from pre-resolution state to post-resolution state, notifying
-		 * all listeners of the resolution or rejection
-		 * @private
-		 * @param {*} value the value of this deferred
-		 */
-		_resolve = function(value) {
-			value = resolve(value);
-
-			// Replace _then with one that directly notifies with the result.
-			_then = value.then;
-			// Replace _resolve so that this Deferred can only be resolved once
-			_resolve = resolve;
-			// Make _progress a noop, to disallow progress for the resolved promise.
-			_progress = noop;
-
-			// Notify handlers
-			processQueue(handlers, value);
-
-			// Free progressHandlers array since we'll never issue progress events
-			progressHandlers = handlers = undef;
-
-			return value;
-		};
-
-		return deferred;
-
-		/**
-		 * Wrapper to allow _then to be replaced safely
-		 * @param {function?} [onFulfilled] resolution handler
-		 * @param {function?} [onRejected] rejection handler
-		 * @param {function?} [onProgress] progress handler
-		 * @returns {Promise} new promise
-		 */
-		function then(onFulfilled, onRejected, onProgress) {
-			// TODO: Promises/A+ check typeof onFulfilled, onRejected, onProgress
-			return _then(onFulfilled, onRejected, onProgress);
-		}
-
-		/**
-		 * Wrapper to allow _resolve to be replaced
-		 */
-		function promiseResolve(val) {
-			return _resolve(val);
-		}
-
-		/**
-		 * Wrapper to allow _reject to be replaced
-		 */
-		function promiseReject(err) {
-			return _resolve(rejected(err));
-		}
-
-		/**
-		 * Wrapper to allow _progress to be replaced
-		 */
-		function promiseProgress(update) {
-			return _progress(update);
-		}
-	}
-
-	/**
-	 * Determines if promiseOrValue is a promise or not.  Uses the feature
-	 * test from http://wiki.commonjs.org/wiki/Promises/A to determine if
-	 * promiseOrValue is a promise.
-	 *
-	 * @param {*} promiseOrValue anything
-	 * @returns {boolean} true if promiseOrValue is a {@link Promise}
-	 */
-	function isPromise(promiseOrValue) {
-		return promiseOrValue && typeof promiseOrValue.then === 'function';
-	}
-
-	/**
-	 * Initiates a competitive race, returning a promise that will resolve when
-	 * howMany of the supplied promisesOrValues have resolved, or will reject when
-	 * it becomes impossible for howMany to resolve, for example, when
-	 * (promisesOrValues.length - howMany) + 1 input promises reject.
-	 *
-	 * @param {Array} promisesOrValues array of anything, may contain a mix
-	 *      of promises and values
-	 * @param howMany {number} number of promisesOrValues to resolve
-	 * @param {function?} [onFulfilled] resolution handler
-	 * @param {function?} [onRejected] rejection handler
-	 * @param {function?} [onProgress] progress handler
-	 * @returns {Promise} promise that will resolve to an array of howMany values that
-	 * resolved first, or will reject with an array of (promisesOrValues.length - howMany) + 1
-	 * rejection reasons.
-	 */
-	function some(promisesOrValues, howMany, onFulfilled, onRejected, onProgress) {
-
-		checkCallbacks(2, arguments);
-
-		return when(promisesOrValues, function(promisesOrValues) {
-
-			var toResolve, toReject, values, reasons, deferred, fulfillOne, rejectOne, progress, len, i;
-
-			len = promisesOrValues.length >>> 0;
-
-			toResolve = Math.max(0, Math.min(howMany, len));
-			values = [];
-
-			toReject = (len - toResolve) + 1;
-			reasons = [];
-
-			deferred = defer();
-
-			// No items in the input, resolve immediately
-			if (!toResolve) {
-				deferred.resolve(values);
-
-			} else {
-				progress = deferred.progress;
-
-				rejectOne = function(reason) {
-					reasons.push(reason);
-					if(!--toReject) {
-						fulfillOne = rejectOne = noop;
-						deferred.reject(reasons);
-					}
-				};
-
-				fulfillOne = function(val) {
-					// This orders the values based on promise resolution order
-					// Another strategy would be to use the original position of
-					// the corresponding promise.
-					values.push(val);
-
-					if (!--toResolve) {
-						fulfillOne = rejectOne = noop;
-						deferred.resolve(values);
-					}
-				};
-
-				for(i = 0; i < len; ++i) {
-					if(i in promisesOrValues) {
-						when(promisesOrValues[i], fulfiller, rejecter, progress);
-					}
-				}
-			}
-
-			return deferred.then(onFulfilled, onRejected, onProgress);
-
-			function rejecter(reason) {
-				rejectOne(reason);
-			}
-
-			function fulfiller(val) {
-				fulfillOne(val);
-			}
-
-		});
-	}
-
-	/**
-	 * Initiates a competitive race, returning a promise that will resolve when
-	 * any one of the supplied promisesOrValues has resolved or will reject when
-	 * *all* promisesOrValues have rejected.
-	 *
-	 * @param {Array|Promise} promisesOrValues array of anything, may contain a mix
-	 *      of {@link Promise}s and values
-	 * @param {function?} [onFulfilled] resolution handler
-	 * @param {function?} [onRejected] rejection handler
-	 * @param {function?} [onProgress] progress handler
-	 * @returns {Promise} promise that will resolve to the value that resolved first, or
-	 * will reject with an array of all rejected inputs.
-	 */
-	function any(promisesOrValues, onFulfilled, onRejected, onProgress) {
-
-		function unwrapSingleResult(val) {
-			return onFulfilled ? onFulfilled(val[0]) : val[0];
-		}
-
-		return some(promisesOrValues, 1, unwrapSingleResult, onRejected, onProgress);
-	}
-
-	/**
-	 * Return a promise that will resolve only once all the supplied promisesOrValues
-	 * have resolved. The resolution value of the returned promise will be an array
-	 * containing the resolution values of each of the promisesOrValues.
-	 * @memberOf when
-	 *
-	 * @param {Array|Promise} promisesOrValues array of anything, may contain a mix
-	 *      of {@link Promise}s and values
-	 * @param {function?} [onFulfilled] resolution handler
-	 * @param {function?} [onRejected] rejection handler
-	 * @param {function?} [onProgress] progress handler
-	 * @returns {Promise}
-	 */
-	function all(promisesOrValues, onFulfilled, onRejected, onProgress) {
-		checkCallbacks(1, arguments);
-		return map(promisesOrValues, identity).then(onFulfilled, onRejected, onProgress);
-	}
-
-	/**
-	 * Joins multiple promises into a single returned promise.
-	 * @returns {Promise} a promise that will fulfill when *all* the input promises
-	 * have fulfilled, or will reject when *any one* of the input promises rejects.
-	 */
-	function join(/* ...promises */) {
-		return map(arguments, identity);
-	}
-
-	/**
-	 * Traditional map function, similar to `Array.prototype.map()`, but allows
-	 * input to contain {@link Promise}s and/or values, and mapFunc may return
-	 * either a value or a {@link Promise}
-	 *
-	 * @param {Array|Promise} promise array of anything, may contain a mix
-	 *      of {@link Promise}s and values
-	 * @param {function} mapFunc mapping function mapFunc(value) which may return
-	 *      either a {@link Promise} or value
-	 * @returns {Promise} a {@link Promise} that will resolve to an array containing
-	 *      the mapped output values.
-	 */
-	function map(promise, mapFunc) {
-		return when(promise, function(array) {
-			var results, len, toResolve, resolve, i, d;
-
-			// Since we know the resulting length, we can preallocate the results
-			// array to avoid array expansions.
-			toResolve = len = array.length >>> 0;
-			results = [];
-			d = defer();
-
-			if(!toResolve) {
-				d.resolve(results);
-			} else {
-
-				resolve = function resolveOne(item, i) {
-					when(item, mapFunc).then(function(mapped) {
-						results[i] = mapped;
-
-						if(!--toResolve) {
-							d.resolve(results);
-						}
-					}, d.reject);
-				};
-
-				// Since mapFunc may be async, get all invocations of it into flight
-				for(i = 0; i < len; i++) {
-					if(i in array) {
-						resolve(array[i], i);
-					} else {
-						--toResolve;
-					}
-				}
-
-			}
-
-			return d.promise;
-
-		});
-	}
-
-	/**
-	 * Traditional reduce function, similar to `Array.prototype.reduce()`, but
-	 * input may contain promises and/or values, and reduceFunc
-	 * may return either a value or a promise, *and* initialValue may
-	 * be a promise for the starting value.
-	 *
-	 * @param {Array|Promise} promise array or promise for an array of anything,
-	 *      may contain a mix of promises and values.
-	 * @param {function} reduceFunc reduce function reduce(currentValue, nextValue, index, total),
-	 *      where total is the total number of items being reduced, and will be the same
-	 *      in each call to reduceFunc.
-	 * @returns {Promise} that will resolve to the final reduced value
-	 */
-	function reduce(promise, reduceFunc /*, initialValue */) {
-		var args = slice.call(arguments, 1);
-
-		return when(promise, function(array) {
-			var total;
-
-			total = array.length;
-
-			// Wrap the supplied reduceFunc with one that handles promises and then
-			// delegates to the supplied.
-			args[0] = function (current, val, i) {
-				return when(current, function (c) {
-					return when(val, function (value) {
-						return reduceFunc(c, value, i, total);
-					});
-				});
-			};
-
-			return reduceArray.apply(array, args);
-		});
-	}
-
-	/**
-	 * Ensure that resolution of promiseOrValue will trigger resolver with the
-	 * value or reason of promiseOrValue, or instead with resolveValue if it is provided.
-	 *
-	 * @param promiseOrValue
-	 * @param {Object} resolver
-	 * @param {function} resolver.resolve
-	 * @param {function} resolver.reject
-	 * @param {*} [resolveValue]
-	 * @returns {Promise}
-	 */
-	function chain(promiseOrValue, resolver, resolveValue) {
-		var useResolveValue = arguments.length > 2;
-
-		return when(promiseOrValue,
-			function(val) {
-				val = useResolveValue ? resolveValue : val;
-				resolver.resolve(val);
-				return val;
-			},
-			function(reason) {
-				resolver.reject(reason);
-				return rejected(reason);
-			},
-			resolver.progress
-		);
-	}
-
-	//
-	// Utility functions
-	//
-
-	/**
-	 * Apply all functions in queue to value
-	 * @param {Array} queue array of functions to execute
-	 * @param {*} value argument passed to each function
-	 */
-	function processQueue(queue, value) {
-		var handler, i = 0;
-
-		while (handler = queue[i++]) {
-			handler(value);
-		}
-	}
-
-	/**
-	 * Helper that checks arrayOfCallbacks to ensure that each element is either
-	 * a function, or null or undefined.
-	 * @private
-	 * @param {number} start index at which to start checking items in arrayOfCallbacks
-	 * @param {Array} arrayOfCallbacks array to check
-	 * @throws {Error} if any element of arrayOfCallbacks is something other than
-	 * a functions, null, or undefined.
-	 */
-	function checkCallbacks(start, arrayOfCallbacks) {
-		// TODO: Promises/A+ update type checking and docs
-		var arg, i = arrayOfCallbacks.length;
-
-		while(i > start) {
-			arg = arrayOfCallbacks[--i];
-
-			if (arg != null && typeof arg != 'function') {
-				throw new Error('arg '+i+' must be a function');
-			}
-		}
-	}
-
-	/**
-	 * No-Op function used in method replacement
-	 * @private
-	 */
-	function noop() {}
-
-	slice = [].slice;
-
-	// ES5 reduce implementation if native not available
-	// See: http://es5.github.com/#x15.4.4.21 as there are many
-	// specifics and edge cases.
-	reduceArray = [].reduce ||
-		function(reduceFunc /*, initialValue */) {
-			/*jshint maxcomplexity: 7*/
-
-			// ES5 dictates that reduce.length === 1
-
-			// This implementation deviates from ES5 spec in the following ways:
-			// 1. It does not check if reduceFunc is a Callable
-
-			var arr, args, reduced, len, i;
-
-			i = 0;
-			// This generates a jshint warning, despite being valid
-			// "Missing 'new' prefix when invoking a constructor."
-			// See https://github.com/jshint/jshint/issues/392
-			arr = Object(this);
-			len = arr.length >>> 0;
-			args = arguments;
-
-			// If no initialValue, use first item of array (we know length !== 0 here)
-			// and adjust i to start at second item
-			if(args.length <= 1) {
-				// Skip to the first real element in the array
-				for(;;) {
-					if(i in arr) {
-						reduced = arr[i++];
-						break;
-					}
-
-					// If we reached the end of the array without finding any real
-					// elements, it's a TypeError
-					if(++i >= len) {
-						throw new TypeError();
-					}
-				}
-			} else {
-				// If initialValue provided, use it
-				reduced = args[1];
-			}
-
-			// Do the actual reduce
-			for(;i < len; ++i) {
-				// Skip holes
-				if(i in arr) {
-					reduced = reduceFunc(reduced, arr[i], i, arr);
-				}
-			}
-
-			return reduced;
-		};
-
-	function identity(x) {
-		return x;
-	}
-
-	return when;
-});
-})(typeof define == 'function' && define.amd
-	? define
-	: function (factory) { typeof exports === 'object'
-		? (module.exports = factory())
-		: (this.when      = factory());
-	}
-	// Boilerplate for AMD, Node, and browser global
-);
 
 define('Core/binarySearch',[
         './Check'
@@ -19114,7 +20197,7 @@ define('Core/Request',[
         options = defaultValue(options, defaultValue.EMPTY_OBJECT);
 
         var throttleByServer = defaultValue(options.throttleByServer, false);
-        var throttle = throttleByServer || defaultValue(options.throttle, false);
+        var throttle = defaultValue(options.throttle, false);
 
         /**
          * The URL to request.
@@ -20130,17 +21213,17 @@ define('Core/RequestScheduler',[
             request.serverKey = RequestScheduler.getServerKey(request.url);
         }
 
+        if (request.throttleByServer && !serverHasOpenSlots(request.serverKey)) {
+            // Server is saturated. Try again later.
+            return undefined;
+        }
+
         if (!RequestScheduler.throttleRequests || !request.throttle) {
             return startRequest(request);
         }
 
         if (activeRequests.length >= RequestScheduler.maximumRequests) {
             // Active requests are saturated. Try again later.
-            return undefined;
-        }
-
-        if (request.throttleByServer && !serverHasOpenSlots(request.serverKey)) {
-            // Server is saturated. Try again later.
             return undefined;
         }
 
@@ -22171,10 +23254,15 @@ define('Core/Resource',[
     }
 
     function loadWithHttpRequest(url, responseType, method, data, headers, deferred, overrideMimeType) {
+
+        // Specifically use the Node version of require to avoid conflicts with the global
+        // require defined in the built version of Cesium.
+        var nodeRequire = global.require; // eslint-disable-line
+
         // Note: only the 'json' and 'text' responseTypes transforms the loaded buffer
-        var URL = require('url').parse(url);
-        var http = URL.protocol === 'https:' ? require('https') : require('http');
-        var zlib = require('zlib');
+        var URL = nodeRequire('url').parse(url);
+        var http = URL.protocol === 'https:' ? nodeRequire('https') : nodeRequire('http');
+        var zlib = nodeRequire('zlib');
         var options = {
             protocol : URL.protocol,
             hostname : URL.hostname,
@@ -27877,6 +28965,25 @@ define('Core/IndexDatatype',[
             };
 
     /**
+     * Gets the datatype with a given size in bytes.
+     *
+     * @param {Number} sizeInBytes The size of a single index in bytes.
+     * @returns {IndexDatatype} The index datatype with the given size.
+     */
+    IndexDatatype.fromSizeInBytes = function(sizeInBytes) {
+        switch (sizeInBytes) {
+            case 2:
+                return IndexDatatype.UNSIGNED_SHORT;
+            case 4:
+                return IndexDatatype.UNSIGNED_INT;
+            case 1:
+                return IndexDatatype.UNSIGNED_BYTE;
+                        default:
+                throw new DeveloperError('Size in bytes cannot be mapped to an IndexDatatype');
+                    }
+    };
+
+    /**
      * Validates that the provided index datatype is a valid {@link IndexDatatype}.
      *
      * @param {IndexDatatype} indexDatatype The index datatype to validate.
@@ -31703,11 +32810,13 @@ define('Core/PolygonPipeline',[
         '../ThirdParty/earcut-2.1.1',
         './Cartesian2',
         './Cartesian3',
+        './Cartographic',
         './Check',
         './ComponentDatatype',
         './defaultValue',
         './defined',
         './Ellipsoid',
+        './EllipsoidRhumbLine',
         './Geometry',
         './GeometryAttribute',
         './Math',
@@ -31717,11 +32826,13 @@ define('Core/PolygonPipeline',[
         earcut,
         Cartesian2,
         Cartesian3,
+        Cartographic,
         Check,
         ComponentDatatype,
         defaultValue,
         defined,
         Ellipsoid,
+        EllipsoidRhumbLine,
         Geometry,
         GeometryAttribute,
         CesiumMath,
@@ -31895,6 +33006,154 @@ define('Core/PolygonPipeline',[
                         mid = Cartesian3.add(v2, v0, subdivisionMidScratch);
                         Cartesian3.multiplyByScalar(mid, 0.5, mid);
                         subdividedPositions.push(mid.x, mid.y, mid.z);
+                        i = subdividedPositions.length / 3 - 1;
+                        edges[edge] = i;
+                    }
+
+                    triangles.push(i2, i, i1);
+                    triangles.push(i, i0, i1);
+                }
+            } else {
+                subdividedIndices.push(i0);
+                subdividedIndices.push(i1);
+                subdividedIndices.push(i2);
+            }
+        }
+
+        return new Geometry({
+            attributes : {
+                position : new GeometryAttribute({
+                    componentDatatype : ComponentDatatype.DOUBLE,
+                    componentsPerAttribute : 3,
+                    values : subdividedPositions
+                })
+            },
+            indices : subdividedIndices,
+            primitiveType : PrimitiveType.TRIANGLES
+        });
+    };
+
+    var subdivisionC0Scratch = new Cartographic();
+    var subdivisionC1Scratch = new Cartographic();
+    var subdivisionC2Scratch = new Cartographic();
+    var subdivisionCartographicScratch = new Cartographic();
+
+    /**
+     * Subdivides positions on rhumb lines and raises points to the surface of the ellipsoid.
+     *
+     * @param {Ellipsoid} ellipsoid The ellipsoid the polygon in on.
+     * @param {Cartesian3[]} positions An array of {@link Cartesian3} positions of the polygon.
+     * @param {Number[]} indices An array of indices that determines the triangles in the polygon.
+     * @param {Number} [granularity=CesiumMath.RADIANS_PER_DEGREE] The distance, in radians, between each latitude and longitude. Determines the number of positions in the buffer.
+     *
+     * @exception {DeveloperError} At least three indices are required.
+     * @exception {DeveloperError} The number of indices must be divisable by three.
+     * @exception {DeveloperError} Granularity must be greater than zero.
+     */
+    PolygonPipeline.computeRhumbLineSubdivision = function(ellipsoid, positions, indices, granularity) {
+        granularity = defaultValue(granularity, CesiumMath.RADIANS_PER_DEGREE);
+
+                Check.typeOf.object('ellipsoid', ellipsoid);
+        Check.defined('positions', positions);
+        Check.defined('indices', indices);
+        Check.typeOf.number.greaterThanOrEquals('indices.length', indices.length, 3);
+        Check.typeOf.number.equals('indices.length % 3', '0', indices.length % 3, 0);
+        Check.typeOf.number.greaterThan('granularity', granularity, 0.0);
+        
+        // triangles that need (or might need) to be subdivided.
+        var triangles = indices.slice(0);
+
+        // New positions due to edge splits are appended to the positions list.
+        var i;
+        var length = positions.length;
+        var subdividedPositions = new Array(length * 3);
+        var q = 0;
+        for (i = 0; i < length; i++) {
+            var item = positions[i];
+            subdividedPositions[q++] = item.x;
+            subdividedPositions[q++] = item.y;
+            subdividedPositions[q++] = item.z;
+        }
+
+        var subdividedIndices = [];
+
+        // Used to make sure shared edges are not split more than once.
+        var edges = {};
+
+        var radius = ellipsoid.maximumRadius;
+        var minDistance = CesiumMath.chordLength(granularity, radius);
+
+        var rhumb0 = new EllipsoidRhumbLine(undefined, undefined, ellipsoid);
+        var rhumb1 = new EllipsoidRhumbLine(undefined, undefined, ellipsoid);
+        var rhumb2 = new EllipsoidRhumbLine(undefined, undefined, ellipsoid);
+
+        while (triangles.length > 0) {
+            var i2 = triangles.pop();
+            var i1 = triangles.pop();
+            var i0 = triangles.pop();
+
+            var v0 = Cartesian3.fromArray(subdividedPositions, i0 * 3, subdivisionV0Scratch);
+            var v1 = Cartesian3.fromArray(subdividedPositions, i1 * 3, subdivisionV1Scratch);
+            var v2 = Cartesian3.fromArray(subdividedPositions, i2 * 3, subdivisionV2Scratch);
+
+            var c0 = ellipsoid.cartesianToCartographic(v0, subdivisionC0Scratch);
+            var c1 = ellipsoid.cartesianToCartographic(v1, subdivisionC1Scratch);
+            var c2 = ellipsoid.cartesianToCartographic(v2, subdivisionC2Scratch);
+
+            rhumb0.setEndPoints(c0, c1);
+            var g0 = rhumb0.surfaceDistance;
+            rhumb1.setEndPoints(c1, c2);
+            var g1 = rhumb1.surfaceDistance;
+            rhumb2.setEndPoints(c2, c0);
+            var g2 = rhumb2.surfaceDistance;
+
+            var max = Math.max(g0, g1, g2);
+            var edge;
+            var mid;
+            var midHeight;
+            var midCartesian3;
+
+            // if the max length squared of a triangle edge is greater than granularity, subdivide the triangle
+            if (max > minDistance) {
+                if (g0 === max) {
+                    edge = Math.min(i0, i1) + ' ' + Math.max(i0, i1);
+
+                    i = edges[edge];
+                    if (!defined(i)) {
+                        mid = rhumb0.interpolateUsingFraction(0.5, subdivisionCartographicScratch);
+                        midHeight = (c0.height + c1.height) * 0.5;
+                        midCartesian3 = Cartesian3.fromRadians(mid.longitude, mid.latitude, midHeight, ellipsoid, subdivisionMidScratch);
+                        subdividedPositions.push(midCartesian3.x, midCartesian3.y, midCartesian3.z);
+                        i = subdividedPositions.length / 3 - 1;
+                        edges[edge] = i;
+                    }
+
+                    triangles.push(i0, i, i2);
+                    triangles.push(i, i1, i2);
+                } else if (g1 === max) {
+                    edge = Math.min(i1, i2) + ' ' + Math.max(i1, i2);
+
+                    i = edges[edge];
+                    if (!defined(i)) {
+                        mid = rhumb1.interpolateUsingFraction(0.5, subdivisionCartographicScratch);
+                        midHeight = (c1.height + c2.height) * 0.5;
+                        midCartesian3 = Cartesian3.fromRadians(mid.longitude, mid.latitude, midHeight, ellipsoid, subdivisionMidScratch);
+                        subdividedPositions.push(midCartesian3.x, midCartesian3.y, midCartesian3.z);
+                        i = subdividedPositions.length / 3 - 1;
+                        edges[edge] = i;
+                    }
+
+                    triangles.push(i1, i, i0);
+                    triangles.push(i, i2, i0);
+                } else if (g2 === max) {
+                    edge = Math.min(i2, i0) + ' ' + Math.max(i2, i0);
+
+                    i = edges[edge];
+                    if (!defined(i)) {
+                        mid = rhumb2.interpolateUsingFraction(0.5, subdivisionCartographicScratch);
+                        midHeight = (c2.height + c0.height) * 0.5;
+                        midCartesian3 = Cartesian3.fromRadians(mid.longitude, mid.latitude, midHeight, ellipsoid, subdivisionMidScratch);
+                        subdividedPositions.push(midCartesian3.x, midCartesian3.y, midCartesian3.z);
                         i = subdividedPositions.length / 3 - 1;
                         edges[edge] = i;
                     }
@@ -32105,13 +33364,17 @@ define('Core/Queue',[
 });
 
 define('Core/PolygonGeometryLibrary',[
+        './ArcType',
         './arrayRemoveDuplicates',
         './Cartesian2',
         './Cartesian3',
+        './Cartographic',
         './ComponentDatatype',
         './defaultValue',
         './defined',
+        './DeveloperError',
         './Ellipsoid',
+        './EllipsoidRhumbLine',
         './Geometry',
         './GeometryAttribute',
         './GeometryAttributes',
@@ -32125,13 +33388,17 @@ define('Core/PolygonGeometryLibrary',[
         './Queue',
         './WindingOrder'
     ], function(
+        ArcType,
         arrayRemoveDuplicates,
         Cartesian2,
         Cartesian3,
+        Cartographic,
         ComponentDatatype,
         defaultValue,
         defined,
+        DeveloperError,
         Ellipsoid,
+        EllipsoidRhumbLine,
         Geometry,
         GeometryAttribute,
         GeometryAttributes,
@@ -32247,7 +33514,20 @@ define('Core/PolygonGeometryLibrary',[
     PolygonGeometryLibrary.subdivideLineCount = function(p0, p1, minDistance) {
         var distance = Cartesian3.distance(p0, p1);
         var n = distance / minDistance;
-        var countDivide = Math.max(0, Math.ceil(Math.log(n) / Math.log(2)));
+        var countDivide = Math.max(0, Math.ceil(CesiumMath.log2(n)));
+        return Math.pow(2, countDivide);
+    };
+
+    var scratchCartographic0 = new Cartographic();
+    var scratchCartographic1 = new Cartographic();
+    var scratchCartographic2 = new Cartographic();
+    var scratchCartesian0 = new Cartesian3();
+    PolygonGeometryLibrary.subdivideRhumbLineCount = function(ellipsoid, p0, p1, minDistance) {
+        var c0 = ellipsoid.cartesianToCartographic(p0, scratchCartographic0);
+        var c1 = ellipsoid.cartesianToCartographic(p1, scratchCartographic1);
+        var rhumb = new EllipsoidRhumbLine(c0, c1, ellipsoid);
+        var n = rhumb.surfaceDistance / minDistance;
+        var countDivide = Math.max(0, Math.ceil(CesiumMath.log2(n)));
         return Math.pow(2, countDivide);
     };
 
@@ -32269,6 +33549,35 @@ define('Core/PolygonGeometryLibrary',[
             positions[index++] = p[0];
             positions[index++] = p[1];
             positions[index++] = p[2];
+        }
+
+        return positions;
+    };
+
+    PolygonGeometryLibrary.subdivideRhumbLine = function(ellipsoid, p0, p1, minDistance, result) {
+        var c0 = ellipsoid.cartesianToCartographic(p0, scratchCartographic0);
+        var c1 = ellipsoid.cartesianToCartographic(p1, scratchCartographic1);
+        var rhumb = new EllipsoidRhumbLine(c0, c1, ellipsoid);
+
+        var n = rhumb.surfaceDistance / minDistance;
+        var countDivide = Math.max(0, Math.ceil(CesiumMath.log2(n)));
+        var numVertices = Math.pow(2, countDivide);
+        var distanceBetweenVertices = rhumb.surfaceDistance / numVertices;
+
+        if (!defined(result)) {
+            result = [];
+        }
+
+        var positions = result;
+        positions.length = numVertices * 3;
+
+        var index = 0;
+        for ( var i = 0; i < numVertices; i++) {
+            var c = rhumb.interpolateUsingSurfaceDistance(i * distanceBetweenVertices, scratchCartographic2);
+            var p = ellipsoid.cartographicToCartesian(c, scratchCartesian0);
+            positions[index++] = p.x;
+            positions[index++] = p.y;
+            positions[index++] = p.z;
         }
 
         return positions;
@@ -32509,7 +33818,7 @@ define('Core/PolygonGeometryLibrary',[
         return result;
     };
 
-    PolygonGeometryLibrary.createGeometryFromPositions = function(ellipsoid, polygon, granularity, perPositionHeight, vertexFormat) {
+    PolygonGeometryLibrary.createGeometryFromPositions = function(ellipsoid, polygon, granularity, perPositionHeight, vertexFormat, arcType) {
         var indices = PolygonPipeline.triangulate(polygon.positions2D, polygon.holes);
 
         /* If polygon is completely unrenderable, just use the first three vertices */
@@ -32548,14 +33857,18 @@ define('Core/PolygonGeometryLibrary',[
             return geometry;
         }
 
-        return PolygonPipeline.computeSubdivision(ellipsoid, positions, indices, granularity);
+        if (arcType === ArcType.GEODESIC) {
+            return PolygonPipeline.computeSubdivision(ellipsoid, positions, indices, granularity);
+        } else if (arcType === ArcType.RHUMB) {
+            return PolygonPipeline.computeRhumbLineSubdivision(ellipsoid, positions, indices, granularity);
+        }
     };
 
     var computeWallIndicesSubdivided = [];
     var p1Scratch = new Cartesian3();
     var p2Scratch = new Cartesian3();
 
-    PolygonGeometryLibrary.computeWallGeometry = function(positions, ellipsoid, granularity, perPositionHeight) {
+    PolygonGeometryLibrary.computeWallGeometry = function(positions, ellipsoid, granularity, perPositionHeight, arcType) {
         var edgePositions;
         var topEdgeLength;
         var i;
@@ -32569,8 +33882,14 @@ define('Core/PolygonGeometryLibrary',[
             var minDistance = CesiumMath.chordLength(granularity, ellipsoid.maximumRadius);
 
             var numVertices = 0;
-            for (i = 0; i < length; i++) {
-                numVertices += PolygonGeometryLibrary.subdivideLineCount(positions[i], positions[(i + 1) % length], minDistance);
+            if (arcType === ArcType.GEODESIC) {
+                for (i = 0; i < length; i++) {
+                    numVertices += PolygonGeometryLibrary.subdivideLineCount(positions[i], positions[(i + 1) % length], minDistance);
+                }
+            } else if (arcType === ArcType.RHUMB) {
+                for (i = 0; i < length; i++) {
+                    numVertices += PolygonGeometryLibrary.subdivideRhumbLineCount(ellipsoid, positions[i], positions[(i + 1) % length], minDistance);
+                }
             }
 
             topEdgeLength = (numVertices + length) * 3;
@@ -32579,7 +33898,12 @@ define('Core/PolygonGeometryLibrary',[
                 p1 = positions[i];
                 p2 = positions[(i + 1) % length];
 
-                var tempPositions = PolygonGeometryLibrary.subdivideLine(p1, p2, minDistance, computeWallIndicesSubdivided);
+                var tempPositions;
+                if (arcType === ArcType.GEODESIC) {
+                    tempPositions = PolygonGeometryLibrary.subdivideLine(p1, p2, minDistance, computeWallIndicesSubdivided);
+                } else if (arcType === ArcType.RHUMB) {
+                    tempPositions = PolygonGeometryLibrary.subdivideRhumbLine(ellipsoid, p1, p2, minDistance, computeWallIndicesSubdivided);
+                }
                 var tempPositionsLength = tempPositions.length;
                 for (var j = 0; j < tempPositionsLength; ++j, ++index) {
                     edgePositions[index] = tempPositions[j];
@@ -32632,7 +33956,7 @@ define('Core/PolygonGeometryLibrary',[
 
             p1 = Cartesian3.fromArray(edgePositions, UL * 3, p1Scratch);
             p2 = Cartesian3.fromArray(edgePositions, UR * 3, p2Scratch);
-            if (Cartesian3.equalsEpsilon(p1, p2, CesiumMath.EPSILON14)) {
+            if (Cartesian3.equalsEpsilon(p1, p2, CesiumMath.EPSILON14, CesiumMath.EPSILON6)) {
                 continue;
             }
 
@@ -32967,6 +34291,7 @@ define('Core/VertexFormat',[
 });
 
 define('Core/PolygonGeometry',[
+        './ArcType',
         './arrayFill',
         './BoundingRectangle',
         './BoundingSphere',
@@ -32980,6 +34305,8 @@ define('Core/PolygonGeometry',[
         './defineProperties',
         './DeveloperError',
         './Ellipsoid',
+        './EllipsoidGeodesic',
+        './EllipsoidRhumbLine',
         './EllipsoidTangentPlane',
         './Geometry',
         './GeometryAttribute',
@@ -32997,6 +34324,7 @@ define('Core/PolygonGeometry',[
         './VertexFormat',
         './WindingOrder'
     ], function(
+        ArcType,
         arrayFill,
         BoundingRectangle,
         BoundingSphere,
@@ -33010,6 +34338,8 @@ define('Core/PolygonGeometry',[
         defineProperties,
         DeveloperError,
         Ellipsoid,
+        EllipsoidGeodesic,
+        EllipsoidRhumbLine,
         EllipsoidTangentPlane,
         Geometry,
         GeometryAttribute,
@@ -33338,30 +34668,109 @@ define('Core/PolygonGeometry',[
         return geometry;
     }
 
-    function computeRectangle(positions, ellipsoid, result) {
+    var startCartographicScratch = new Cartographic();
+    var endCartographicScratch = new Cartographic();
+    var idlCross = {
+        westOverIDL : 0.0,
+        eastOverIDL : 0.0
+    };
+    var ellipsoidGeodesic = new EllipsoidGeodesic();
+    function computeRectangle(positions, ellipsoid, arcType, granularity, result) {
+        result = defaultValue(result, new Rectangle());
         if (!defined(positions) || positions.length < 3) {
-            if (!defined(result)) {
-                return new Rectangle();
-            }
             result.west = 0.0;
             result.north = 0.0;
             result.south = 0.0;
             result.east = 0.0;
             return result;
         }
-        return Rectangle.fromCartesianArray(positions, ellipsoid, result);
+
+        if (arcType === ArcType.RHUMB) {
+            return Rectangle.fromCartesianArray(positions, ellipsoid, result);
+        }
+
+        if (!ellipsoidGeodesic.ellipsoid.equals(ellipsoid)) {
+            ellipsoidGeodesic = new EllipsoidGeodesic(undefined, undefined, ellipsoid);
+        }
+
+        result.west = Number.POSITIVE_INFINITY;
+        result.east = Number.NEGATIVE_INFINITY;
+        result.south = Number.POSITIVE_INFINITY;
+        result.north = Number.NEGATIVE_INFINITY;
+
+        idlCross.westOverIDL = Number.POSITIVE_INFINITY;
+        idlCross.eastOverIDL = Number.NEGATIVE_INFINITY;
+
+        var inverseChordLength = 1.0 / CesiumMath.chordLength(granularity, ellipsoid.maximumRadius);
+        var positionsLength = positions.length;
+        var endCartographic = ellipsoid.cartesianToCartographic(positions[0], endCartographicScratch);
+        var startCartographic = startCartographicScratch;
+        var swap;
+
+        for (var i = 1; i < positionsLength; i++) {
+            swap = startCartographic;
+            startCartographic = endCartographic;
+            endCartographic = ellipsoid.cartesianToCartographic(positions[i], swap);
+            ellipsoidGeodesic.setEndPoints(startCartographic, endCartographic);
+            interpolateAndGrowRectangle(ellipsoidGeodesic, inverseChordLength, result, idlCross);
+        }
+
+        swap = startCartographic;
+        startCartographic = endCartographic;
+        endCartographic = ellipsoid.cartesianToCartographic(positions[0], swap);
+        ellipsoidGeodesic.setEndPoints(startCartographic, endCartographic);
+        interpolateAndGrowRectangle(ellipsoidGeodesic, inverseChordLength, result, idlCross);
+
+        if (result.east - result.west > idlCross.eastOverIDL - idlCross.westOverIDL) {
+            result.west = idlCross.westOverIDL;
+            result.east = idlCross.eastOverIDL;
+
+            if (result.east > CesiumMath.PI) {
+                result.east = result.east - CesiumMath.TWO_PI;
+            }
+            if (result.west > CesiumMath.PI) {
+                result.west = result.west - CesiumMath.TWO_PI;
+            }
+        }
+
+        return result;
+    }
+
+    var interpolatedCartographicScratch = new Cartographic();
+    function interpolateAndGrowRectangle(ellipsoidGeodesic, inverseChordLength, result, idlCross) {
+        var segmentLength = ellipsoidGeodesic.surfaceDistance;
+
+        var numPoints = Math.ceil(segmentLength * inverseChordLength);
+        var subsegmentDistance = numPoints > 0 ? segmentLength / (numPoints - 1) : Number.POSITIVE_INFINITY;
+        var interpolationDistance = 0.0;
+
+        for (var i = 0; i < numPoints; i++) {
+            var interpolatedCartographic = ellipsoidGeodesic.interpolateUsingSurfaceDistance(interpolationDistance, interpolatedCartographicScratch);
+            interpolationDistance += subsegmentDistance;
+            var longitude = interpolatedCartographic.longitude;
+            var latitude = interpolatedCartographic.latitude;
+
+            result.west = Math.min(result.west, longitude);
+            result.east = Math.max(result.east, longitude);
+            result.south = Math.min(result.south, latitude);
+            result.north = Math.max(result.north, latitude);
+
+            var lonAdjusted = longitude >= 0 ?  longitude : longitude +  CesiumMath.TWO_PI;
+            idlCross.westOverIDL = Math.min(idlCross.westOverIDL, lonAdjusted);
+            idlCross.eastOverIDL = Math.max(idlCross.eastOverIDL, lonAdjusted);
+        }
     }
 
     var createGeometryFromPositionsExtrudedPositions = [];
 
-    function createGeometryFromPositionsExtruded(ellipsoid, polygon, granularity, hierarchy, perPositionHeight, closeTop, closeBottom, vertexFormat) {
+    function createGeometryFromPositionsExtruded(ellipsoid, polygon, granularity, hierarchy, perPositionHeight, closeTop, closeBottom, vertexFormat, arcType) {
         var geos = {
             walls : []
         };
         var i;
 
         if (closeTop || closeBottom) {
-            var topGeo = PolygonGeometryLibrary.createGeometryFromPositions(ellipsoid, polygon, granularity, perPositionHeight, vertexFormat);
+            var topGeo = PolygonGeometryLibrary.createGeometryFromPositions(ellipsoid, polygon, granularity, perPositionHeight, vertexFormat, arcType);
 
             var edgePoints = topGeo.attributes.position.values;
             var indices = topGeo.indices;
@@ -33423,7 +34832,7 @@ define('Core/PolygonGeometry',[
             outerRing = outerRing.slice().reverse();
         }
 
-        var wallGeo = PolygonGeometryLibrary.computeWallGeometry(outerRing, ellipsoid, granularity, perPositionHeight);
+        var wallGeo = PolygonGeometryLibrary.computeWallGeometry(outerRing, ellipsoid, granularity, perPositionHeight, arcType);
         geos.walls.push(new GeometryInstance({
             geometry : wallGeo
         }));
@@ -33440,7 +34849,7 @@ define('Core/PolygonGeometry',[
                 hole = hole.slice().reverse();
             }
 
-            wallGeo = PolygonGeometryLibrary.computeWallGeometry(hole, ellipsoid, granularity);
+            wallGeo = PolygonGeometryLibrary.computeWallGeometry(hole, ellipsoid, granularity, perPositionHeight, arcType);
             geos.walls.push(new GeometryInstance({
                 geometry : wallGeo
             }));
@@ -33466,6 +34875,7 @@ define('Core/PolygonGeometry',[
      * @param {Boolean} [options.perPositionHeight=false] Use the height of options.positions for each position instead of using options.height to determine the height.
      * @param {Boolean} [options.closeTop=true] When false, leaves off the top of an extruded polygon open.
      * @param {Boolean} [options.closeBottom=true] When false, leaves off the bottom of an extruded polygon open.
+     * @param {ArcType} [options.arcType=ArcType.GEODESIC] The type of line the polygon edges must follow. Valid options are {@link ArcType.GEODESIC} and {@link ArcType.RHUMB}.
      *
      * @see PolygonGeometry#createGeometry
      * @see PolygonGeometry#fromPositions
@@ -33545,6 +34955,9 @@ define('Core/PolygonGeometry',[
         if (defined(options.perPositionHeight) && options.perPositionHeight && defined(options.height)) {
             throw new DeveloperError('Cannot use both options.perPositionHeight and options.height');
         }
+        if (defined(options.arcType) && options.arcType !== ArcType.GEODESIC && options.arcType !== ArcType.RHUMB) {
+            throw new DeveloperError('Invalid arcType. Valid options are ArcType.GEODESIC and ArcType.RHUMB.');
+        }
         
         var polygonHierarchy = options.polygonHierarchy;
         var vertexFormat = defaultValue(options.vertexFormat, VertexFormat.DEFAULT);
@@ -33576,6 +34989,7 @@ define('Core/PolygonGeometry',[
         this._shadowVolume = defaultValue(options.shadowVolume, false);
         this._workerName = 'createPolygonGeometry';
         this._offsetAttribute = options.offsetAttribute;
+        this._arcType = defaultValue(options.arcType, ArcType.GEODESIC);
 
         this._rectangle = undefined;
         this._textureCoordinateRotationPoints = undefined;
@@ -33584,7 +34998,7 @@ define('Core/PolygonGeometry',[
          * The number of elements used to pack the object into an array.
          * @type {Number}
          */
-        this.packedLength = PolygonGeometryLibrary.computeHierarchyPackedLength(polygonHierarchy) + Ellipsoid.packedLength + VertexFormat.packedLength + 11;
+        this.packedLength = PolygonGeometryLibrary.computeHierarchyPackedLength(polygonHierarchy) + Ellipsoid.packedLength + VertexFormat.packedLength + 12;
     }
 
     /**
@@ -33601,6 +35015,7 @@ define('Core/PolygonGeometry',[
      * @param {Boolean} [options.perPositionHeight=false] Use the height of options.positions for each position instead of using options.height to determine the height.
      * @param {Boolean} [options.closeTop=true] When false, leaves off the top of an extruded polygon open.
      * @param {Boolean} [options.closeBottom=true] When false, leaves off the bottom of an extruded polygon open.
+     * @param {ArcType} [options.arcType=ArcType.GEODESIC] The type of line the polygon edges must follow. Valid options are {@link ArcType.GEODESIC} and {@link ArcType.RHUMB}.
      * @returns {PolygonGeometry}
      *
      *
@@ -33637,7 +35052,8 @@ define('Core/PolygonGeometry',[
             perPositionHeight : options.perPositionHeight,
             closeTop : options.closeTop,
             closeBottom : options.closeBottom,
-            offsetAttribute : options.offsetAttribute
+            offsetAttribute : options.offsetAttribute,
+            arcType : options.arcType
         };
         return new PolygonGeometry(newOptions);
     };
@@ -33675,6 +35091,7 @@ define('Core/PolygonGeometry',[
         array[startingIndex++] = value._closeBottom ? 1.0 : 0.0;
         array[startingIndex++] = value._shadowVolume ? 1.0 : 0.0;
         array[startingIndex++] = defaultValue(value._offsetAttribute, -1);
+        array[startingIndex++] = value._arcType;
         array[startingIndex] = value.packedLength;
 
         return array;
@@ -33720,6 +35137,7 @@ define('Core/PolygonGeometry',[
         var closeBottom = array[startingIndex++] === 1.0;
         var shadowVolume = array[startingIndex++] === 1.0;
         var offsetAttribute = array[startingIndex++];
+        var arcType = array[startingIndex++];
         var packedLength = array[startingIndex];
 
         if (!defined(result)) {
@@ -33739,6 +35157,7 @@ define('Core/PolygonGeometry',[
         result._closeBottom = closeBottom;
         result._shadowVolume = shadowVolume;
         result._offsetAttribute = offsetAttribute === -1 ? undefined : offsetAttribute;
+        result._arcType = arcType;
         result.packedLength = packedLength;
         return result;
     };
@@ -33748,6 +35167,8 @@ define('Core/PolygonGeometry',[
      *
      * @param {Object} options Object with the following properties:
      * @param {PolygonHierarchy} options.polygonHierarchy A polygon hierarchy that can include holes.
+     * @param {Number} [options.granularity=CesiumMath.RADIANS_PER_DEGREE] The distance, in radians, between each latitude and longitude. Determines the number of positions sampled.
+     * @param {ArcType} [options.arcType=ArcType.GEODESIC] The type of line the polygon edges must follow. Valid options are {@link ArcType.GEODESIC} and {@link ArcType.RHUMB}.
      * @param {Ellipsoid} [options.ellipsoid=Ellipsoid.WGS84] The ellipsoid to be used as a reference.
      * @param {Rectangle} [result] An object in which to store the result.
      *
@@ -33757,10 +35178,16 @@ define('Core/PolygonGeometry',[
                 Check.typeOf.object('options', options);
         Check.typeOf.object('options.polygonHierarchy', options.polygonHierarchy);
         
+        var granularity = defaultValue(options.granularity, CesiumMath.RADIANS_PER_DEGREE);
+        var arcType = defaultValue(options.arcType, ArcType.GEODESIC);
+                if (arcType !== ArcType.GEODESIC && arcType !== ArcType.RHUMB) {
+            throw new DeveloperError('Invalid arcType. Valid options are ArcType.GEODESIC and ArcType.RHUMB.');
+        }
+        
         var polygonHierarchy = options.polygonHierarchy;
         var ellipsoid = defaultValue(options.ellipsoid, Ellipsoid.WGS84);
 
-        return computeRectangle(polygonHierarchy.positions, ellipsoid, result);
+        return computeRectangle(polygonHierarchy.positions, ellipsoid, arcType, granularity, result);
     };
 
     /**
@@ -33778,6 +35205,7 @@ define('Core/PolygonGeometry',[
         var perPositionHeight = polygonGeometry._perPositionHeight;
         var closeTop = polygonGeometry._closeTop;
         var closeBottom = polygonGeometry._closeBottom;
+        var arcType = polygonGeometry._arcType;
 
         var outerPositions = polygonHierarchy.positions;
         if (outerPositions.length < 3) {
@@ -33814,7 +35242,8 @@ define('Core/PolygonGeometry',[
             bottom: false,
             top: true,
             wall: false,
-            extrude: false
+            extrude: false,
+            arcType: arcType
         };
 
         var i;
@@ -33826,7 +35255,7 @@ define('Core/PolygonGeometry',[
             options.shadowVolume = polygonGeometry._shadowVolume;
             options.offsetAttribute = polygonGeometry._offsetAttribute;
             for (i = 0; i < polygons.length; i++) {
-                var splitGeometry = createGeometryFromPositionsExtruded(ellipsoid, polygons[i], granularity, hierarchy[i], perPositionHeight, closeTop, closeBottom, vertexFormat);
+                var splitGeometry = createGeometryFromPositionsExtruded(ellipsoid, polygons[i], granularity, hierarchy[i], perPositionHeight, closeTop, closeBottom, vertexFormat, arcType);
 
                 var topAndBottom;
                 if (closeTop && closeBottom) {
@@ -33859,7 +35288,7 @@ define('Core/PolygonGeometry',[
         } else {
             for (i = 0; i < polygons.length; i++) {
                 var geometryInstance = new GeometryInstance({
-                    geometry : PolygonGeometryLibrary.createGeometryFromPositions(ellipsoid, polygons[i], granularity, perPositionHeight, vertexFormat)
+                    geometry : PolygonGeometryLibrary.createGeometryFromPositions(ellipsoid, polygons[i], granularity, perPositionHeight, vertexFormat, arcType)
                 });
                 geometryInstance.geometry.attributes.position.values = PolygonPipeline.scaleToGeodeticHeight(geometryInstance.geometry.attributes.position.values, height, ellipsoid, !perPositionHeight);
                 options.geometry = geometryInstance.geometry;
@@ -33920,7 +35349,8 @@ define('Core/PolygonGeometry',[
             extrudedHeight : minHeight,
             height : maxHeight,
             vertexFormat : VertexFormat.POSITION_ONLY,
-            shadowVolume: true
+            shadowVolume: true,
+            arcType : polygonGeometry._arcType
         });
     };
 
@@ -33943,7 +35373,7 @@ define('Core/PolygonGeometry',[
             get : function() {
                 if (!defined(this._rectangle)) {
                     var positions = this._polygonHierarchy.positions;
-                    this._rectangle = computeRectangle(positions, this._ellipsoid);
+                    this._rectangle = computeRectangle(positions, this._ellipsoid, this._arcType, this._granularity);
                 }
 
                 return this._rectangle;

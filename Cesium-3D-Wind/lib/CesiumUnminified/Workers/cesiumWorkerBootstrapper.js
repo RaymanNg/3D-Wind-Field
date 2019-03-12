@@ -90,6 +90,7 @@ var requirejs, require, define;
     }
 
     /**
+     * @private
      * Helper function for iterating over an array. If the func returns
      * a true value, it will break out of the loop.
      */
@@ -105,6 +106,7 @@ var requirejs, require, define;
     }
 
     /**
+     * @private
      * Helper function for iterating over an array backwards. If the func
      * returns a true value, it will break out of the loop.
      */
@@ -128,6 +130,7 @@ var requirejs, require, define;
     }
 
     /**
+     * @private
      * Cycles over properties in an object and calls a function for each
      * property value. If the function returns a truthy value, then the
      * iteration is stopped.
@@ -144,6 +147,7 @@ var requirejs, require, define;
     }
 
     /**
+     * @private
      * Simple function to mix in properties from source into target,
      * but only if target does not already have a property of the same name.
      */
@@ -203,7 +207,7 @@ var requirejs, require, define;
      * @param {String} msg human readable error.
      * @param {Error} [err] the original error, if there is one.
      * @param {RequireModules} requireModules The modules required but not found.
-     *
+     * @private
      * @returns {Error}
      */
     function makeError(id, msg, err, requireModules) {
@@ -267,6 +271,7 @@ var requirejs, require, define;
             unnormalizedCounter = 1;
 
         /**
+         * @private
          * Trims the . and .. from an array of path segments.
          * It will keep a leading path segment if a .. will become
          * the first path segment, to help with module name lookups,
@@ -299,6 +304,7 @@ var requirejs, require, define;
         }
 
         /**
+         * @private
          * Given a relative module name, like ./something, normalize it to
          * a real name that can be mapped to a path.
          * @param {String} name the relative name
@@ -452,7 +458,7 @@ var requirejs, require, define;
          * This is true if this call is done for a define() module ID.
          * @param {Boolean} applyMap: apply the map config to the ID.
          * Should only be true if this map is for a dependency.
-         *
+         * @private
          * @returns {Object}
          */
         function makeModuleMap(name, parentModuleMap, isNormalized, applyMap) {
@@ -592,6 +598,7 @@ var requirejs, require, define;
         }
 
         /**
+         * @private
          * Internal method to transfer globalQueue items to this context's
          * defQueue.
          */
@@ -878,6 +885,7 @@ var requirejs, require, define;
             /**
              * Checks if the module is ready to define itself, and if so,
              * define it.
+             * @private
              */
             check: function () {
                 if (!this.enabled || this.enabling) {
@@ -1257,6 +1265,7 @@ var requirejs, require, define;
          * Given an event from a script node, get the requirejs info from it,
          * and then removes the event listeners on the node.
          * @param {Event} evt
+         * @private
          * @returns {Object}
          */
         function getScriptData(evt) {
@@ -1310,6 +1319,7 @@ var requirejs, require, define;
             onError: onError,
 
             /**
+             * @private
              * Set a configuration for the context.
              * @param {Object} cfg config object to integrate.
              */
@@ -1572,6 +1582,7 @@ var requirejs, require, define;
             },
 
             /**
+             * @private
              * Called to enable a module if it is still in the registry
              * awaiting enablement. A second arg, parent, the parent module,
              * is passed in for context, when this method is overridden by
@@ -1589,6 +1600,7 @@ var requirejs, require, define;
              * A load event could be a script load or just a load pass from a synchronous
              * load call.
              * @param {String} moduleName the name of the module to potentially complete.
+             * @private
              */
             completeLoad: function (moduleName) {
                 var found, args, mod,
@@ -1642,6 +1654,7 @@ var requirejs, require, define;
             },
 
             /**
+             * @private
              * Converts a module name to a file path. Supports cases where
              * moduleName may actually be just an URL.
              * Note that it **does not** call normalize on the moduleName,
@@ -1725,7 +1738,7 @@ var requirejs, require, define;
 
             /**
              * callback for script loads, used to check status of loading.
-             *
+             * @private
              * @param {Event} evt the event from the browser for the script
              * that was loaded.
              */
@@ -1746,6 +1759,7 @@ var requirejs, require, define;
             },
 
             /**
+             * @private
              * Callback for script errors.
              */
             onScriptError: function (evt) {
@@ -1773,6 +1787,7 @@ var requirejs, require, define;
      * Make a local req variable to help Caja compliance (it assumes things
      * on a require that are not standardized), and to give a short
      * name for minification/local scope use.
+     * @namespace
      */
     req = requirejs = function (deps, callback, errback, optional) {
 

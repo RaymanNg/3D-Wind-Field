@@ -2256,7 +2256,7 @@ define('Core/Request',[
         options = defaultValue(options, defaultValue.EMPTY_OBJECT);
 
         var throttleByServer = defaultValue(options.throttleByServer, false);
-        var throttle = throttleByServer || defaultValue(options.throttle, false);
+        var throttle = defaultValue(options.throttle, false);
 
         /**
          * The URL to request.
@@ -3272,17 +3272,17 @@ define('Core/RequestScheduler',[
             request.serverKey = RequestScheduler.getServerKey(request.url);
         }
 
+        if (request.throttleByServer && !serverHasOpenSlots(request.serverKey)) {
+            // Server is saturated. Try again later.
+            return undefined;
+        }
+
         if (!RequestScheduler.throttleRequests || !request.throttle) {
             return startRequest(request);
         }
 
         if (activeRequests.length >= RequestScheduler.maximumRequests) {
             // Active requests are saturated. Try again later.
-            return undefined;
-        }
-
-        if (request.throttleByServer && !serverHasOpenSlots(request.serverKey)) {
-            // Server is saturated. Try again later.
             return undefined;
         }
 
@@ -5385,10 +5385,15 @@ define('Core/Resource',[
     }
 
     function loadWithHttpRequest(url, responseType, method, data, headers, deferred, overrideMimeType) {
+
+        // Specifically use the Node version of require to avoid conflicts with the global
+        // require defined in the built version of Cesium.
+        var nodeRequire = global.require; // eslint-disable-line
+
         // Note: only the 'json' and 'text' responseTypes transforms the loaded buffer
-        var URL = require('url').parse(url);
-        var http = URL.protocol === 'https:' ? require('https') : require('http');
-        var zlib = require('zlib');
+        var URL = nodeRequire('url').parse(url);
+        var http = URL.protocol === 'https:' ? nodeRequire('https') : nodeRequire('http');
+        var zlib = nodeRequire('zlib');
         var options = {
             protocol : URL.protocol,
             hostname : URL.hostname,
@@ -6468,6 +6473,100 @@ define('Core/Math',[
                 absoluteEpsilon = defaultValue(absoluteEpsilon, relativeEpsilon);
         var absDiff = Math.abs(left - right);
         return absDiff <= absoluteEpsilon || absDiff <= relativeEpsilon * Math.max(Math.abs(left), Math.abs(right));
+    };
+
+    /**
+     * Determines if the left value is less than the right value. If the two values are within
+     * <code>absoluteEpsilon</code> of each other, they are considered equal and this function returns false.
+     *
+     * @param {Number} left The first number to compare.
+     * @param {Number} right The second number to compare.
+     * @param {Number} absoluteEpsilon The absolute epsilon to use in comparison.
+     * @returns {Boolean} <code>true</code> if <code>left</code> is less than <code>right</code> by more than
+     *          <code>absoluteEpsilon<code>. <code>false</code> if <code>left</code> is greater or if the two
+     *          values are nearly equal.
+     */
+    CesiumMath.lessThan = function(left, right, absoluteEpsilon) {
+                if (!defined(left)) {
+            throw new DeveloperError('first is required.');
+        }
+        if (!defined(right)) {
+            throw new DeveloperError('second is required.');
+        }
+        if (!defined(absoluteEpsilon)) {
+            throw new DeveloperError('relativeEpsilon is required.');
+        }
+                return left - right < -absoluteEpsilon;
+    };
+
+    /**
+     * Determines if the left value is less than or equal to the right value. If the two values are within
+     * <code>absoluteEpsilon</code> of each other, they are considered equal and this function returns true.
+     *
+     * @param {Number} left The first number to compare.
+     * @param {Number} right The second number to compare.
+     * @param {Number} absoluteEpsilon The absolute epsilon to use in comparison.
+     * @returns {Boolean} <code>true</code> if <code>left</code> is less than <code>right</code> or if the
+     *          the values are nearly equal.
+     */
+    CesiumMath.lessThanOrEquals = function(left, right, absoluteEpsilon) {
+                if (!defined(left)) {
+            throw new DeveloperError('first is required.');
+        }
+        if (!defined(right)) {
+            throw new DeveloperError('second is required.');
+        }
+        if (!defined(absoluteEpsilon)) {
+            throw new DeveloperError('relativeEpsilon is required.');
+        }
+                return left - right < absoluteEpsilon;
+    };
+
+    /**
+     * Determines if the left value is greater the right value. If the two values are within
+     * <code>absoluteEpsilon</code> of each other, they are considered equal and this function returns false.
+     *
+     * @param {Number} left The first number to compare.
+     * @param {Number} right The second number to compare.
+     * @param {Number} absoluteEpsilon The absolute epsilon to use in comparison.
+     * @returns {Boolean} <code>true</code> if <code>left</code> is greater than <code>right</code> by more than
+     *          <code>absoluteEpsilon<code>. <code>false</code> if <code>left</code> is less or if the two
+     *          values are nearly equal.
+     */
+    CesiumMath.greaterThan = function(left, right, absoluteEpsilon) {
+                if (!defined(left)) {
+            throw new DeveloperError('first is required.');
+        }
+        if (!defined(right)) {
+            throw new DeveloperError('second is required.');
+        }
+        if (!defined(absoluteEpsilon)) {
+            throw new DeveloperError('relativeEpsilon is required.');
+        }
+                return left - right > absoluteEpsilon;
+    };
+
+    /**
+     * Determines if the left value is greater than or equal to the right value. If the two values are within
+     * <code>absoluteEpsilon</code> of each other, they are considered equal and this function returns true.
+     *
+     * @param {Number} left The first number to compare.
+     * @param {Number} right The second number to compare.
+     * @param {Number} absoluteEpsilon The absolute epsilon to use in comparison.
+     * @returns {Boolean} <code>true</code> if <code>left</code> is greater than <code>right</code> or if the
+     *          the values are nearly equal.
+     */
+    CesiumMath.greaterThanOrEquals = function(left, right, absoluteEpsilon) {
+                if (!defined(left)) {
+            throw new DeveloperError('first is required.');
+        }
+        if (!defined(right)) {
+            throw new DeveloperError('second is required.');
+        }
+        if (!defined(absoluteEpsilon)) {
+            throw new DeveloperError('relativeEpsilon is required.');
+        }
+                return left - right > -absoluteEpsilon;
     };
 
     var factorials = [1];
@@ -17164,6 +17263,46 @@ define('Core/ApproximateTerrainHeights',[
     return ApproximateTerrainHeights;
 });
 
+define('Core/ArcType',[
+        './freezeObject'
+    ], function(
+        freezeObject) {
+    'use strict';
+
+    /**
+     * ArcType defines the path that should be taken connecting vertices.
+     *
+     * @exports ArcType
+     */
+    var ArcType = {
+        /**
+         * Straight line that does not conform to the surface of the ellipsoid.
+         *
+         * @type {Number}
+         * @constant
+         */
+        NONE : 0,
+
+        /**
+         * Follow geodesic path.
+         *
+         * @type {Number}
+         * @constant
+         */
+        GEODESIC : 1,
+
+        /**
+         * Follow rhumb or loxodrome path.
+         *
+         * @type {Number}
+         * @constant
+         */
+        RHUMB : 2
+    };
+
+    return freezeObject(ArcType);
+});
+
 define('Core/arrayRemoveDuplicates',[
         './Check',
         './defaultValue',
@@ -17520,11 +17659,19 @@ define('Core/Fullscreen',[
 define('Core/FeatureDetection',[
         './defaultValue',
         './defined',
-        './Fullscreen'
+        './defineProperties',
+        './DeveloperError',
+        './Fullscreen',
+        './RuntimeError',
+        '../ThirdParty/when'
     ], function(
         defaultValue,
         defined,
-        Fullscreen) {
+        defineProperties,
+        DeveloperError,
+        Fullscreen,
+        RuntimeError,
+        when) {
     'use strict';
     /*global CanvasPixelArray*/
 
@@ -17718,6 +17865,53 @@ define('Core/FeatureDetection',[
         return supportsImageRenderingPixelated() ? imageRenderingValueResult : undefined;
     }
 
+    function supportsWebP() {
+                if (!supportsWebP.initialized) {
+            throw new DeveloperError('You must call FeatureDetection.supportsWebP.initialize and wait for the promise to resolve before calling FeatureDetection.supportsWebP');
+        }
+                return supportsWebP._result;
+    }
+    supportsWebP._promise = undefined;
+    supportsWebP._result = undefined;
+    supportsWebP.initialize = function() {
+        // From https://developers.google.com/speed/webp/faq#how_can_i_detect_browser_support_for_webp
+        if (defined(supportsWebP._promise)) {
+            return supportsWebP._promise;
+        }
+
+        var supportsWebPDeferred = when.defer();
+        supportsWebP._promise = supportsWebPDeferred.promise;
+        if (isEdge()) {
+            // Edge's WebP support with WebGL is incomplete.
+            // See bug report: https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/19221241/
+            supportsWebP._result = false;
+            supportsWebPDeferred.resolve(supportsWebP._result);
+            return supportsWebPDeferred.promise;
+        }
+
+        var image = new Image();
+        image.onload = function () {
+            supportsWebP._result = (image.width > 0) && (image.height > 0);
+            supportsWebPDeferred.resolve(supportsWebP._result);
+        };
+
+        image.onerror = function () {
+            supportsWebP._result = false;
+            supportsWebPDeferred.resolve(supportsWebP._result);
+        };
+
+        image.src = 'data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA';
+
+        return supportsWebPDeferred.promise;
+    };
+    defineProperties(supportsWebP, {
+        initialized: {
+            get: function() {
+                return defined(supportsWebP._result);
+            }
+        }
+    });
+
     var typedArrayTypes = [];
     if (typeof ArrayBuffer !== 'undefined') {
         typedArrayTypes.push(Int8Array, Uint8Array, Int16Array, Uint16Array, Int32Array, Uint32Array, Float32Array, Float64Array);
@@ -17754,6 +17948,7 @@ define('Core/FeatureDetection',[
         hardwareConcurrency : defaultValue(theNavigator.hardwareConcurrency, 3),
         supportsPointerEvents : supportsPointerEvents,
         supportsImageRenderingPixelated: supportsImageRenderingPixelated,
+        supportsWebP: supportsWebP,
         imageRenderingValue: imageRenderingValue,
         typedArrayTypes: typedArrayTypes
     };
@@ -19144,6 +19339,502 @@ define('Core/EllipsoidGeodesic',[
     };
 
     return EllipsoidGeodesic;
+});
+
+define('Core/EllipsoidRhumbLine',[
+        './Cartesian3',
+        './Cartographic',
+        './Check',
+        './defaultValue',
+        './defined',
+        './defineProperties',
+        './DeveloperError',
+        './Ellipsoid',
+        './Math'
+    ], function(
+        Cartesian3,
+        Cartographic,
+        Check,
+        defaultValue,
+        defined,
+        defineProperties,
+        DeveloperError,
+        Ellipsoid,
+        CesiumMath) {
+    'use strict';
+
+    function calculateM(ellipticity, major, latitude) {
+        if (ellipticity === 0.0) { // sphere
+            return major * latitude;
+        }
+
+        var e2 = ellipticity * ellipticity;
+        var e4 = e2 * e2;
+        var e6 = e4 * e2;
+        var e8 = e6 * e2;
+        var e10 = e8 * e2;
+        var e12 = e10 * e2;
+        var phi = latitude;
+        var sin2Phi = Math.sin(2 * phi);
+        var sin4Phi = Math.sin(4 * phi);
+        var sin6Phi = Math.sin(6 * phi);
+        var sin8Phi = Math.sin(8 * phi);
+        var sin10Phi = Math.sin(10 * phi);
+        var sin12Phi = Math.sin(12 * phi);
+
+        return major * ((1 - e2 / 4 - 3 * e4 / 64 - 5 * e6 / 256 - 175 * e8 / 16384 - 441 * e10 / 65536 - 4851 * e12 / 1048576) * phi
+                     - (3 * e2 / 8 + 3 * e4 / 32 + 45 * e6 / 1024 + 105 * e8 / 4096 + 2205 * e10 / 131072 + 6237 * e12 / 524288) * sin2Phi
+                     + (15 * e4 / 256 + 45 * e6 / 1024 + 525 * e8 / 16384 + 1575 * e10 / 65536 + 155925 * e12 / 8388608) * sin4Phi
+                     - (35 * e6 / 3072 + 175 * e8 / 12288 + 3675 * e10 / 262144 + 13475 * e12 / 1048576) * sin6Phi
+                     + (315 * e8 / 131072 + 2205 * e10 / 524288 + 43659 * e12 / 8388608) * sin8Phi
+                     - (693 * e10 / 1310720 + 6237 * e12 / 5242880) * sin10Phi
+                     + 1001 * e12 / 8388608 * sin12Phi);
+    }
+
+    function calculateInverseM(M, ellipticity, major) {
+        var d = M / major;
+
+        if (ellipticity === 0.0) { // sphere
+            return d;
+        }
+
+        var d2 = d * d;
+        var d3 = d2 * d;
+        var d4 = d3 * d;
+        var e = ellipticity;
+        var e2 = e * e;
+        var e4 = e2 * e2;
+        var e6 = e4 * e2;
+        var e8 = e6 * e2;
+        var e10 = e8 * e2;
+        var e12 = e10 * e2;
+        var sin2D = Math.sin(2 * d);
+        var cos2D = Math.cos(2 * d);
+        var sin4D = Math.sin(4 * d);
+        var cos4D = Math.cos(4 * d);
+        var sin6D = Math.sin(6 * d);
+        var cos6D = Math.cos(6 * d);
+        var sin8D = Math.sin(8 * d);
+        var cos8D = Math.cos(8 * d);
+        var sin10D = Math.sin(10 * d);
+        var cos10D = Math.cos(10 * d);
+        var sin12D = Math.sin(12 * d);
+
+        return d + d * e2 / 4 + 7 * d * e4 / 64 + 15 * d * e6 / 256 + 579 * d * e8 / 16384 + 1515 * d * e10 / 65536 + 16837 * d * e12 / 1048576
+            + (3 * d * e4 / 16 + 45 * d * e6 / 256 - d * (32 * d2 - 561) * e8 / 4096 - d * (232 * d2 - 1677) * e10 / 16384 + d * (399985 - 90560 * d2 + 512 * d4) * e12 / 5242880) * cos2D
+            + (21 * d * e6 / 256 + 483 * d * e8 / 4096 - d * (224 * d2 - 1969) * e10 / 16384 - d * (33152 * d2 - 112599) * e12 / 1048576) * cos4D
+            + (151 * d * e8 / 4096 + 4681 * d * e10 / 65536 + 1479 * d * e12 / 16384 - 453 * d3 * e12 / 32768) * cos6D
+            + (1097 * d * e10 / 65536 + 42783 * d * e12 / 1048576) * cos8D
+            + 8011 * d * e12 / 1048576 * cos10D
+            + (3 * e2 / 8 + 3 * e4 / 16 + 213 * e6 / 2048 - 3 * d2 * e6 / 64 + 255 * e8 / 4096 - 33 * d2 * e8 / 512 + 20861 * e10 / 524288 - 33 * d2 * e10 / 512 + d4 * e10 / 1024 + 28273 * e12 / 1048576 - 471 * d2 * e12 / 8192 + 9 * d4 * e12 / 4096) * sin2D
+            + (21 * e4 / 256 + 21 * e6 / 256 + 533 * e8 / 8192 - 21 * d2 * e8 / 512 + 197 * e10 / 4096 - 315 * d2 * e10 / 4096 + 584039 * e12 / 16777216 - 12517 * d2 * e12 / 131072 + 7 * d4 * e12 / 2048) * sin4D
+            + (151 * e6 / 6144 + 151 * e8 / 4096 + 5019 * e10 / 131072 - 453 * d2 * e10 / 16384 + 26965 * e12 / 786432 - 8607 * d2 * e12 / 131072) * sin6D
+            + (1097 * e8 / 131072 + 1097 * e10 / 65536 + 225797 * e12 / 10485760 - 1097 * d2 * e12 / 65536) * sin8D
+            + (8011 * e10 / 2621440 + 8011 * e12 / 1048576) * sin10D
+            + 293393 * e12 / 251658240 * sin12D;
+    }
+
+    function calculateSigma(ellipticity, latitude) {
+        if (ellipticity === 0.0) { // sphere
+            return Math.log(Math.tan(0.5 * (CesiumMath.PI_OVER_TWO + latitude)));
+        }
+
+        var eSinL = ellipticity * Math.sin(latitude);
+        return Math.log(Math.tan(0.5 * (CesiumMath.PI_OVER_TWO + latitude))) - (ellipticity / 2.0 * Math.log((1 + eSinL) / (1 - eSinL)));
+    }
+
+    function calculateHeading(ellipsoidRhumbLine, firstLongitude, firstLatitude, secondLongitude, secondLatitude) {
+        var sigma1 = calculateSigma(ellipsoidRhumbLine._ellipticity, firstLatitude);
+        var sigma2 = calculateSigma(ellipsoidRhumbLine._ellipticity, secondLatitude);
+        return Math.atan2(CesiumMath.negativePiToPi(secondLongitude - firstLongitude), sigma2 - sigma1);
+    }
+
+    function calculateArcLength(ellipsoidRhumbLine, major, minor, firstLongitude, firstLatitude, secondLongitude, secondLatitude) {
+        var heading = ellipsoidRhumbLine._heading;
+        var deltaLongitude = secondLongitude - firstLongitude;
+
+        var distance = 0.0;
+
+        //Check to see if the rhumb line has constant latitude
+        //This equation will diverge if heading gets close to 90 degrees
+        if (CesiumMath.equalsEpsilon(Math.abs(heading), CesiumMath.PI_OVER_TWO, CesiumMath.EPSILON8)) { //If heading is close to 90 degrees
+            if (major === minor) {
+                distance = major * Math.cos(firstLatitude) * CesiumMath.negativePiToPi(deltaLongitude);
+            } else {
+                var sinPhi = Math.sin(firstLatitude);
+                distance = major * Math.cos(firstLatitude) * CesiumMath.negativePiToPi(deltaLongitude) / Math.sqrt(1 - ellipsoidRhumbLine._ellipticitySquared * sinPhi * sinPhi);
+            }
+        } else {
+            var M1 = calculateM(ellipsoidRhumbLine._ellipticity, major, firstLatitude);
+            var M2 = calculateM(ellipsoidRhumbLine._ellipticity, major, secondLatitude);
+
+            distance = (M2 - M1) / Math.cos(heading);
+        }
+        return Math.abs(distance);
+    }
+
+    var scratchCart1 = new Cartesian3();
+    var scratchCart2 = new Cartesian3();
+
+    function computeProperties(ellipsoidRhumbLine, start, end, ellipsoid) {
+        var firstCartesian = Cartesian3.normalize(ellipsoid.cartographicToCartesian(start, scratchCart2), scratchCart1);
+        var lastCartesian = Cartesian3.normalize(ellipsoid.cartographicToCartesian(end, scratchCart2), scratchCart2);
+
+                Check.typeOf.number.greaterThanOrEquals('value', Math.abs(Math.abs(Cartesian3.angleBetween(firstCartesian, lastCartesian)) - Math.PI), 0.0125);
+        
+        var major = ellipsoid.maximumRadius;
+        var minor = ellipsoid.minimumRadius;
+        var majorSquared = major * major;
+        var minorSquared = minor * minor;
+        ellipsoidRhumbLine._ellipticitySquared = (majorSquared - minorSquared) / majorSquared;
+        ellipsoidRhumbLine._ellipticity = Math.sqrt(ellipsoidRhumbLine._ellipticitySquared);
+
+        ellipsoidRhumbLine._start = Cartographic.clone(start, ellipsoidRhumbLine._start);
+        ellipsoidRhumbLine._start.height = 0;
+
+        ellipsoidRhumbLine._end = Cartographic.clone(end, ellipsoidRhumbLine._end);
+        ellipsoidRhumbLine._end.height = 0;
+
+        ellipsoidRhumbLine._heading = calculateHeading(ellipsoidRhumbLine, start.longitude, start.latitude, end.longitude, end.latitude);
+        ellipsoidRhumbLine._distance = calculateArcLength(ellipsoidRhumbLine, ellipsoid.maximumRadius, ellipsoid.minimumRadius,
+                                                          start.longitude, start.latitude, end.longitude, end.latitude);
+    }
+
+    function interpolateUsingSurfaceDistance(start, heading, distance, major, ellipticity, result)
+    {
+        var ellipticitySquared = ellipticity * ellipticity;
+
+        var longitude;
+        var latitude;
+        var deltaLongitude;
+
+        //Check to see if the rhumb line has constant latitude
+        //This won't converge if heading is close to 90 degrees
+        if (Math.abs(CesiumMath.PI_OVER_TWO - Math.abs(heading)) > CesiumMath.EPSILON8) {
+            //Calculate latitude of the second point
+            var M1 = calculateM(ellipticity, major, start.latitude);
+            var deltaM = distance * Math.cos(heading);
+            var M2 = M1 + deltaM;
+            latitude = calculateInverseM(M2, ellipticity, major);
+
+            //Now find the longitude of the second point
+            var sigma1 = calculateSigma(ellipticity, start.latitude);
+            var sigma2 = calculateSigma(ellipticity, latitude);
+            deltaLongitude = Math.tan(heading) * (sigma2 - sigma1);
+            longitude = CesiumMath.negativePiToPi(start.longitude + deltaLongitude);
+        } else { //If heading is close to 90 degrees
+            latitude = start.latitude;
+            var localRad;
+
+            if (ellipticity === 0.0) { // sphere
+                localRad = major * Math.cos(start.latitude);
+            } else {
+                var sinPhi = Math.sin(start.latitude);
+                localRad = major * Math.cos(start.latitude) / Math.sqrt(1 - ellipticitySquared * sinPhi * sinPhi);
+            }
+
+            deltaLongitude = distance / localRad;
+            if (heading > 0.0) {
+                longitude = CesiumMath.negativePiToPi(start.longitude + deltaLongitude);
+            } else {
+                longitude = CesiumMath.negativePiToPi(start.longitude - deltaLongitude);
+            }
+        }
+
+        if (defined(result)) {
+            result.longitude = longitude;
+            result.latitude = latitude;
+            result.height = 0;
+
+            return result;
+        }
+
+        return new Cartographic(longitude, latitude, 0);
+    }
+
+    /**
+     * Initializes a rhumb line on the ellipsoid connecting the two provided planetodetic points.
+     *
+     * @alias EllipsoidRhumbLine
+     * @constructor
+     *
+     * @param {Cartographic} [start] The initial planetodetic point on the path.
+     * @param {Cartographic} [end] The final planetodetic point on the path.
+     * @param {Ellipsoid} [ellipsoid=Ellipsoid.WGS84] The ellipsoid on which the rhumb line lies.
+     *
+     * @exception {DeveloperError} angle between start and end must be at least 0.0125 radians.
+     */
+    function EllipsoidRhumbLine(start, end, ellipsoid) {
+        var e = defaultValue(ellipsoid, Ellipsoid.WGS84);
+        this._ellipsoid = e;
+        this._start = new Cartographic();
+        this._end = new Cartographic();
+
+        this._heading = undefined;
+        this._distance = undefined;
+        this._ellipticity = undefined;
+        this._ellipticitySquared = undefined;
+
+        if (defined(start) && defined(end)) {
+            computeProperties(this, start, end, e);
+        }
+    }
+
+    defineProperties(EllipsoidRhumbLine.prototype, {
+        /**
+         * Gets the ellipsoid.
+         * @memberof EllipsoidRhumbLine.prototype
+         * @type {Ellipsoid}
+         * @readonly
+         */
+        ellipsoid : {
+            get : function() {
+                return this._ellipsoid;
+            }
+        },
+
+        /**
+         * Gets the surface distance between the start and end point
+         * @memberof EllipsoidRhumbLine.prototype
+         * @type {Number}
+         * @readonly
+         */
+        surfaceDistance : {
+            get : function() {
+                                Check.defined('distance', this._distance);
+                
+                return this._distance;
+            }
+        },
+
+        /**
+         * Gets the initial planetodetic point on the path.
+         * @memberof EllipsoidRhumbLine.prototype
+         * @type {Cartographic}
+         * @readonly
+         */
+        start : {
+            get : function() {
+                return this._start;
+            }
+        },
+
+        /**
+         * Gets the final planetodetic point on the path.
+         * @memberof EllipsoidRhumbLine.prototype
+         * @type {Cartographic}
+         * @readonly
+         */
+        end : {
+            get : function() {
+                return this._end;
+            }
+        },
+
+        /**
+         * Gets the heading from the start point to the end point.
+         * @memberof EllipsoidRhumbLine.prototype
+         * @type {Number}
+         * @readonly
+         */
+        heading : {
+            get : function() {
+                                Check.defined('distance', this._distance);
+                
+                return this._heading;
+            }
+        }
+    });
+
+    /**
+     * Create a rhumb line using an initial position with a heading and distance.
+     *
+     * @param {Cartographic} start The initial planetodetic point on the path.
+     * @param {Number} heading The heading in radians.
+     * @param {Number} distance The rhumb line distance between the start and end point.
+     * @param {Ellipsoid} [ellipsoid=Ellipsoid.WGS84] The ellipsoid on which the rhumb line lies.
+     * @param {EllipsoidRhumbLine} [result] The object in which to store the result.
+     * @returns {EllipsoidRhumbLine} The EllipsoidRhumbLine object.
+     */
+    EllipsoidRhumbLine.fromStartHeadingDistance = function(start, heading, distance, ellipsoid, result) {
+                Check.defined('start', start);
+        Check.defined('heading', heading);
+        Check.defined('distance', distance);
+        Check.typeOf.number.greaterThan('distance', distance, 0.0);
+        
+        var e = defaultValue(ellipsoid, Ellipsoid.WGS84);
+        var major = e.maximumRadius;
+        var minor = e.minimumRadius;
+        var majorSquared = major * major;
+        var minorSquared = minor * minor;
+        var ellipticity = Math.sqrt((majorSquared - minorSquared) / majorSquared);
+
+        heading = CesiumMath.negativePiToPi(heading);
+        var end = interpolateUsingSurfaceDistance(start, heading, distance, e.maximumRadius, ellipticity);
+
+        if (!defined(result) || (defined(ellipsoid) && !ellipsoid.equals(result.ellipsoid))) {
+            return new EllipsoidRhumbLine(start, end, e);
+        }
+
+        result.setEndPoints(start, end);
+        return result;
+    };
+
+    /**
+     * Sets the start and end points of the rhumb line.
+     *
+     * @param {Cartographic} start The initial planetodetic point on the path.
+     * @param {Cartographic} end The final planetodetic point on the path.
+     */
+    EllipsoidRhumbLine.prototype.setEndPoints = function(start, end) {
+                Check.defined('start', start);
+        Check.defined('end', end);
+        
+        computeProperties(this, start, end, this._ellipsoid);
+    };
+
+    /**
+     * Provides the location of a point at the indicated portion along the rhumb line.
+     *
+     * @param {Number} fraction The portion of the distance between the initial and final points.
+     * @param {Cartographic} [result] The object in which to store the result.
+     * @returns {Cartographic} The location of the point along the rhumb line.
+     */
+    EllipsoidRhumbLine.prototype.interpolateUsingFraction = function(fraction, result) {
+        return this.interpolateUsingSurfaceDistance(fraction * this._distance, result);
+    };
+
+    /**
+     * Provides the location of a point at the indicated distance along the rhumb line.
+     *
+     * @param {Number} distance The distance from the inital point to the point of interest along the rhumbLine.
+     * @param {Cartographic} [result] The object in which to store the result.
+     * @returns {Cartographic} The location of the point along the rhumb line.
+     *
+     * @exception {DeveloperError} start and end must be set before calling function interpolateUsingSurfaceDistance
+     */
+    EllipsoidRhumbLine.prototype.interpolateUsingSurfaceDistance = function(distance, result) {
+                Check.typeOf.number('distance', distance);
+        if (!defined(this._distance) || this._distance === 0.0) {
+            throw new DeveloperError('EllipsoidRhumbLine must have distinct start and end set.');
+        }
+        
+        return interpolateUsingSurfaceDistance(this._start, this._heading, distance, this._ellipsoid.maximumRadius, this._ellipticity, result);
+    };
+
+    /**
+     * Provides the location of a point at the indicated longitude along the rhumb line.
+     * If the longitude is outside the range of start and end points, the first intersection with the longitude from the start point in the direction of the heading is returned. This follows the spiral property of a rhumb line.
+     *
+     * @param {Number} intersectionLongitude The longitude, in radians, at which to find the intersection point from the starting point using the heading.
+     * @param {Cartographic} [result] The object in which to store the result.
+     * @returns {Cartographic} The location of the intersection point along the rhumb line, undefined if there is no intersection or infinite intersections.
+     *
+     * @exception {DeveloperError} start and end must be set before calling function findIntersectionWithLongitude.
+     */
+    EllipsoidRhumbLine.prototype.findIntersectionWithLongitude = function(intersectionLongitude, result) {
+                Check.typeOf.number('intersectionLongitude', intersectionLongitude);
+        if (!defined(this._distance) || this._distance === 0.0) {
+            throw new DeveloperError('EllipsoidRhumbLine must have distinct start and end set.');
+        }
+        
+        var ellipticity = this._ellipticity;
+        var heading = this._heading;
+        var absHeading = Math.abs(heading);
+        var start = this._start;
+
+        intersectionLongitude = CesiumMath.negativePiToPi(intersectionLongitude);
+
+        if (CesiumMath.equalsEpsilon(Math.abs(intersectionLongitude), Math.PI, CesiumMath.EPSILON14)) {
+            intersectionLongitude = CesiumMath.sign(start.longitude) * Math.PI;
+        }
+
+        if (!defined(result)) {
+            result = new Cartographic();
+        }
+
+        // If heading is -PI/2 or PI/2, this is an E-W rhumb line
+        // If heading is 0 or PI, this is an N-S rhumb line
+        if (Math.abs(CesiumMath.PI_OVER_TWO - absHeading) <= CesiumMath.EPSILON8) {
+            result.longitude = intersectionLongitude;
+            result.latitude = start.latitude;
+            result.height = 0;
+            return result;
+        } else if (CesiumMath.equalsEpsilon(Math.abs(CesiumMath.PI_OVER_TWO - absHeading), CesiumMath.PI_OVER_TWO, CesiumMath.EPSILON8)) {
+            if (CesiumMath.equalsEpsilon(intersectionLongitude, start.longitude, CesiumMath.EPSILON12)) {
+                return undefined;
+            }
+
+            result.longitude = intersectionLongitude;
+            result.latitude = CesiumMath.PI_OVER_TWO * CesiumMath.sign(CesiumMath.PI_OVER_TWO - heading);
+            result.height = 0;
+            return result;
+        }
+
+        // Use iterative solver from Equation 9 from http://edwilliams.org/ellipsoid/ellipsoid.pdf
+        var phi1 = start.latitude;
+        var eSinPhi1 = ellipticity * Math.sin(phi1);
+        var leftComponent = Math.tan(0.5 * (CesiumMath.PI_OVER_TWO + phi1)) * Math.exp((intersectionLongitude - start.longitude) / Math.tan(heading));
+        var denominator = (1 + eSinPhi1) / (1 - eSinPhi1);
+
+        var newPhi = start.latitude;
+        var phi;
+        do {
+            phi = newPhi;
+            var eSinPhi = ellipticity * Math.sin(phi);
+            var numerator = (1 + eSinPhi) / (1 - eSinPhi);
+            newPhi = 2 * Math.atan(leftComponent * Math.pow(numerator / denominator, ellipticity / 2)) - CesiumMath.PI_OVER_TWO;
+        } while (!CesiumMath.equalsEpsilon(newPhi, phi, CesiumMath.EPSILON12));
+
+        result.longitude = intersectionLongitude;
+        result.latitude = newPhi;
+        result.height = 0;
+        return result;
+    };
+
+    /**
+     * Provides the location of a point at the indicated latitude along the rhumb line.
+     * If the latitude is outside the range of start and end points, the first intersection with the latitude from that start point in the direction of the heading is returned. This follows the spiral property of a rhumb line.
+     *
+     * @param {Number} intersectionLatitude The latitude, in radians, at which to find the intersection point from the starting point using the heading.
+     * @param {Cartographic} [result] The object in which to store the result.
+     * @returns {Cartographic} The location of the intersection point along the rhumb line, undefined if there is no intersection or infinite intersections.
+     *
+     * @exception {DeveloperError} start and end must be set before calling function findIntersectionWithLongitude.
+     */
+    EllipsoidRhumbLine.prototype.findIntersectionWithLatitude = function(intersectionLatitude, result) {
+                Check.typeOf.number('intersectionLatitude', intersectionLatitude);
+        if (!defined(this._distance) || this._distance === 0.0) {
+            throw new DeveloperError('EllipsoidRhumbLine must have distinct start and end set.');
+        }
+        
+        var ellipticity = this._ellipticity;
+        var heading = this._heading;
+        var start = this._start;
+
+        // If start and end have same latitude, return undefined since it's either no intersection or infinite intersections
+        if (CesiumMath.equalsEpsilon(Math.abs(heading), CesiumMath.PI_OVER_TWO, CesiumMath.EPSILON8)) {
+            return;
+        }
+
+        // Can be solved using the same equations from interpolateUsingSurfaceDistance
+        var sigma1 = calculateSigma(ellipticity, start.latitude);
+        var sigma2 = calculateSigma(ellipticity, intersectionLatitude);
+        var deltaLongitude = Math.tan(heading) * (sigma2 - sigma1);
+        var longitude = CesiumMath.negativePiToPi(start.longitude + deltaLongitude);
+
+        if (defined(result)) {
+            result.longitude = longitude;
+            result.latitude = intersectionLatitude;
+            result.height = 0;
+
+            return result;
+        }
+
+        return new Cartographic(longitude, intersectionLatitude, 0);
+    };
+
+    return EllipsoidRhumbLine;
 });
 
 define('Core/EncodedCartesian3',[
@@ -27337,6 +28028,7 @@ define('Core/WebMercatorProjection',[
 
 define('Core/GroundPolylineGeometry',[
         './ApproximateTerrainHeights',
+        './ArcType',
         './arrayRemoveDuplicates',
         './BoundingSphere',
         './Cartesian3',
@@ -27350,6 +28042,7 @@ define('Core/GroundPolylineGeometry',[
         './defineProperties',
         './Ellipsoid',
         './EllipsoidGeodesic',
+        './EllipsoidRhumbLine',
         './EncodedCartesian3',
         './GeographicProjection',
         './Geometry',
@@ -27362,6 +28055,7 @@ define('Core/GroundPolylineGeometry',[
         './WebMercatorProjection'
     ], function(
         ApproximateTerrainHeights,
+        ArcType,
         arrayRemoveDuplicates,
         BoundingSphere,
         Cartesian3,
@@ -27375,6 +28069,7 @@ define('Core/GroundPolylineGeometry',[
         defineProperties,
         Ellipsoid,
         EllipsoidGeodesic,
+        EllipsoidRhumbLine,
         EncodedCartesian3,
         GeographicProjection,
         Geometry,
@@ -27407,7 +28102,7 @@ define('Core/GroundPolylineGeometry',[
     var WALL_INITIAL_MAX_HEIGHT = 1000.0;
 
     /**
-     * A description of a polyline on terrain. Only to be used with {@link GroundPolylinePrimitive}.
+     * A description of a polyline on terrain or 3D Tiles. Only to be used with {@link GroundPolylinePrimitive}.
      *
      * @alias GroundPolylineGeometry
      * @constructor
@@ -27417,6 +28112,7 @@ define('Core/GroundPolylineGeometry',[
      * @param {Number} [options.width=1.0] The screen space width in pixels.
      * @param {Number} [options.granularity=9999.0] The distance interval in meters used for interpolating options.points. Defaults to 9999.0 meters. Zero indicates no interpolation.
      * @param {Boolean} [options.loop=false] Whether during geometry creation a line segment will be added between the last and first line positions to make this Polyline a loop.
+     * @param {ArcType} [options.arcType=ArcType.GEODESIC] The type of line the polyline segments must follow. Valid options are {@link ArcType.GEODESIC} and {@link ArcType.RHUMB}.
      *
      * @exception {DeveloperError} At least two positions are required.
      *
@@ -27439,6 +28135,9 @@ define('Core/GroundPolylineGeometry',[
 
                 if ((!defined(positions)) || (positions.length < 2)) {
             throw new DeveloperError('At least two positions are required.');
+        }
+        if (defined(options.arcType) && options.arcType !== ArcType.GEODESIC && options.arcType !== ArcType.RHUMB) {
+            throw new DeveloperError('Valid options for arcType are ArcType.GEODESIC and ArcType.RHUMB.');
         }
         
         /**
@@ -27465,6 +28164,13 @@ define('Core/GroundPolylineGeometry',[
          */
         this.loop = defaultValue(options.loop, false);
 
+        /**
+         * The type of path the polyline must follow. Valid options are {@link ArcType.GEODESIC} and {@link ArcType.RHUMB}.
+         * @type {ArcType}
+         * @default ArcType.GEODESIC
+         */
+        this.arcType = defaultValue(options.arcType, ArcType.GEODESIC);
+
         this._ellipsoid = Ellipsoid.WGS84;
 
         // MapProjections can't be packed, so store the index to a known MapProjection.
@@ -27485,7 +28191,7 @@ define('Core/GroundPolylineGeometry',[
          */
         packedLength: {
             get: function() {
-                return 1.0 + this._positions.length * 3 + 1.0 + 1.0 + Ellipsoid.packedLength + 1.0 + 1.0;
+                return 1.0 + this._positions.length * 3 + 1.0 + 1.0 + 1.0 + Ellipsoid.packedLength + 1.0 + 1.0;
             }
         }
     });
@@ -27494,7 +28200,7 @@ define('Core/GroundPolylineGeometry',[
      * Set the GroundPolylineGeometry's projection and ellipsoid.
      * Used by GroundPolylinePrimitive to signal scene information to the geometry for generating 2D attributes.
      *
-     * @param {GroundPolylineGeometry} groundPolylineGeometry GroundPolylinGeometry describing a polyline on terrain.
+     * @param {GroundPolylineGeometry} groundPolylineGeometry GroundPolylinGeometry describing a polyline on terrain or 3D Tiles.
      * @param {Projection} mapProjection A MapProjection used for projecting cartographic coordinates to 2D.
      * @private
      */
@@ -27530,12 +28236,19 @@ define('Core/GroundPolylineGeometry',[
     var interpolatedBottomScratch = new Cartesian3();
     var interpolatedTopScratch = new Cartesian3();
     var interpolatedNormalScratch = new Cartesian3();
-    function interpolateSegment(start, end, minHeight, maxHeight, granularity, ellipsoid, normalsArray, bottomPositionsArray, topPositionsArray, cartographicsArray) {
+    function interpolateSegment(start, end, minHeight, maxHeight, granularity, arcType, ellipsoid, normalsArray, bottomPositionsArray, topPositionsArray, cartographicsArray) {
         if (granularity === 0.0) {
             return;
         }
-        var ellipsoidGeodesic = new EllipsoidGeodesic(start, end, ellipsoid);
-        var surfaceDistance = ellipsoidGeodesic.surfaceDistance;
+
+        var ellipsoidLine;
+        if (arcType === ArcType.GEODESIC) {
+            ellipsoidLine = new EllipsoidGeodesic(start, end, ellipsoid);
+        } else if (arcType === ArcType.RHUMB) {
+            ellipsoidLine = new EllipsoidRhumbLine(start, end, ellipsoid);
+        }
+
+        var surfaceDistance = ellipsoidLine.surfaceDistance;
         if (surfaceDistance < granularity) {
             return;
         }
@@ -27549,7 +28262,7 @@ define('Core/GroundPolylineGeometry',[
         var pointsToAdd = segments - 1;
         var packIndex = normalsArray.length;
         for (var i = 0; i < pointsToAdd; i++) {
-            var interpolatedCartographic = ellipsoidGeodesic.interpolateUsingSurfaceDistance(distanceFromStart, interpolatedCartographicScratch);
+            var interpolatedCartographic = ellipsoidLine.interpolateUsingSurfaceDistance(distanceFromStart, interpolatedCartographicScratch);
             var interpolatedBottom = getPosition(ellipsoid, interpolatedCartographic, minHeight, interpolatedBottomScratch);
             var interpolatedTop = getPosition(ellipsoid, interpolatedCartographic, maxHeight, interpolatedTopScratch);
 
@@ -27599,6 +28312,7 @@ define('Core/GroundPolylineGeometry',[
 
         array[index++] = value.granularity;
         array[index++] = value.loop ? 1.0 : 0.0;
+        array[index++] = value.arcType;
 
         Ellipsoid.pack(value._ellipsoid, array, index);
         index += Ellipsoid.packedLength;
@@ -27630,6 +28344,7 @@ define('Core/GroundPolylineGeometry',[
 
         var granularity = array[index++];
         var loop = array[index++] === 1.0;
+        var arcType = array[index++];
 
         var ellipsoid = Ellipsoid.unpack(array, index);
         index += Ellipsoid.packedLength;
@@ -27638,20 +28353,15 @@ define('Core/GroundPolylineGeometry',[
         var scene3DOnly = (array[index++] === 1.0);
 
         if (!defined(result)) {
-            var geometry = new GroundPolylineGeometry({
-                positions : positions,
-                granularity : granularity,
-                loop : loop,
-                ellipsoid : ellipsoid
+            result = new GroundPolylineGeometry({
+                positions : positions
             });
-            geometry._projectionIndex = projectionIndex;
-            geometry._scene3DOnly = scene3DOnly;
-            return geometry;
         }
 
         result._positions = positions;
         result.granularity = granularity;
         result.loop = loop;
+        result.arcType = arcType;
         result._ellipsoid = ellipsoid;
         result._projectionIndex = projectionIndex;
         result._scene3DOnly = scene3DOnly;
@@ -27715,9 +28425,12 @@ define('Core/GroundPolylineGeometry',[
     var nextBottomScratch = new Cartesian3();
     var vertexNormalScratch = new Cartesian3();
     var intersectionScratch = new Cartesian3();
+    var cartographicScratch0 = new Cartographic();
+    var cartographicScratch1 = new Cartographic();
+    var cartographicIntersectionScratch = new Cartographic();
     /**
      * Computes shadow volumes for the ground polyline, consisting of its vertices, indices, and a bounding sphere.
-     * Vertices are "fat," packing all the data needed in each volume to describe a line on terrain.
+     * Vertices are "fat," packing all the data needed in each volume to describe a line on terrain or 3D Tiles.
      * Should not be called independent of {@link GroundPolylinePrimitive}.
      *
      * @param {GroundPolylineGeometry} groundPolylineGeometry
@@ -27728,6 +28441,7 @@ define('Core/GroundPolylineGeometry',[
         var loop = groundPolylineGeometry.loop;
         var ellipsoid = groundPolylineGeometry._ellipsoid;
         var granularity = groundPolylineGeometry.granularity;
+        var arcType = groundPolylineGeometry.arcType;
         var projection = new PROJECTIONS[groundPolylineGeometry._projectionIndex](ellipsoid);
 
         var minHeight = WALL_INITIAL_MIN_HEIGHT;
@@ -27748,7 +28462,12 @@ define('Core/GroundPolylineGeometry',[
         // may get split by the plane of IDL + Prime Meridian.
         var p0;
         var p1;
+        var c0;
+        var c1;
+        var rhumbLine = new EllipsoidRhumbLine(undefined, undefined, ellipsoid);
         var intersection;
+        var intersectionCartographic;
+        var intersectionLongitude;
         var splitPositions = [positions[0]];
         for (i = 0; i < positionsLength - 1; i++) {
             p0 = positions[i];
@@ -27757,7 +28476,21 @@ define('Core/GroundPolylineGeometry',[
             if (defined(intersection) &&
                 !Cartesian3.equalsEpsilon(intersection, p0, CesiumMath.EPSILON7) &&
                 !Cartesian3.equalsEpsilon(intersection, p1, CesiumMath.EPSILON7)) {
-                splitPositions.push(Cartesian3.clone(intersection));
+                if (groundPolylineGeometry.arcType === ArcType.GEODESIC) {
+                    splitPositions.push(Cartesian3.clone(intersection));
+                } else if (groundPolylineGeometry.arcType === ArcType.RHUMB) {
+                    intersectionLongitude = ellipsoid.cartesianToCartographic(intersection, cartographicScratch0).longitude;
+                    c0 = ellipsoid.cartesianToCartographic(p0, cartographicScratch0);
+                    c1 = ellipsoid.cartesianToCartographic(p1, cartographicScratch1);
+                    rhumbLine.setEndPoints(c0, c1);
+                    intersectionCartographic = rhumbLine.findIntersectionWithLongitude(intersectionLongitude, cartographicIntersectionScratch);
+                    intersection = ellipsoid.cartographicToCartesian(intersectionCartographic, intersectionScratch);
+                    if (defined(intersection) &&
+                        !Cartesian3.equalsEpsilon(intersection, p0, CesiumMath.EPSILON7) &&
+                        !Cartesian3.equalsEpsilon(intersection, p1, CesiumMath.EPSILON7)) {
+                        splitPositions.push(Cartesian3.clone(intersection));
+                    }
+                }
             }
             splitPositions.push(p1);
         }
@@ -27769,7 +28502,21 @@ define('Core/GroundPolylineGeometry',[
             if (defined(intersection) &&
                 !Cartesian3.equalsEpsilon(intersection, p0, CesiumMath.EPSILON7) &&
                 !Cartesian3.equalsEpsilon(intersection, p1, CesiumMath.EPSILON7)) {
-                splitPositions.push(Cartesian3.clone(intersection));
+                if (groundPolylineGeometry.arcType === ArcType.GEODESIC) {
+                    splitPositions.push(Cartesian3.clone(intersection));
+                } else if (groundPolylineGeometry.arcType === ArcType.RHUMB) {
+                    intersectionLongitude = ellipsoid.cartesianToCartographic(intersection, cartographicScratch0).longitude;
+                    c0 = ellipsoid.cartesianToCartographic(p0, cartographicScratch0);
+                    c1 = ellipsoid.cartesianToCartographic(p1, cartographicScratch1);
+                    rhumbLine.setEndPoints(c0, c1);
+                    intersectionCartographic = rhumbLine.findIntersectionWithLongitude(intersectionLongitude, cartographicIntersectionScratch);
+                    intersection = ellipsoid.cartographicToCartesian(intersectionCartographic, intersectionScratch);
+                    if (defined(intersection) &&
+                        !Cartesian3.equalsEpsilon(intersection, p0, CesiumMath.EPSILON7) &&
+                        !Cartesian3.equalsEpsilon(intersection, p1, CesiumMath.EPSILON7)) {
+                        splitPositions.push(Cartesian3.clone(intersection));
+                    }
+                }
             }
         }
         var cartographicsLength = splitPositions.length;
@@ -27826,7 +28573,7 @@ define('Core/GroundPolylineGeometry',[
         cartographicsArray.push(startCartographic.latitude);
         cartographicsArray.push(startCartographic.longitude);
 
-        interpolateSegment(startCartographic, nextCartographic, minHeight, maxHeight, granularity, ellipsoid, normalsArray, bottomPositionsArray, topPositionsArray, cartographicsArray);
+        interpolateSegment(startCartographic, nextCartographic, minHeight, maxHeight, granularity, arcType, ellipsoid, normalsArray, bottomPositionsArray, topPositionsArray, cartographicsArray);
 
         // All inbetween points
         for (i = 1; i < cartographicsLength - 1; ++i) {
@@ -27845,7 +28592,7 @@ define('Core/GroundPolylineGeometry',[
             cartographicsArray.push(vertexCartographic.latitude);
             cartographicsArray.push(vertexCartographic.longitude);
 
-            interpolateSegment(cartographics[i], cartographics[i + 1], minHeight, maxHeight, granularity, ellipsoid, normalsArray, bottomPositionsArray, topPositionsArray, cartographicsArray);
+            interpolateSegment(cartographics[i], cartographics[i + 1], minHeight, maxHeight, granularity, arcType, ellipsoid, normalsArray, bottomPositionsArray, topPositionsArray, cartographicsArray);
         }
 
         // Last point - either loop or attach a normal "perpendicular" to the wall.
@@ -27873,7 +28620,7 @@ define('Core/GroundPolylineGeometry',[
         cartographicsArray.push(endCartographic.longitude);
 
         if (loop) {
-            interpolateSegment(endCartographic, startCartographic, minHeight, maxHeight, granularity, ellipsoid, normalsArray, bottomPositionsArray, topPositionsArray, cartographicsArray);
+            interpolateSegment(endCartographic, startCartographic, minHeight, maxHeight, granularity, arcType, ellipsoid, normalsArray, bottomPositionsArray, topPositionsArray, cartographicsArray);
             index = normalsArray.length;
             for (i = 0; i < 3; ++i) {
                 normalsArray[index + i] = normalsArray[i];

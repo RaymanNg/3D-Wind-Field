@@ -1144,6 +1144,100 @@ define('Core/Math',[
         return absDiff <= absoluteEpsilon || absDiff <= relativeEpsilon * Math.max(Math.abs(left), Math.abs(right));
     };
 
+    /**
+     * Determines if the left value is less than the right value. If the two values are within
+     * <code>absoluteEpsilon</code> of each other, they are considered equal and this function returns false.
+     *
+     * @param {Number} left The first number to compare.
+     * @param {Number} right The second number to compare.
+     * @param {Number} absoluteEpsilon The absolute epsilon to use in comparison.
+     * @returns {Boolean} <code>true</code> if <code>left</code> is less than <code>right</code> by more than
+     *          <code>absoluteEpsilon<code>. <code>false</code> if <code>left</code> is greater or if the two
+     *          values are nearly equal.
+     */
+    CesiumMath.lessThan = function(left, right, absoluteEpsilon) {
+                if (!defined(left)) {
+            throw new DeveloperError('first is required.');
+        }
+        if (!defined(right)) {
+            throw new DeveloperError('second is required.');
+        }
+        if (!defined(absoluteEpsilon)) {
+            throw new DeveloperError('relativeEpsilon is required.');
+        }
+                return left - right < -absoluteEpsilon;
+    };
+
+    /**
+     * Determines if the left value is less than or equal to the right value. If the two values are within
+     * <code>absoluteEpsilon</code> of each other, they are considered equal and this function returns true.
+     *
+     * @param {Number} left The first number to compare.
+     * @param {Number} right The second number to compare.
+     * @param {Number} absoluteEpsilon The absolute epsilon to use in comparison.
+     * @returns {Boolean} <code>true</code> if <code>left</code> is less than <code>right</code> or if the
+     *          the values are nearly equal.
+     */
+    CesiumMath.lessThanOrEquals = function(left, right, absoluteEpsilon) {
+                if (!defined(left)) {
+            throw new DeveloperError('first is required.');
+        }
+        if (!defined(right)) {
+            throw new DeveloperError('second is required.');
+        }
+        if (!defined(absoluteEpsilon)) {
+            throw new DeveloperError('relativeEpsilon is required.');
+        }
+                return left - right < absoluteEpsilon;
+    };
+
+    /**
+     * Determines if the left value is greater the right value. If the two values are within
+     * <code>absoluteEpsilon</code> of each other, they are considered equal and this function returns false.
+     *
+     * @param {Number} left The first number to compare.
+     * @param {Number} right The second number to compare.
+     * @param {Number} absoluteEpsilon The absolute epsilon to use in comparison.
+     * @returns {Boolean} <code>true</code> if <code>left</code> is greater than <code>right</code> by more than
+     *          <code>absoluteEpsilon<code>. <code>false</code> if <code>left</code> is less or if the two
+     *          values are nearly equal.
+     */
+    CesiumMath.greaterThan = function(left, right, absoluteEpsilon) {
+                if (!defined(left)) {
+            throw new DeveloperError('first is required.');
+        }
+        if (!defined(right)) {
+            throw new DeveloperError('second is required.');
+        }
+        if (!defined(absoluteEpsilon)) {
+            throw new DeveloperError('relativeEpsilon is required.');
+        }
+                return left - right > absoluteEpsilon;
+    };
+
+    /**
+     * Determines if the left value is greater than or equal to the right value. If the two values are within
+     * <code>absoluteEpsilon</code> of each other, they are considered equal and this function returns true.
+     *
+     * @param {Number} left The first number to compare.
+     * @param {Number} right The second number to compare.
+     * @param {Number} absoluteEpsilon The absolute epsilon to use in comparison.
+     * @returns {Boolean} <code>true</code> if <code>left</code> is greater than <code>right</code> or if the
+     *          the values are nearly equal.
+     */
+    CesiumMath.greaterThanOrEquals = function(left, right, absoluteEpsilon) {
+                if (!defined(left)) {
+            throw new DeveloperError('first is required.');
+        }
+        if (!defined(right)) {
+            throw new DeveloperError('second is required.');
+        }
+        if (!defined(absoluteEpsilon)) {
+            throw new DeveloperError('relativeEpsilon is required.');
+        }
+                return left - right > -absoluteEpsilon;
+    };
+
     var factorials = [1];
 
     /**
@@ -17505,7 +17599,7 @@ define('Core/Request',[
         options = defaultValue(options, defaultValue.EMPTY_OBJECT);
 
         var throttleByServer = defaultValue(options.throttleByServer, false);
-        var throttle = throttleByServer || defaultValue(options.throttle, false);
+        var throttle = defaultValue(options.throttle, false);
 
         /**
          * The URL to request.
@@ -18521,17 +18615,17 @@ define('Core/RequestScheduler',[
             request.serverKey = RequestScheduler.getServerKey(request.url);
         }
 
+        if (request.throttleByServer && !serverHasOpenSlots(request.serverKey)) {
+            // Server is saturated. Try again later.
+            return undefined;
+        }
+
         if (!RequestScheduler.throttleRequests || !request.throttle) {
             return startRequest(request);
         }
 
         if (activeRequests.length >= RequestScheduler.maximumRequests) {
             // Active requests are saturated. Try again later.
-            return undefined;
-        }
-
-        if (request.throttleByServer && !serverHasOpenSlots(request.serverKey)) {
-            // Server is saturated. Try again later.
             return undefined;
         }
 
@@ -20562,10 +20656,15 @@ define('Core/Resource',[
     }
 
     function loadWithHttpRequest(url, responseType, method, data, headers, deferred, overrideMimeType) {
+
+        // Specifically use the Node version of require to avoid conflicts with the global
+        // require defined in the built version of Cesium.
+        var nodeRequire = global.require; // eslint-disable-line
+
         // Note: only the 'json' and 'text' responseTypes transforms the loaded buffer
-        var URL = require('url').parse(url);
-        var http = URL.protocol === 'https:' ? require('https') : require('http');
-        var zlib = require('zlib');
+        var URL = nodeRequire('url').parse(url);
+        var http = URL.protocol === 'https:' ? nodeRequire('https') : nodeRequire('http');
+        var zlib = nodeRequire('zlib');
         var options = {
             protocol : URL.protocol,
             hostname : URL.hostname,
@@ -22013,11 +22112,19 @@ define('Core/Fullscreen',[
 define('Core/FeatureDetection',[
         './defaultValue',
         './defined',
-        './Fullscreen'
+        './defineProperties',
+        './DeveloperError',
+        './Fullscreen',
+        './RuntimeError',
+        '../ThirdParty/when'
     ], function(
         defaultValue,
         defined,
-        Fullscreen) {
+        defineProperties,
+        DeveloperError,
+        Fullscreen,
+        RuntimeError,
+        when) {
     'use strict';
     /*global CanvasPixelArray*/
 
@@ -22211,6 +22318,53 @@ define('Core/FeatureDetection',[
         return supportsImageRenderingPixelated() ? imageRenderingValueResult : undefined;
     }
 
+    function supportsWebP() {
+                if (!supportsWebP.initialized) {
+            throw new DeveloperError('You must call FeatureDetection.supportsWebP.initialize and wait for the promise to resolve before calling FeatureDetection.supportsWebP');
+        }
+                return supportsWebP._result;
+    }
+    supportsWebP._promise = undefined;
+    supportsWebP._result = undefined;
+    supportsWebP.initialize = function() {
+        // From https://developers.google.com/speed/webp/faq#how_can_i_detect_browser_support_for_webp
+        if (defined(supportsWebP._promise)) {
+            return supportsWebP._promise;
+        }
+
+        var supportsWebPDeferred = when.defer();
+        supportsWebP._promise = supportsWebPDeferred.promise;
+        if (isEdge()) {
+            // Edge's WebP support with WebGL is incomplete.
+            // See bug report: https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/19221241/
+            supportsWebP._result = false;
+            supportsWebPDeferred.resolve(supportsWebP._result);
+            return supportsWebPDeferred.promise;
+        }
+
+        var image = new Image();
+        image.onload = function () {
+            supportsWebP._result = (image.width > 0) && (image.height > 0);
+            supportsWebPDeferred.resolve(supportsWebP._result);
+        };
+
+        image.onerror = function () {
+            supportsWebP._result = false;
+            supportsWebPDeferred.resolve(supportsWebP._result);
+        };
+
+        image.src = 'data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA';
+
+        return supportsWebPDeferred.promise;
+    };
+    defineProperties(supportsWebP, {
+        initialized: {
+            get: function() {
+                return defined(supportsWebP._result);
+            }
+        }
+    });
+
     var typedArrayTypes = [];
     if (typeof ArrayBuffer !== 'undefined') {
         typedArrayTypes.push(Int8Array, Uint8Array, Int16Array, Uint16Array, Int32Array, Uint32Array, Float32Array, Float64Array);
@@ -22247,6 +22401,7 @@ define('Core/FeatureDetection',[
         hardwareConcurrency : defaultValue(theNavigator.hardwareConcurrency, 3),
         supportsPointerEvents : supportsPointerEvents,
         supportsImageRenderingPixelated: supportsImageRenderingPixelated,
+        supportsWebP: supportsWebP,
         imageRenderingValue: imageRenderingValue,
         typedArrayTypes: typedArrayTypes
     };
@@ -26673,7 +26828,7 @@ define('Core/TerrainEncoding',[
      * @private
      */
     function TerrainEncoding(axisAlignedBoundingBox, minimumHeight, maximumHeight, fromENU, hasVertexNormals, hasWebMercatorT) {
-        var quantization;
+        var quantization = TerrainQuantization.NONE;
         var center;
         var toENU;
         var matrix;
@@ -26874,6 +27029,16 @@ define('Core/TerrainEncoding',[
         }
 
         return buffer[index + 3];
+    };
+
+    TerrainEncoding.prototype.decodeWebMercatorT = function(buffer, index) {
+        index *= this.getStride();
+
+        if (this.quantization === TerrainQuantization.BITS12) {
+            return AttributeCompression.decompressTextureCoordinates(buffer[index + 3], cartesian2Scratch).x;
+        }
+
+        return buffer[index + 6];
     };
 
     TerrainEncoding.prototype.getOctEncodedNormal = function(buffer, index, result) {
@@ -27394,7 +27559,7 @@ define('Core/HeightmapTessellator',[
         var granularityX = rectangleWidth / (width - 1);
         var granularityY = rectangleHeight / (height - 1);
 
-		if (!isGeographic) {
+        if (!isGeographic) {
             rectangleWidth *= oneOverGlobeSemimajorAxis;
             rectangleHeight *= oneOverGlobeSemimajorAxis;
         }
@@ -27429,8 +27594,8 @@ define('Core/HeightmapTessellator',[
 
         var hMin = Number.POSITIVE_INFINITY;
 
-        var arrayWidth = width + (skirtHeight > 0.0 ? 2.0 : 0.0);
-        var arrayHeight = height + (skirtHeight > 0.0 ? 2.0 : 0.0);
+        var arrayWidth = width + (skirtHeight > 0.0 ? 2 : 0);
+        var arrayHeight = height + (skirtHeight > 0.0 ? 2 : 0);
         var size = arrayWidth * arrayHeight;
         var positions = new Array(size);
         var heights = new Array(size);
@@ -27442,7 +27607,7 @@ define('Core/HeightmapTessellator',[
         var startCol = 0;
         var endCol = width;
 
-        if (skirtHeight > 0) {
+        if (skirtHeight > 0.0) {
             --startRow;
             ++endRow;
             --startCol;
@@ -27603,6 +27768,41 @@ define('Core/HeightmapTessellator',[
             bufferIndex = encoding.encode(vertices, bufferIndex, positions[j], uvs[j], heights[j], undefined, webMercatorTs[j]);
         }
 
+        var westIndicesSouthToNorth;
+        var southIndicesEastToWest;
+        var eastIndicesNorthToSouth;
+        var northIndicesWestToEast;
+
+        if (skirtHeight > 0.0) {
+            northIndicesWestToEast = [];
+            southIndicesEastToWest = [];
+            for (var i1 = 0; i1 < width; ++i1) {
+                northIndicesWestToEast.push(arrayWidth + 1 + i1);
+                southIndicesEastToWest.push(arrayWidth * (arrayHeight - 1) - 2 - i1);
+            }
+
+            westIndicesSouthToNorth = [];
+            eastIndicesNorthToSouth = [];
+            for (var i2 = 0; i2 < height; ++i2) {
+                eastIndicesNorthToSouth.push((i2 + 1) * arrayWidth + width);
+                westIndicesSouthToNorth.push((height - i2) * arrayWidth + 1);
+            }
+        } else {
+            northIndicesWestToEast = [];
+            southIndicesEastToWest = [];
+            for (var i3 = 0; i3 < width; ++i3) {
+                northIndicesWestToEast.push(i3);
+                southIndicesEastToWest.push(width * height - 1 - i3);
+            }
+
+            westIndicesSouthToNorth = [];
+            eastIndicesNorthToSouth = [];
+            for (var i4 = 0; i4 < height; ++i4) {
+                eastIndicesNorthToSouth.push((i4 + 1) * width - 1);
+                westIndicesSouthToNorth.push((height - i4 - 1) * width );
+            }
+        }
+
         return {
             vertices : vertices,
             maximumHeight : maximumHeight,
@@ -27610,7 +27810,11 @@ define('Core/HeightmapTessellator',[
             encoding : encoding,
             boundingSphere3D : boundingSphere3D,
             orientedBoundingBox : orientedBoundingBox,
-            occludeePointInScaledSpace : occludeePointInScaledSpace
+            occludeePointInScaledSpace : occludeePointInScaledSpace,
+            westIndicesSouthToNorth : westIndicesSouthToNorth,
+            southIndicesEastToWest : southIndicesEastToWest,
+            eastIndicesNorthToSouth : eastIndicesNorthToSouth,
+            northIndicesWestToEast : northIndicesWestToEast
         };
     };
 
@@ -27829,7 +28033,11 @@ define('Workers/createVerticesFromHeightmap',[
             boundingSphere3D : statistics.boundingSphere3D,
             orientedBoundingBox : statistics.orientedBoundingBox,
             occludeePointInScaledSpace : statistics.occludeePointInScaledSpace,
-            encoding : statistics.encoding
+            encoding : statistics.encoding,
+            westIndicesSouthToNorth : statistics.westIndicesSouthToNorth,
+            southIndicesEastToWest : statistics.southIndicesEastToWest,
+            eastIndicesNorthToSouth : statistics.eastIndicesNorthToSouth,
+            northIndicesWestToEast : statistics.northIndicesWestToEast
         };
     }
 

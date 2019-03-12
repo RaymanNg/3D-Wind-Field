@@ -102,12 +102,15 @@ var Util = (function () {
 		var north = Cesium.Math.toDegrees(viewRectangle.north);
 		var height = Cesium.Math.toDegrees(viewRectangle.height);
 
-		// in Cesium.Rectangle, west may be larger than east
-		result.min.lon = Cesium.Math.clamp(Math.min(east, west) - width / 2, -180.0, 180.0);
-		result.max.lon = Cesium.Math.clamp(Math.max(east, west) + width / 2, -180.0, 180.0);
+		var extendWidth = width > 30 ? width / 2 : 0;
+		var extendHeight = height > 15 ? height / 2 : 0;
 
-		result.min.lat = Cesium.Math.clamp(south - height / 2, -90.0, 90.0);
-		result.max.lat = Cesium.Math.clamp(north + height / 2, -90.0, 90.0);
+		// in Cesium.Rectangle, west may be larger than east
+		result.min.lon = Cesium.Math.clamp(Math.min(east, west) - extendWidth, -180.0, 180.0);
+		result.max.lon = Cesium.Math.clamp(Math.max(east, west) + extendWidth, -180.0, 180.0);
+
+		result.min.lat = Cesium.Math.clamp(south - extendHeight, -90.0, 90.0);
+		result.max.lat = Cesium.Math.clamp(north + extendHeight, -90.0, 90.0);
 
 		// extend the bound in high latitude area to make sure it can cover all the visible area
 		if (result.min.lat < -65.0) {
@@ -120,14 +123,6 @@ var Util = (function () {
 		return result;
 	}
 
-	var debug = function (animateFunction) {
-		spector = new SPECTOR.Spector();
-		spector.displayUI();
-		spector.spyCanvases();
-
-		animateFunction();
-	}
-
 	return {
 		getShaderCode: getShaderCode,
 		getFullscreenQuad: getFullscreenQuad,
@@ -135,7 +130,6 @@ var Util = (function () {
 		createTexture: createTexture,
 		createFramebuffer: createFramebuffer,
 		createRawRenderState: createRawRenderState,
-		rectangleToLonLatBound: rectangleToLonLatBound,
-		debug: debug
+		rectangleToLonLatBound: rectangleToLonLatBound
 	};
 })();

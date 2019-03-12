@@ -3,10 +3,11 @@ uniform vec3 minimum; // minimum of each dimension
 uniform vec3 maximum; // maximum of each dimension
 uniform vec3 interval; // interval of each dimension
 
+// range (min, max)
 uniform vec2 lonRange;
 uniform vec2 latRange;
-// drop rate is a chance a particle will restart at random position, 
-// to avoid degeneration
+
+// drop rate is a chance a particle will restart at random position to avoid degeneration
 uniform float dropRate;
 
 // the size of UV textures: width = lon, height = lat*lev
@@ -82,9 +83,7 @@ vec2 getWindVector(vec3 lonLatLev) {
 	return vec2(u, v);
 }
 
-vec3 updatePosition(vec3 lonLatLev, vec2 normalizedIndex2D) {
-	vec2 lonLatLen = lengthOfLonLat(lonLatLev);
-	
+vec2 interpolate(vec3 lonLatLev) {
 	vec2 lonLat = lonLatLev.xy;
 	float lev = lonLatLev.z;
 	
@@ -105,15 +104,21 @@ vec3 updatePosition(vec3 lonLatLev, vec2 normalizedIndex2D) {
 	vec2 topLeftRightMix = mix(topLeftWindVec, topRightWindVec, coef_a.x);
 	vec2 bottomLeftRightMix = mix(bottomLeftWindVec, bottomRightWindVec, coef_a.x);
 	vec2 mixWindVec = mix(bottomLeftRightMix, topLeftRightMix, coef_a.y);
-	mixWindVec = getWindVector(lonLatLev);
 	
+	return mixWindVec;
+}
+
+vec3 updatePosition(vec3 lonLatLev, vec2 normalizedIndex2D) {
+	vec2 lonLatLen = lengthOfLonLat(lonLatLev);
+	
+	vec2 mixWindVec = interpolate(lonLatLev);
+
 	float u = mixWindVec.x / lonLatLen.x;
 	float v = mixWindVec.y / lonLatLen.y;
 	float w = 0.0;
+	vec3 windVector = vec3(u, v, w);
 	
-	vec3 WindVec = vec3(u, v, w);
-	
-    vec3 updatedPosition = lonLatLev + WindVec;
+    vec3 updatedPosition = lonLatLev + windVector;
 	return updatedPosition;
 }
 
