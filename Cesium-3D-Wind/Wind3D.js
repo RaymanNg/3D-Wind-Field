@@ -11,14 +11,14 @@ class Wind3D {
 
         this.globeBoundingSphere = Cesium.BoundingSphere.fromEllipsoid(this.scene.globe.ellipsoid);
 
-        var lonLatBound = this.getLonLatBound();
+        var lonLatRange = this.getLonLatRange();
         var pixelSize = this.camera.getPixelSize(
             this.globeBoundingSphere,
             this.scene.drawingBufferWidth,
             this.scene.drawingBufferHeight
         );
 
-        DataProcess.process(filePath, particleSystemOptions, lonLatBound).then(
+        DataProcess.process(filePath, particleSystemOptions, lonLatRange).then(
             (data) => {
                 this.particleSystem = new ParticleSystem(
                     this.scene.context, data,
@@ -35,10 +35,10 @@ class Wind3D {
             });
     }
 
-    getLonLatBound() {
+    getLonLatRange() {
         var viewRectangle = this.camera.computeViewRectangle(this.scene.globe.ellipsoid);
-        var lonLatBound = Util.rectangleToLonLatBound(viewRectangle);
-        return lonLatBound;
+        var lonLatRange = Util.rectangleToLonLatRange(viewRectangle);
+        return lonLatRange;
     }
 
     setupEventListener() {
@@ -49,13 +49,13 @@ class Wind3D {
         });
 
         this.camera.moveEnd.addEventListener(function () {
-            var lonLatBound = that.getLonLatBound();
+            var lonLatRange = that.getLonLatRange();
             var pixelSize = that.camera.getPixelSize(
                 that.globeBoundingSphere,
                 that.scene.drawingBufferWidth,
                 that.scene.drawingBufferHeight
             );
-            that.particleSystem.refreshParticle(lonLatBound, pixelSize);
+            that.particleSystem.refreshParticle(lonLatRange, pixelSize);
             that.scene.primitives.show = true;
         });
 

@@ -28,8 +28,15 @@ vec3 convertCoordinate(vec3 lonLatLev) {
 
 void main() {
 	vec2 particleIndex = st;
-    vec3 particlePosition = texture2D(particles, particleIndex).rgb;
-	particlePosition = convertCoordinate(particlePosition);
+    
+	vec3 lonLatLev = texture2D(particles, particleIndex).rgb;
+	// the range of longitude in Cesium is [-Pi, Pi]
+	// but the range of longitude in my NetCDF file is [0, 360]
+	// [0, 180] is corresponding to [0, 180]
+	// [180, 360] is corresponding to [-180, 0]
+	lonLatLev.x = mod(lonLatLev.x + 180.0, 360.0) - 180.0;
+	
+	vec3 particlePosition = convertCoordinate(lonLatLev);
 	
 	vec4 cesiumPosition = vec4(particlePosition, 1.0);
 	gl_Position = czm_modelViewProjection * cesiumPosition;

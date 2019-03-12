@@ -89,38 +89,55 @@ var Util = (function () {
 		return rawRenderState;
 	}
 
-	var rectangleToLonLatBound = function (viewRectangle) {
-		var result = {};
-		result.min = {};
-		result.max = {};
+	var rectangleToLonLatRange = function (viewRectangle) {
+		var range = {};
 
-		var west = Cesium.Math.toDegrees(viewRectangle.west);
-		var east = Cesium.Math.toDegrees(viewRectangle.east);
-		var width = Cesium.Math.toDegrees(viewRectangle.width);
+		var postiveWest = Cesium.Math.mod(viewRectangle.west, Cesium.Math.TWO_PI);
+		var postiveEast = Cesium.Math.mod(viewRectangle.east, Cesium.Math.TWO_PI);
+		var width = viewRectangle.width;
 
-		var south = Cesium.Math.toDegrees(viewRectangle.south);
-		var north = Cesium.Math.toDegrees(viewRectangle.north);
-		var height = Cesium.Math.toDegrees(viewRectangle.height);
+		var longitudeMin;
+		var longitudeMax;
+		if (width > Cesium.Math.THREE_PI_OVER_TWO) {
+			longitudeMin = 0.0;
+			longitudeMax = Cesium.Math.TWO_PI;
+		} else {
+			if (postiveEast - postiveWest < width) {
+				longitudeMin = postiveWest;
+				longitudeMax = postiveWest + width;
+			} else {
+				longitudeMin = postiveWest;
+				longitudeMax = postiveEast;
+			}
+		}
 
-		var extendWidth = width > 30 ? width / 2 : 0;
-		var extendHeight = height > 15 ? height / 2 : 0;
+		range.lon = {
+			min: Cesium.Math.toDegrees(longitudeMin),
+			max: Cesium.Math.toDegrees(longitudeMax)
+		}
 
-		// in Cesium.Rectangle, west may be larger than east
-		result.min.lon = Cesium.Math.clamp(Math.min(east, west) - extendWidth, -180.0, 180.0);
-		result.max.lon = Cesium.Math.clamp(Math.max(east, west) + extendWidth, -180.0, 180.0);
+		var south = viewRectangle.south;
+		var north = viewRectangle.north;
+		var height = viewRectangle.height;
 
-		result.min.lat = Cesium.Math.clamp(south - extendHeight, -90.0, 90.0);
-		result.max.lat = Cesium.Math.clamp(north + extendHeight, -90.0, 90.0);
+		var extendHeight = height > Cesium.Math.PI / 12 ? height / 2 : 0;
+		var extendedSouth = Cesium.Math.clampToLatitudeRange(south - extendHeight);
+		var extendedNorth = Cesium.Math.clampToLatitudeRange(north + extendHeight);
 
 		// extend the bound in high latitude area to make sure it can cover all the visible area
-		if (result.min.lat < -65.0) {
-			result.min.lat = -90.0;
+		if (extendedSouth < -Cesium.Math.PI_OVER_THREE) {
+			extendedSouth = -Cesium.Math.PI_OVER_TWO;
 		}
-		if (result.max.lat > 65.0) {
-			result.max.lat = 90.0;
+		if (extendedNorth > Cesium.Math.PI_OVER_THREE) {
+			extendedNorth = Cesium.Math.PI_OVER_TWO;
 		}
 
-		return result;
+		range.lat = {
+			min: Cesium.Math.toDegrees(extendedSouth),
+			max: Cesium.Math.toDegrees(extendedNorth)
+		}
+
+		return range;
 	}
 
 	return {
@@ -130,6 +147,6 @@ var Util = (function () {
 		createTexture: createTexture,
 		createFramebuffer: createFramebuffer,
 		createRawRenderState: createRawRenderState,
-		rectangleToLonLatBound: rectangleToLonLatBound
+		rectangleToLonLatRange: rectangleToLonLatRange
 	};
 })();
