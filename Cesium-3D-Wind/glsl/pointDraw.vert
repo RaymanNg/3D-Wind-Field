@@ -21,7 +21,7 @@ vec3 convertCoordinate(vec3 lonLatLev) {
 	float sinLon = sin(radians(lonLatLev.x));
 
 	float N_Phi = a / sqrt(1.0 - e2 * sinLat * sinLat);
-	float h = 100.0; // it should be high enough otherwise the particle may not pass the terrain depth test
+	float h = 10.0; // it should be high enough otherwise the particle may not pass the terrain depth test
 	
 	cartesian.x = (N_Phi + h) * cosLat * cosLon;
 	cartesian.y = (N_Phi + h) * cosLat * sinLon;

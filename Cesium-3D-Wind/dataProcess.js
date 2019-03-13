@@ -89,8 +89,7 @@ var DataProcess = (function () {
         for (var i = 0; i < maxParticles; i++) {
             array[4 * i] = Cesium.Math.randomBetween(lonLatRange.lon.min, lonLatRange.lon.max);
             array[4 * i + 1] = Cesium.Math.randomBetween(lonLatRange.lat.min, lonLatRange.lat.max);
-            // array[3 * i + 2] = Cesium.Math.randomBetween(min.lev, max.lev);
-            array[4 * i + 2] = data.lev.min;
+            array[3 * i + 2] = Cesium.Math.randomBetween(data.lev.min, data.lev.max);
             array[4 * i + 3] = Cesium.Math.randomBetween(-20.0, 20.0);
         }
 
