@@ -63,14 +63,35 @@ var DataProcess = (function () {
         });
     }
 
+    var loadColorRamp = function (filePath) {
+        var string = Util.getText(filePath);
+        var json = JSON.parse(string);
+
+        var colorNum = json['ncolors'];
+        var colorArray = json['colorRamp'];
+
+        var colorRampArray = new Uint8Array(3 * colorNum);
+        for (var i = 0; i < colorNum; i++) {
+            colorRampArray[3 * i] = colorArray[3 * i];
+            colorRampArray[3 * i + 1] = colorArray[3 * i + 1];
+            colorRampArray[3 * i + 2] = colorArray[3 * i + 2];
+        }
+
+        return {
+            num: colorNum,
+            array: colorRampArray
+        }
+    }
+
     var randomizeParticle = function (maxParticles, lonLatRange) {
-        var array = new Float32Array(3 * maxParticles);
+        var array = new Float32Array(4 * maxParticles);
 
         for (var i = 0; i < maxParticles; i++) {
-            array[3 * i] = Cesium.Math.randomBetween(lonLatRange.lon.min, lonLatRange.lon.max);
-            array[3 * i + 1] = Cesium.Math.randomBetween(lonLatRange.lat.min, lonLatRange.lat.max);
+            array[4 * i] = Cesium.Math.randomBetween(lonLatRange.lon.min, lonLatRange.lon.max);
+            array[4 * i + 1] = Cesium.Math.randomBetween(lonLatRange.lat.min, lonLatRange.lat.max);
             // array[3 * i + 2] = Cesium.Math.randomBetween(min.lev, max.lev);
-            array[3 * i + 2] = data.lev.min;
+            array[4 * i + 2] = data.lev.min;
+            array[4 * i + 3] = Cesium.Math.randomBetween(-20.0, 20.0);
         }
 
         return array;
@@ -101,6 +122,7 @@ var DataProcess = (function () {
 
     return {
         process: process,
+        loadColorRamp: loadColorRamp,
         randomizeParticle: randomizeParticle
     };
 

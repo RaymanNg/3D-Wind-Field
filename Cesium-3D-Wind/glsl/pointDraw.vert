@@ -2,6 +2,9 @@ attribute vec2 st;
 
 uniform sampler2D particles;
 
+uniform sampler2D colorRamp;
+varying vec4 particleColor;
+
 vec3 convertCoordinate(vec3 lonLatLev) {
 	// WGS84 (lon, lat, lev) -> ECEF (x, y, z)
 	// see https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_geodetic_to_ECEF_coordinates for detail
@@ -28,16 +31,18 @@ vec3 convertCoordinate(vec3 lonLatLev) {
 
 void main() {
 	vec2 particleIndex = st;
-    
-	vec3 lonLatLev = texture2D(particles, particleIndex).rgb;
+    vec4 texel = texture2D(particles, particleIndex);
+	vec3 lonLatLev = texel.rgb;
+	float relativeSpeed = texel.a;
+	
+	particleColor = texture2D(colorRamp, vec2(relativeSpeed, 0.0));
+	
 	// the range of longitude in Cesium is [-Pi, Pi]
 	// but the range of longitude in my NetCDF file is [0, 360]
 	// [0, 180] is corresponding to [0, 180]
 	// [180, 360] is corresponding to [-180, 0]
 	lonLatLev.x = mod(lonLatLev.x + 180.0, 360.0) - 180.0;
-	
 	vec3 particlePosition = convertCoordinate(lonLatLev);
-	
 	vec4 cesiumPosition = vec4(particlePosition, 1.0);
 	gl_Position = czm_modelViewProjection * cesiumPosition;
 	

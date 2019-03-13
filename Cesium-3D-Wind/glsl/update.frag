@@ -10,8 +10,9 @@ uniform vec3 maximum; // maximum of each dimension
 uniform vec3 interval; // interval of each dimension
 
 // use to map wind speed to suitable new range
-uniform vec3 uSpeedRange; // (map_min, map_max, uMax - uMin);
+uniform vec3 uSpeedRange; // (min, max, max - min);
 uniform vec3 vSpeedRange;
+uniform vec2 relativeSpeedRange;
 
 // range (min, max)
 uniform vec2 lonRange;
@@ -19,6 +20,7 @@ uniform vec2 latRange;
 
 // drop rate is a chance a particle will restart at random position to avoid degeneration
 uniform float dropRate;
+uniform float dropRateBump;
 
 varying vec2 textureCoordinate;
 
@@ -108,11 +110,13 @@ vec2 interpolate(vec3 lonLatLev) {
 	return mixWindVec;
 }
 
-vec3 updatePosition(vec3 lonLatLev, vec2 normalizedIndex2D) {
+vec4 update(vec3 lonLatLev, vec2 normalizedIndex2D) {
 	vec2 mixWindVec = interpolate(lonLatLev);
 	
-	mixWindVec.x = mix(uSpeedRange.x, uSpeedRange.y,  mixWindVec.x / uSpeedRange.z);
-	mixWindVec.y = mix(vSpeedRange.x, vSpeedRange.y,  mixWindVec.y / vSpeedRange.z);
+	vec2 percent = vec2((mixWindVec.x - uSpeedRange.x) / uSpeedRange.z,
+						(mixWindVec.y - vSpeedRange.x) / vSpeedRange.z);
+	mixWindVec.x = mix(relativeSpeedRange.x, relativeSpeedRange.y, percent.x);
+	mixWindVec.y = mix(relativeSpeedRange.x, relativeSpeedRange.y, percent.y);
 	
 	vec2 lonLatLen = lengthOfLonLat(lonLatLev);
 	float u = mixWindVec.x / lonLatLen.x;
@@ -120,8 +124,34 @@ vec3 updatePosition(vec3 lonLatLev, vec2 normalizedIndex2D) {
 	float w = 0.0;
 	vec3 windVector = vec3(u, v, w);
 	
-    vec3 updatedPosition = lonLatLev + windVector;
-	return updatedPosition;
+	// (lon, lat, lev, relativeSpeed)
+    vec4 updatedParticle = vec4(0.0);
+	updatedParticle.xyz = lonLatLev + windVector;
+	
+	float relativeSpeed = length(percent);
+	updatedParticle.w = relativeSpeed;
+	
+	vec2 seed = (lonLatLev.xy + textureCoordinate) * relativeSpeed;
+	float relativeDropRate = dropRate + relativeSpeed * dropRateBump;
+	
+	// change branching logic to math formula for performance
+	// check whether random value > 1.0 - relativeDropRate
+    float drop = step(1.0 - relativeDropRate, rand(seed, normalRange));
+	
+	// ensure the longitude is in [0, 360]
+	float randomLon = mod(rand(seed + 1.3, lonRange), 360.0);
+	float randomLat = rand(seed + 2.1, latRange);
+	
+    vec4 randomParticle = vec4(randomLon, randomLat, updatedParticle.z, 0.0);
+	vec4 nextParticle = mix(updatedParticle, randomParticle, drop);
+	// equivalent statement
+	// if (rand(seed) > 1.0 - relativeDropRate) {
+	//		nextParticle = randomParticle;
+	// } else {
+	//		nextParticle = updatedParticle;
+	// }
+	
+	return nextParticle;
 }
 
 void main() {
@@ -129,25 +159,7 @@ void main() {
     
 	vec3 lonLatLev = texel.rgb;
 	vec2 normalizedIndex2D = mapPositionToNormalizedIndex2D(lonLatLev);
-	vec3 updatedPosition = updatePosition(lonLatLev, normalizedIndex2D);
+	vec4 nextParticle = update(lonLatLev, normalizedIndex2D);
 	
-	// change branching logic to math formula for performance
-	// check whether random value > 1.0 - dropRate
-	vec2 seed = (lonLatLev.xy + textureCoordinate);
-    float drop = step(1.0 - dropRate, rand(seed, normalRange));
-	
-	// ensure the longitude is in [0, 360]
-	float randomLon = mod(rand(seed + 1.3, lonRange), 360.0);
-	float randomLat = rand(seed + 2.1, latRange);
-	
-    vec3 randomPosition = vec3(randomLon, randomLat, updatedPosition.z);
-	vec3 nextPosition = mix(updatedPosition, randomPosition, drop);
-	// equivalent statement
-	// if (rand(seed) > 1.0 - dropRate) {
-	//		nextPosition = randomPosition;
-	// } else {
-	//		nextPosition = updatedPosition;
-	// }
-
-    gl_FragColor = vec4(nextPosition, 1.0);
+    gl_FragColor = vec4(nextParticle);
 }
