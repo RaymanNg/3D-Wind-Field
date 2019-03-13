@@ -9,6 +9,7 @@ class Wind3D {
         this.scene = this.viewer.scene;
         this.camera = this.viewer.camera;
 
+        this.scene.screenSpaceCameraController.minimumZoomDistance = 10000.0;
         this.globeBoundingSphere = Cesium.BoundingSphere.fromEllipsoid(this.scene.globe.ellipsoid);
 
         var lonLatRange = this.getLonLatRange();
@@ -59,8 +60,8 @@ class Wind3D {
             that.scene.primitives.show = true;
         });
 
-        var resized = false;
-        window.addEventListener("resize", function () {
+        resized = false;
+        ow.addEventListener("resize", function () {
             resized = true;
             that.scene.primitives.show = false;
         });
