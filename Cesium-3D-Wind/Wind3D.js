@@ -9,8 +9,8 @@ class Wind3D {
         this.scene = this.viewer.scene;
         this.camera = this.viewer.camera;
 
-        this.scene.screenSpaceCameraController.minimumZoomDistance = 10000.0;
-        this.globeBoundingSphere = Cesium.BoundingSphere.fromEllipsoid(this.scene.globe.ellipsoid);
+        // use a smaller earth radius to make sure distance to camera > 0
+        this.globeBoundingSphere = new Cesium.BoundingSphere(Cesium.Cartesian3.ZERO, 0.99 * 6378137.0);
 
         var lonLatRange = this.getLonLatRange();
         var pixelSize = this.camera.getPixelSize(
@@ -60,8 +60,8 @@ class Wind3D {
             that.scene.primitives.show = true;
         });
 
-        resized = false;
-        ow.addEventListener("resize", function () {
+        var resized = false;
+        window.addEventListener("resize", function () {
             resized = true;
             that.scene.primitives.show = false;
         });
