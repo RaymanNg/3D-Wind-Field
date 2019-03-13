@@ -10,8 +10,7 @@ class ParticleSystem {
             framebuffer: undefined
         });
 
-        this.uvMinFactor = particleSystemOptions.uvMinFactor;
-        this.uvMaxFactor = particleSystemOptions.uvMaxFactor;
+        this.particleSystemOptions = particleSystemOptions;
         this.setupUnifroms(pixelSize);
 
         this.setupAllTexturesAndFramebuffers(this.data);
@@ -25,15 +24,9 @@ class ParticleSystem {
     setupUnifroms(pixelSize) {
         this.lonRange = new Cesium.Cartesian2(0.0, 360.0);
         this.latRange = new Cesium.Cartesian2(-90.0, 90.0);
-        this.uSpeedRange = new Cesium.Cartesian3(
-            this.uvMinFactor * pixelSize,
-            this.uvMaxFactor * pixelSize,
-            this.data.U.max - this.data.U.min
-        );
-        this.vSpeedRange = new Cesium.Cartesian3(
-            this.uvMinFactor * pixelSize,
-            this.uvMaxFactor * pixelSize,
-            this.data.V.max - this.data.V.min
+        this.relativeSpeedRange = new Cesium.Cartesian2(
+            this.particleSystemOptions.uvMinFactor * pixelSize,
+            this.particleSystemOptions.uvMaxFactor * pixelSize
         );
     }
 
@@ -42,7 +35,7 @@ class ParticleSystem {
             context: this.context,
             width: particlesTextureSize,
             height: particlesTextureSize,
-            pixelFormat: Cesium.PixelFormat.RGB,
+            pixelFormat: Cesium.PixelFormat.RGBA,
             pixelDatatype: Cesium.PixelDatatype.FLOAT,
             flipY: false,
             sampler: Util.getDataTextureSampler()
@@ -74,6 +67,16 @@ class ParticleSystem {
 
         this.U = Util.createTexture(uvTextureOptions, data.U.array);
         this.V = Util.createTexture(uvTextureOptions, data.V.array);
+
+        var colorRampData = DataProcess.loadColorRamp('data/colorRamp.json');
+        const colorRampTextureOptions = {
+            context: this.context,
+            width: colorRampData.num,
+            height: 1,
+            pixelFormat: Cesium.PixelFormat.RGB,
+            pixelDatatype: Cesium.PixelDatatype.UNSIGNED_BYTE
+        }
+        this.colorRamp = Util.createTexture(colorRampTextureOptions, colorRampData.array);
 
         const colorTextureOptions = {
             context: this.context,
@@ -130,7 +133,16 @@ class ParticleSystem {
             (maximum.y - minimum.y) / (dimension.y - 1),
             (maximum.z - minimum.z) / (dimension.z - 1)
         );
-        const dropRate = this.data.particles.dropRate;
+        const uSpeedRange = new Cesium.Cartesian3(
+            this.data.U.min,
+            this.data.U.max,
+            this.data.U.max - this.data.U.min
+        );
+        const vSpeedRange = new Cesium.Cartesian3(
+            this.data.V.min,
+            this.data.V.max,
+            this.data.V.max - this.data.V.min
+        );
 
         const that = this;
         const uniformMap = {
@@ -156,10 +168,13 @@ class ParticleSystem {
                 return interval;
             },
             uSpeedRange: function () {
-                return that.uSpeedRange;
+                return uSpeedRange;
             },
             vSpeedRange: function () {
-                return that.vSpeedRange;
+                return vSpeedRange;
+            },
+            relativeSpeedRange: function () {
+                return that.relativeSpeedRange;
             },
             lonRange: function () {
                 return that.lonRange;
@@ -168,7 +183,10 @@ class ParticleSystem {
                 return that.latRange;
             },
             dropRate: function () {
-                return dropRate;
+                return that.particleSystemOptions.dropRate;
+            },
+            dropRateBump: function () {
+                return that.particleSystemOptions.dropRateBump;;
             }
         }
 
@@ -181,11 +199,11 @@ class ParticleSystem {
         });
 
         const vertexShaderSource = new Cesium.ShaderSource({
-            sources: [Util.getShaderCode('glsl/fullscreen.vert')]
+            sources: [Util.getText('glsl/fullscreen.vert')]
         });
 
         const fragmentShaderSource = new Cesium.ShaderSource({
-            sources: [Util.getShaderCode('glsl/update.frag')]
+            sources: [Util.getText('glsl/update.frag')]
         });
 
         this.computePrimitive = new CustomPrimitive({
@@ -240,6 +258,9 @@ class ParticleSystem {
         const uniformMap = {
             particles: function () {
                 return that.toParticles.getColorTexture(0);
+            },
+            colorRamp: function () {
+                return that.colorRamp;
             }
         };
 
@@ -253,11 +274,11 @@ class ParticleSystem {
         });
 
         const vertexShaderSource = new Cesium.ShaderSource({
-            sources: [Util.getShaderCode('glsl/pointDraw.vert')]
+            sources: [Util.getText('glsl/pointDraw.vert')]
         });
 
         const fragmentShaderSource = new Cesium.ShaderSource({
-            sources: [Util.getShaderCode('glsl/pointDraw.frag')]
+            sources: [Util.getText('glsl/pointDraw.frag')]
         });
 
         this.particlePointsPrimitive = new CustomPrimitive({
@@ -310,12 +331,12 @@ class ParticleSystem {
         // prevent Cesium from writing depth because the depth here should be written manually
         const vertexShaderSource = new Cesium.ShaderSource({
             defines: ['DISABLE_GL_POSITION_LOG_DEPTH'],
-            sources: [Util.getShaderCode('glsl/fullscreen.vert')]
+            sources: [Util.getText('glsl/fullscreen.vert')]
         });
 
         const fragmentShaderSource = new Cesium.ShaderSource({
             defines: ['DISABLE_LOG_DEPTH_FRAGMENT_WRITE'],
-            sources: [Util.getShaderCode('glsl/trailDraw.frag')]
+            sources: [Util.getText('glsl/trailDraw.frag')]
         });
 
         this.particleTrailsPrimitive = new CustomPrimitive({
@@ -378,12 +399,12 @@ class ParticleSystem {
         // prevent Cesium from writing depth because the depth here should be written manually
         const vertexShaderSource = new Cesium.ShaderSource({
             defines: ['DISABLE_GL_POSITION_LOG_DEPTH'],
-            sources: [Util.getShaderCode('glsl/fullscreen.vert')]
+            sources: [Util.getText('glsl/fullscreen.vert')]
         });
 
         const fragmentShaderSource = new Cesium.ShaderSource({
             defines: ['DISABLE_LOG_DEPTH_FRAGMENT_WRITE'],
-            sources: [Util.getShaderCode('glsl/screenDraw.frag')]
+            sources: [Util.getText('glsl/screenDraw.frag')]
         });
 
         this.screenPrimitive = new CustomPrimitive({
@@ -416,10 +437,8 @@ class ParticleSystem {
         this.latRange.x = lonLatRange.lat.min;
         this.latRange.y = lonLatRange.lat.max;
 
-        this.uSpeedRange.x = this.uvMinFactor * pixelSize;
-        this.uSpeedRange.y = this.uvMaxFactor * pixelSize;
-        this.vSpeedRange.x = this.uvMinFactor * pixelSize;
-        this.vSpeedRange.y = this.uvMaxFactor * pixelSize;
+        this.relativeSpeedRange.x = this.particleSystemOptions.uvMinFactor * pixelSize;
+        this.relativeSpeedRange.y = this.particleSystemOptions.uvMaxFactor * pixelSize;
 
         var maxParticles = this.data.particles.textureSize * this.data.particles.textureSize;
         this.data.particles.array = DataProcess.randomizeParticle(maxParticles, lonLatRange);

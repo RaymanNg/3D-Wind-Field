@@ -1,5 +1,5 @@
 var Util = (function () {
-	var getShaderCode = function (filePath) {
+	var getText = function (filePath) {
 		var request = new XMLHttpRequest();
 		request.open('GET', filePath, false);
 		request.send(null);
@@ -141,7 +141,7 @@ var Util = (function () {
 	}
 
 	return {
-		getShaderCode: getShaderCode,
+		getText: getText,
 		getFullscreenQuad: getFullscreenQuad,
 		getDataTextureSampler: getDataTextureSampler,
 		createTexture: createTexture,
