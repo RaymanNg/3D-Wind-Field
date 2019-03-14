@@ -22,7 +22,7 @@ uniform vec2 latRange;
 uniform float dropRate;
 uniform float dropRateBump;
 
-varying vec2 textureCoordinate;
+varying vec2 v_textureCoordinates;
 
 // pseudo-random generator
 const vec3 randomConstants = vec3(12.9898, 78.233, 4375.85453);
@@ -131,7 +131,7 @@ vec4 update(vec3 lonLatLev, vec2 normalizedIndex2D) {
     float relativeSpeed = length(percent);
     updatedParticle.w = relativeSpeed;
 
-    vec2 seed = (lonLatLev.xy + textureCoordinate) * relativeSpeed;
+    vec2 seed = (lonLatLev.xy + v_textureCoordinates) * relativeSpeed;
     float relativeDropRate = dropRate + relativeSpeed * dropRateBump;
 
     // change branching logic to math formula for performance
@@ -155,7 +155,7 @@ vec4 update(vec3 lonLatLev, vec2 normalizedIndex2D) {
 }
 
 void main() {
-    vec4 texel = texture2D(particles, textureCoordinate); // texture coordinate must be normalized
+    vec4 texel = texture2D(particles, v_textureCoordinates); // texture coordinate must be normalized
 
     vec3 lonLatLev = texel.rgb;
     vec2 normalizedIndex2D = mapPositionToNormalizedIndex2D(lonLatLev);
