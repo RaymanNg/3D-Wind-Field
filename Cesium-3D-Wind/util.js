@@ -2,7 +2,7 @@ var Util = (function () {
 	var loadText = function (filePath) {
 		var request = new XMLHttpRequest();
 		request.open('GET', filePath, false);
-		request.send(null);
+		request.send();
 		return request.responseText;
 	}
 

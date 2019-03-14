@@ -1,10 +1,8 @@
 class Wind3D {
     constructor(fileOptions, particleSystemOptions) {
         this.viewer = new Cesium.Viewer('cesiumContainer', {
-            scene3DOnly: true,
             fullscreenElement: 'cesiumContainer',
-            terrainProvider: Cesium.createWorldTerrain(),
-            baseLayerPicker: false
+            scene3DOnly: true,
         });
         this.scene = this.viewer.scene;
         this.camera = this.viewer.camera;
@@ -13,12 +11,9 @@ class Wind3D {
         this.globeBoundingSphere = new Cesium.BoundingSphere(Cesium.Cartesian3.ZERO, 0.99 * 6378137.0);
         var viewerParameters = this.getViewerParameters();
 
-        DataProcess.process(fileOptions, particleSystemOptions, viewerParameters.lonLatRange).then(
-            (data) => {
-                this.particleSystem = new ParticleSystem(
-                    this.scene.context, data,
-                    particleSystemOptions, viewerParameters
-                );
+        DataProcess.loadData(fileOptions).then(
+            (windData) => {
+                this.particleSystem = new ParticleSystem(this.scene.context, windData, particleSystemOptions, viewerParameters);
 
                 // the order of primitives.add should respect the dependency of primitives
                 this.scene.primitives.add(this.particleSystem.computePrimitive);
