@@ -8,7 +8,7 @@ var fileOptions = {
 }
 
 var particleSystemOptions = {
-    maxParticles: 32 * 32,
+    maxParticles: 256 * 256,
     fadeOpacity: 0.996,
     dropRate: 0.003,
     dropRateBump: 0.01,

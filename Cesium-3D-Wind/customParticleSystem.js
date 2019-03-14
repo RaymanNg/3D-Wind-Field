@@ -13,22 +13,27 @@ class ParticleSystem {
             framebuffer: undefined
         });
 
-        this.setupUnifromValues(viewerParameters.pixelSize);
+        this.uniformVariables = {};
+        this.setUnifromValues(viewerParameters.pixelSize);
         this.setupDataTextures();
+
+        this.outputTextures = {};
         this.setupParticlesTextures(this.particlesArray);
+
+        this.framebuffers = {};
         this.setupOutputFramebuffers();
 
+        this.primitives = {};
         this.initComputePrimitive();
-        this.initParticlePointPrimitive();
-        this.initParticleTrailsPrimitive();
+        this.initSegmentsPrimitive();
+        this.initTrailsPrimitive();
         this.initScreenPrimitive();
     }
 
-    setupUnifromValues(pixelSize) {
-        this.uniformValues = {};
-        this.uniformValues.lonRange = new Cesium.Cartesian2(0.0, 360.0);
-        this.uniformValues.latRange = new Cesium.Cartesian2(-90.0, 90.0);
-        this.uniformValues.relativeSpeedRange = new Cesium.Cartesian2(
+    setUnifromValues(pixelSize) {
+        this.uniformVariables.lonRange = new Cesium.Cartesian2(0.0, 360.0);
+        this.uniformVariables.latRange = new Cesium.Cartesian2(-90.0, 90.0);
+        this.uniformVariables.relativeSpeedRange = new Cesium.Cartesian2(
             this.particleSystemOptions.uvMinFactor * pixelSize,
             this.particleSystemOptions.uvMaxFactor * pixelSize
         );
@@ -49,8 +54,8 @@ class ParticleSystem {
             })
         };
 
-        this.uniformValues.U = Util.createTexture(uvTextureOptions, this.data.U.array);
-        this.uniformValues.V = Util.createTexture(uvTextureOptions, this.data.V.array);
+        this.uniformVariables.U = Util.createTexture(uvTextureOptions, this.data.U.array);
+        this.uniformVariables.V = Util.createTexture(uvTextureOptions, this.data.V.array);
 
         const colorTableTextureOptions = {
             context: this.context,
@@ -63,7 +68,7 @@ class ParticleSystem {
                 magnificationFilter: Cesium.TextureMagnificationFilter.LINEAR
             })
         }
-        this.uniformValues.colorTable = Util.createTexture(colorTableTextureOptions, this.data.colorTable.array);
+        this.uniformVariables.colorTable = Util.createTexture(colorTableTextureOptions, this.data.colorTable.array);
     }
 
     setupParticlesTextures() {
@@ -84,8 +89,8 @@ class ParticleSystem {
         var particlesTexture1 = Util.createTexture(particlesTextureOptions, this.particlesArray);
 
         // used for ping-pong render
-        this.fromParticles = particlesTexture0;
-        this.toParticles = particlesTexture1;
+        this.outputTextures.fromParticles = particlesTexture0;
+        this.outputTextures.toParticles = particlesTexture1;
     }
 
     setupOutputFramebuffers() {
@@ -105,9 +110,9 @@ class ParticleSystem {
             pixelDatatype: Cesium.PixelDatatype.UNSIGNED_INT
         }
 
-        var pointsColorTexture = Util.createTexture(colorTextureOptions);
-        var pointsDepthTexture = Util.createTexture(depthTextureOptions);
-        this.pointsFramebuffer = Util.createFramebuffer(this.context, pointsColorTexture, pointsDepthTexture);
+        var segmentsColorTexture = Util.createTexture(colorTextureOptions);
+        var segmentsDepthTexture = Util.createTexture(depthTextureOptions);
+        this.framebuffers.segments = Util.createFramebuffer(this.context, segmentsColorTexture, segmentsDepthTexture);
 
         var trailsColorTexture0 = Util.createTexture(colorTextureOptions);
         var trailsDepthTexture0 = Util.createTexture(depthTextureOptions);
@@ -118,8 +123,8 @@ class ParticleSystem {
         var trailsFramebuffer1 = Util.createFramebuffer(this.context, trailsColorTexture1, trailsDepthTexture1);
 
         // used for ping-pong render
-        this.currentTrails = trailsFramebuffer0;
-        this.nextTrails = trailsFramebuffer1;
+        this.framebuffers.currentTrails = trailsFramebuffer0;
+        this.framebuffers.nextTrails = trailsFramebuffer1;
     }
 
     initComputePrimitive() {
@@ -154,13 +159,13 @@ class ParticleSystem {
         const that = this;
         const uniformMap = {
             U: function () {
-                return that.uniformValues.U;
+                return that.uniformVariables.U;
             },
             V: function () {
-                return that.uniformValues.V;
+                return that.uniformVariables.V;
             },
             particles: function () {
-                return that.fromParticles;
+                return that.outputTextures.fromParticles;
             },
             dimension: function () {
                 return dimension;
@@ -181,13 +186,13 @@ class ParticleSystem {
                 return vSpeedRange;
             },
             relativeSpeedRange: function () {
-                return that.uniformValues.relativeSpeedRange;
+                return that.uniformVariables.relativeSpeedRange;
             },
             lonRange: function () {
-                return that.uniformValues.lonRange;
+                return that.uniformVariables.lonRange;
             },
             latRange: function () {
-                return that.uniformValues.latRange;
+                return that.uniformVariables.latRange;
             },
             dropRate: function () {
                 return that.particleSystemOptions.dropRate;
@@ -213,7 +218,7 @@ class ParticleSystem {
             sources: [Util.loadText('glsl/update.frag')]
         });
 
-        this.computePrimitive = new CustomPrimitive({
+        this.primitives.compute = new CustomPrimitive({
             commandType: 'Compute',
             geometry: Util.getFullscreenQuad(),
             attributeLocations: attributeLocations,
@@ -222,22 +227,22 @@ class ParticleSystem {
             vertexShaderSource: vertexShaderSource,
             fragmentShaderSource: fragmentShaderSource,
             rawRenderState: rawRenderState,
-            outputTexture: this.toParticles
+            outputTexture: this.outputTextures.toParticles
         });
 
         // redefine the preExecute function for ping-pong particles computation
-        this.computePrimitive.preExecute = function () {
+        this.primitives.compute.preExecute = function () {
             // swap framebuffers before binding framebuffer
             var temp;
-            temp = that.fromParticles;
-            that.fromParticles = that.toParticles;
-            that.toParticles = temp;
+            temp = that.outputTextures.fromParticles;
+            that.outputTextures.fromParticles = that.outputTextures.toParticles;
+            that.outputTextures.toParticles = temp;
 
-            this.commandToExecute.outputTexture = that.toParticles;
+            this.commandToExecute.outputTexture = that.outputTextures.toParticles;
         }
     }
 
-    initParticlePointPrimitive() {
+    initSegmentsPrimitive() {
         var particleIndex = [];
 
         for (var s = 0; s < this.particleSystemOptions.particlesTextureSize; s++) {
@@ -268,13 +273,13 @@ class ParticleSystem {
         const that = this;
         const uniformMap = {
             fromParticles: function () {
-                return that.fromParticles;
+                return that.outputTextures.fromParticles;
             },
             toParticles: function () {
-                return that.toParticles;
+                return that.outputTextures.toParticles;
             },
             colorTable: function () {
-                return that.uniformValues.colorTable;
+                return that.uniformVariables.colorTable;
             }
         };
 
@@ -288,14 +293,14 @@ class ParticleSystem {
         });
 
         const vertexShaderSource = new Cesium.ShaderSource({
-            sources: [Util.loadText('glsl/pointDraw.vert')]
+            sources: [Util.loadText('glsl/segmentDraw.vert')]
         });
 
         const fragmentShaderSource = new Cesium.ShaderSource({
-            sources: [Util.loadText('glsl/pointDraw.frag')]
+            sources: [Util.loadText('glsl/segmentDraw.frag')]
         });
 
-        this.particlePointsPrimitive = new CustomPrimitive({
+        this.primitives.segments = new CustomPrimitive({
             geometry: particlePoints,
             attributeLocations: attributeLocations,
             primitiveType: Cesium.PrimitiveType.LINES,
@@ -303,12 +308,12 @@ class ParticleSystem {
             vertexShaderSource: vertexShaderSource,
             fragmentShaderSource: fragmentShaderSource,
             rawRenderState: rawRenderState,
-            framebuffer: this.pointsFramebuffer,
+            framebuffer: this.framebuffers.segments,
             autoClear: true
         });
     }
 
-    initParticleTrailsPrimitive() {
+    initTrailsPrimitive() {
         const attributeLocations = {
             position: 0,
             st: 1
@@ -316,17 +321,17 @@ class ParticleSystem {
 
         const that = this;
         const uniformMap = {
-            particlePointsColor: function () {
-                return that.pointsFramebuffer.getColorTexture(0);
+            segmentsColorTexture: function () {
+                return that.framebuffers.segments.getColorTexture(0);
             },
-            pointsDepthTexture: function () {
-                return that.pointsFramebuffer.depthTexture;
+            segmentsDepthTexture: function () {
+                return that.framebuffers.segments.depthTexture;
             },
             currentTrailsColor: function () {
-                return that.currentTrails.getColorTexture(0);
+                return that.framebuffers.currentTrails.getColorTexture(0);
             },
             trailsDepthTexture: function () {
-                return that.currentTrails.depthTexture;
+                return that.framebuffers.currentTrails.depthTexture;
             },
             fadeOpacity: function () {
                 return that.particleSystemOptions.fadeOpacity;
@@ -353,7 +358,7 @@ class ParticleSystem {
             sources: [Util.loadText('glsl/trailDraw.frag')]
         });
 
-        this.particleTrailsPrimitive = new CustomPrimitive({
+        this.primitives.trails = new CustomPrimitive({
             geometry: Util.getFullscreenQuad(),
             attributeLocations: attributeLocations,
             primitiveType: Cesium.PrimitiveType.TRIANGLES,
@@ -361,19 +366,19 @@ class ParticleSystem {
             vertexShaderSource: vertexShaderSource,
             fragmentShaderSource: fragmentShaderSource,
             rawRenderState: rawRenderState,
-            framebuffer: this.nextTrails,
+            framebuffer: this.framebuffers.nextTrails,
             autoClear: true
         });
 
         // redefine the preExecute function for ping-pong trails render
-        this.particleTrailsPrimitive.preExecute = function () {
+        this.primitives.trails.preExecute = function () {
             var temp;
-            temp = that.currentTrails;
-            that.currentTrails = that.nextTrails;
-            that.nextTrails = temp;
+            temp = that.framebuffers.currentTrails;
+            that.framebuffers.currentTrails = that.framebuffers.nextTrails;
+            that.framebuffers.nextTrails = temp;
 
-            this.commandToExecute.framebuffer = that.nextTrails;
-            this.clearCommand.framebuffer = that.nextTrails;
+            this.commandToExecute.framebuffer = that.framebuffers.nextTrails;
+            this.clearCommand.framebuffer = that.framebuffers.nextTrails;
         }
     }
 
@@ -386,10 +391,10 @@ class ParticleSystem {
         const that = this;
         const uniformMap = {
             trailsColorTexture: function () {
-                return that.nextTrails.getColorTexture(0);
+                return that.framebuffers.nextTrails.getColorTexture(0);
             },
             trailsDepthTexture: function () {
-                return that.nextTrails.depthTexture;
+                return that.framebuffers.nextTrails.depthTexture;
             }
         };
 
@@ -415,7 +420,7 @@ class ParticleSystem {
             sources: [Util.loadText('glsl/screenDraw.frag')]
         });
 
-        this.screenPrimitive = new CustomPrimitive({
+        this.primitives.screen = new CustomPrimitive({
             geometry: Util.getFullscreenQuad(),
             attributeLocations: attributeLocations,
             primitiveType: Cesium.PrimitiveType.TRIANGLES,
@@ -428,12 +433,12 @@ class ParticleSystem {
     }
 
     clearFramebuffer() {
-        this.clearCommand.framebuffer = this.pointsFramebuffer;
+        this.clearCommand.framebuffer = this.framebuffers.segments;
         this.clearCommand.execute(this.context);
 
-        this.clearCommand.framebuffer = this.currentTrails;
+        this.clearCommand.framebuffer = this.framebuffers.currentTrails;
         this.clearCommand.execute(this.context);
-        this.clearCommand.framebuffer = this.nextTrails;
+        this.clearCommand.framebuffer = this.framebuffers.nextTrails;
         this.clearCommand.execute(this.context);
     }
 
@@ -441,38 +446,38 @@ class ParticleSystem {
         this.clearFramebuffer();
 
         var lonLatRange = viewerParameters.lonLatRange;
-        this.uniformValues.lonRange.x = lonLatRange.lon.min;
-        this.uniformValues.lonRange.y = lonLatRange.lon.max;
-        this.uniformValues.latRange.x = lonLatRange.lat.min;
-        this.uniformValues.latRange.y = lonLatRange.lat.max;
+        this.uniformVariables.lonRange.x = lonLatRange.lon.min;
+        this.uniformVariables.lonRange.y = lonLatRange.lon.max;
+        this.uniformVariables.latRange.x = lonLatRange.lat.min;
+        this.uniformVariables.latRange.y = lonLatRange.lat.max;
 
         var pixelSize = viewerParameters.pixelSize;
-        this.uniformValues.relativeSpeedRange.x = this.particleSystemOptions.uvMinFactor * pixelSize;
-        this.uniformValues.relativeSpeedRange.y = this.particleSystemOptions.uvMaxFactor * pixelSize;
+        this.uniformVariables.relativeSpeedRange.x = this.particleSystemOptions.uvMinFactor * pixelSize;
+        this.uniformVariables.relativeSpeedRange.y = this.particleSystemOptions.uvMaxFactor * pixelSize;
 
         this.particlesArray = DataProcess.randomizeParticleLonLatLev(this.particleSystemOptions.maxParticles, lonLatRange);
 
-        this.fromParticles.destroy();
-        this.toParticles.destroy();
+        this.outputTextures.fromParticles.destroy();
+        this.outputTextures.toParticles.destroy();
         this.setupParticlesTextures();
     }
 
     canvasResize(cesiumContext) {
-        this.fromParticles.destroy();
-        this.toParticles.destroy();
-        this.pointsFramebuffer.destroy();
-        this.currentTrails.destroy();
-        this.nextTrails.destroy();
+        this.outputTextures.fromParticles.destroy();
+        this.outputTextures.toParticles.destroy();
+        this.framebuffers.segments.destroy();
+        this.framebuffers.currentTrails.destroy();
+        this.framebuffers.nextTrails.destroy();
 
         this.context = cesiumContext;
         this.setupDataTextures();
         this.setupParticlesTextures();
         this.setupOutputFramebuffers();
 
-        this.computePrimitive.commandToExecute.outputTexture = this.toParticles;
-        this.particlePointsPrimitive.clearCommand.framebuffer = this.pointsFramebuffer;
-        this.particlePointsPrimitive.commandToExecute.framebuffer = this.pointsFramebuffer;
-        this.particleTrailsPrimitive.clearCommand.framebuffer = this.nextTrails;
-        this.particleTrailsPrimitive.commandToExecute.framebuffer = this.nextTrails;
+        this.primitives.compute.commandToExecute.outputTexture = this.outputTextures.toParticles;
+        this.primitives.segments.clearCommand.framebuffer = this.framebuffers.segments;
+        this.primitives.segments.commandToExecute.framebuffer = this.framebuffers.segments;
+        this.primitives.trails.clearCommand.framebuffer = this.framebuffers.nextTrails;
+        this.primitives.trails.commandToExecute.framebuffer = this.framebuffers.nextTrails;
     }
 }
