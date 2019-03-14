@@ -1,7 +1,8 @@
-attribute vec2 st;
+attribute vec3 position;
 
-uniform sampler2D particles;
-uniform sampler2D colorRamp;
+uniform sampler2D fromParticles;
+uniform sampler2D toParticles;
+uniform sampler2D colorTable;
 
 varying vec4 particleColor;
 
@@ -30,13 +31,18 @@ vec3 convertCoordinate(vec3 lonLatLev) {
 }
 
 void main() {
-	vec2 particleIndex = st;
-    vec4 texel = texture2D(particles, particleIndex);
+	vec2 particleIndex = position.xy;
+	vec4 texel = vec4(0.0);
+	if (position.z > 0.0) {
+		texel = texture2D(fromParticles, particleIndex);
+	} else {
+		texel = texture2D(toParticles, particleIndex);
+	}
+    
 	vec3 lonLatLev = texel.rgb;
-	float relativeSpeed = texel.a;
+	float speed = texel.a;
 	
-	particleColor = vec4(1.0);
-	particleColor.rgb = texture2D(colorRamp, vec2(relativeSpeed, 0.0)).rgb;
+	particleColor = texture2D(colorTable, vec2(speed, 0.0));
 	
 	// the range of longitude in Cesium is [-Pi, Pi]
 	// but the range of longitude in my NetCDF file is [0, 360]
@@ -45,7 +51,7 @@ void main() {
 	lonLatLev.x = mod(lonLatLev.x + 180.0, 360.0) - 180.0;
 	vec3 particlePosition = convertCoordinate(lonLatLev);
 	vec4 cesiumPosition = vec4(particlePosition, 1.0);
+
 	gl_Position = czm_modelViewProjection * cesiumPosition;
-	
-	gl_PointSize = 2.0;
+	gl_PointSize = 1.0;
 }

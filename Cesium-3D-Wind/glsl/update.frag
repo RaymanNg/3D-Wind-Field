@@ -151,7 +151,7 @@ vec4 update(vec3 lonLatLev, vec2 normalizedIndex2D) {
 	//		nextParticle = updatedParticle;
 	// }
 	
-	return nextParticle;
+	return updatedParticle;
 }
 
 void main() {
