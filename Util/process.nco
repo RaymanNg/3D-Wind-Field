@@ -1,16 +1,6 @@
-// this file must use UNIX End of Line
+// this file must use UNIX Style End of Line
 
-lat@min=min(lat);
-lat@max=max(lat);
-
-lon@min=min(lon);
-lon@max=max(lon);
-
-lev@min=min(lev);
-lev@max=max(lev);
-
-U@min=min(U);
-U@max=max(U);
-
-V@min=min(V);
-V@max=max(V);
+uMin = U.min($time, $lat, $lon);
+uMax = U.max($time, $lat, $lon);
+vMin = V.min($time, $lat, $lon);
+vMax = V.max($time, $lat, $lon);
