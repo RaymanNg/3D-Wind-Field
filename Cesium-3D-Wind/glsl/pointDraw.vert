@@ -35,7 +35,8 @@ void main() {
 	vec3 lonLatLev = texel.rgb;
 	float relativeSpeed = texel.a;
 	
-	particleColor = texture2D(colorRamp, vec2(relativeSpeed, 0.0));
+	particleColor = vec4(1.0);
+	particleColor.rgb = texture2D(colorRamp, vec2(relativeSpeed, 0.0)).rgb;
 	
 	// the range of longitude in Cesium is [-Pi, Pi]
 	// but the range of longitude in my NetCDF file is [0, 360]
@@ -46,5 +47,5 @@ void main() {
 	vec4 cesiumPosition = vec4(particlePosition, 1.0);
 	gl_Position = czm_modelViewProjection * cesiumPosition;
 	
-	gl_PointSize = 1.0;
+	gl_PointSize = 2.0;
 }

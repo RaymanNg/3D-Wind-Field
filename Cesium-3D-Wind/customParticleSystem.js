@@ -74,7 +74,11 @@ class ParticleSystem {
             width: colorRampData.num,
             height: 1,
             pixelFormat: Cesium.PixelFormat.RGB,
-            pixelDatatype: Cesium.PixelDatatype.UNSIGNED_BYTE
+            pixelDatatype: Cesium.PixelDatatype.FLOAT,
+            sampler: new Cesium.Sampler({
+                minificationFilter: Cesium.TextureMinificationFilter.LINEAR,
+                magnificationFilter: Cesium.TextureMagnificationFilter.LINEAR
+            })
         }
         this.colorRamp = Util.createTexture(colorRampTextureOptions, colorRampData.array);
 

@@ -2,10 +2,10 @@
 
 const filePath = 'data/data_0.nc';
 const particleSystemOptions = {
-    particlesTextureSize: 256,
+    particlesTextureSize: 64,
     fadeOpacity: 0.996,
-    dropRate: 0.03,
-    dropRateBump: 0.10,
+    dropRate: 0.003,
+    dropRateBump: 0.01,
     uvMinFactor: -4.0,
     uvMaxFactor: 4.0
 }
