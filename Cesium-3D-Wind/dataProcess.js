@@ -98,17 +98,10 @@ var DataProcess = (function () {
 
     var setupParticle = function (particleSystemOptions, lonLatRange) {
         const particlesTextureSize = particleSystemOptions.particlesTextureSize;
-        const fadeOpacity = particleSystemOptions.fadeOpacity;
-        const dropRate = particleSystemOptions.dropRate;
-
         const maxParticles = particlesTextureSize * particlesTextureSize;
 
         data.particles = {};
         data.particles.array = randomizeParticle(maxParticles, lonLatRange);
-
-        data.particles.textureSize = particlesTextureSize;
-        data.particles.fadeOpacity = fadeOpacity;
-        data.particles.dropRate = dropRate;
     }
 
     var process = async function (filePath, particleSystemOptions, lonLatRange) {
