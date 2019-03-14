@@ -1,6 +1,6 @@
 class ParticleSystem {
     constructor(cesiumContext, windData,
-        particleSystemOptions, pixelSize) {
+        particleSystemOptions, viewerParameters) {
         this.context = cesiumContext;
         this.data = windData;
 
@@ -11,12 +11,13 @@ class ParticleSystem {
         });
 
         this.particleSystemOptions = particleSystemOptions;
+        var pixelSize = viewerParameters.pixelSize;
         this.setupUnifroms(pixelSize);
 
         this.setupAllTexturesAndFramebuffers(this.data);
 
         this.initComputePrimitive();
-        this.initParticlePointPrimitive();
+        this.initParticleLinePrimitive();
         this.initParticleTrailsPrimitive();
         this.initScreenPrimitive();
     }
@@ -233,7 +234,7 @@ class ParticleSystem {
         }
     }
 
-    initParticlePointPrimitive() {
+    initParticleLinePrimitive() {
         var particleIndex = [];
 
         for (var s = 0; s < this.data.particles.textureSize; s++) {
@@ -319,7 +320,7 @@ class ParticleSystem {
                 return that.currentTrails.depthTexture;
             },
             fadeOpacity: function () {
-                return that.data.particles.fadeOpacity;
+                return that.particleSystemOptions.fadeOpacity;
             }
         };
 
@@ -433,14 +434,16 @@ class ParticleSystem {
         this.clearCommand.execute(this.context);
     }
 
-    refreshParticle(lonLatRange, pixelSize) {
+    refreshParticle(viewerParameters) {
         this.clearFramebuffer();
 
+        var lonLatRange = viewerParameters.lonLatRange;
         this.lonRange.x = lonLatRange.lon.min;
         this.lonRange.y = lonLatRange.lon.max;
         this.latRange.x = lonLatRange.lat.min;
         this.latRange.y = lonLatRange.lat.max;
 
+        var pixelSize = viewerParameters.pixelSize;
         this.relativeSpeedRange.x = this.particleSystemOptions.uvMinFactor * pixelSize;
         this.relativeSpeedRange.y = this.particleSystemOptions.uvMaxFactor * pixelSize;
 

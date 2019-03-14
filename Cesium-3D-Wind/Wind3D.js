@@ -11,19 +11,13 @@ class Wind3D {
 
         // use a smaller earth radius to make sure distance to camera > 0
         this.globeBoundingSphere = new Cesium.BoundingSphere(Cesium.Cartesian3.ZERO, 0.99 * 6378137.0);
+        var viewerParameters = this.getViewerParameters();
 
-        var lonLatRange = this.getLonLatRange();
-        var pixelSize = this.camera.getPixelSize(
-            this.globeBoundingSphere,
-            this.scene.drawingBufferWidth,
-            this.scene.drawingBufferHeight
-        );
-
-        DataProcess.process(filePath, particleSystemOptions, lonLatRange).then(
+        DataProcess.process(filePath, particleSystemOptions, viewerParameters.lonLatRange).then(
             (data) => {
                 this.particleSystem = new ParticleSystem(
                     this.scene.context, data,
-                    particleSystemOptions, pixelSize
+                    particleSystemOptions, viewerParameters
                 );
 
                 // the order of primitives.add should respect the dependency of primitives
@@ -32,17 +26,26 @@ class Wind3D {
                 this.scene.primitives.add(this.particleSystem.particleTrailsPrimitive);
                 this.scene.primitives.add(this.particleSystem.screenPrimitive);
 
-                this.setupEventListener();
+                this.setupEventListeners();
             });
     }
 
-    getLonLatRange() {
+    getViewerParameters() {
+        var viewerParameters = {};
+
         var viewRectangle = this.camera.computeViewRectangle(this.scene.globe.ellipsoid);
-        var lonLatRange = Util.rectangleToLonLatRange(viewRectangle);
-        return lonLatRange;
+        viewerParameters.lonLatRange = Util.rectangleToLonLatRange(viewRectangle);
+
+        viewerParameters.pixelSize = this.camera.getPixelSize(
+            this.globeBoundingSphere,
+            this.scene.drawingBufferWidth,
+            this.scene.drawingBufferHeight
+        );
+
+        return viewerParameters;
     }
 
-    setupEventListener() {
+    setupEventListeners() {
         const that = this;
 
         this.camera.moveStart.addEventListener(function () {
@@ -50,13 +53,8 @@ class Wind3D {
         });
 
         this.camera.moveEnd.addEventListener(function () {
-            var lonLatRange = that.getLonLatRange();
-            var pixelSize = that.camera.getPixelSize(
-                that.globeBoundingSphere,
-                that.scene.drawingBufferWidth,
-                that.scene.drawingBufferHeight
-            );
-            that.particleSystem.refreshParticle(lonLatRange, pixelSize);
+            var viewerParameters = that.getViewerParameters();
+            that.particleSystem.refreshParticle(viewerParameters);
             that.scene.primitives.show = true;
         });
 
