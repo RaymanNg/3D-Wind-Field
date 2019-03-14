@@ -63,36 +63,33 @@ var DataProcess = (function () {
         });
     }
 
-    var loadColorRamp = function (filePath) {
-        var string = Util.getText(filePath);
+    var loadColorTable = function (filePath) {
+        var string = Util.loadText(filePath);
         var json = JSON.parse(string);
 
         var colorNum = json['ncolors'];
-        var colorArray = json['colorRamp'];
+        var colorTable = json['colorTable'];
 
-        var colorRampArray = new Float32Array(3 * colorNum);
+        var colorsArray = new Float32Array(3 * colorNum);
         for (var i = 0; i < colorNum; i++) {
-            colorRampArray[3 * i] = colorArray[3 * i];
-            colorRampArray[3 * i + 1] = colorArray[3 * i + 1];
-            colorRampArray[3 * i + 2] = colorArray[3 * i + 2];
+            colorsArray[3 * i] = colorTable[3 * i];
+            colorsArray[3 * i + 1] = colorTable[3 * i + 1];
+            colorsArray[3 * i + 2] = colorTable[3 * i + 2];
         }
 
-        return {
-            num: colorNum,
-            array: colorRampArray
-        }
+        data.colorTable = {};
+        data.colorTable.colorNum = colorNum;
+        data.colorTable.array = colorsArray;
     }
 
     var randomizeParticle = function (maxParticles, lonLatRange) {
         var array = new Float32Array(4 * maxParticles);
-
         for (var i = 0; i < maxParticles; i++) {
             array[4 * i] = Cesium.Math.randomBetween(lonLatRange.lon.min, lonLatRange.lon.max);
             array[4 * i + 1] = Cesium.Math.randomBetween(lonLatRange.lat.min, lonLatRange.lat.max);
-            array[4 * i + 2] = Cesium.Math.randomBetween(data.lev.min, data.lev.min);
+            array[4 * i + 2] = Cesium.Math.randomBetween(data.lev.min, data.lev.max);
             array[4 * i + 3] = Cesium.Math.randomBetween(-20.0, 20.0);
         }
-
         return array;
     }
 
@@ -104,17 +101,18 @@ var DataProcess = (function () {
         data.particles.array = randomizeParticle(maxParticles, lonLatRange);
     }
 
-    var process = async function (filePath, particleSystemOptions, lonLatRange) {
+    var process = async function (fileOptions, particleSystemOptions, lonLatRange) {
+        var filePath = fileOptions.directory + fileOptions.dataFilePrefix + fileOptions.dataIndex + '.nc';
         await loadNetCDF(filePath).then(function () {
             setupParticle(particleSystemOptions, lonLatRange);
         });
 
+        loadColorTable(fileOptions.directory + fileOptions.colorTableFileName);
         return data;
     }
 
     return {
         process: process,
-        loadColorRamp: loadColorRamp,
         randomizeParticle: randomizeParticle
     };
 

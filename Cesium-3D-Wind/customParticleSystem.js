@@ -1,8 +1,8 @@
 class ParticleSystem {
-    constructor(cesiumContext, windData,
-        particleSystemOptions, viewerParameters) {
+    constructor(cesiumContext, windData, particleSystemOptions, viewerParameters) {
         this.context = cesiumContext;
         this.data = windData;
+        this.particleSystemOptions = particleSystemOptions;
 
         this.clearCommand = new Cesium.ClearCommand({
             color: new Cesium.Color(0.0, 0.0, 0.0, 0.0),
@@ -10,69 +10,48 @@ class ParticleSystem {
             framebuffer: undefined
         });
 
-        this.particleSystemOptions = particleSystemOptions;
-        var pixelSize = viewerParameters.pixelSize;
-        this.setupUnifroms(pixelSize);
-
-        this.setupAllTexturesAndFramebuffers(this.data);
+        this.setupUnifromValues(viewerParameters.pixelSize);
+        this.setupDataTextures();
+        this.setupParticlesFramebuffers();
+        this.setupOutputFramebuffers();
 
         this.initComputePrimitive();
-        this.initParticleLinePrimitive();
+        this.initParticlePointPrimitive();
         this.initParticleTrailsPrimitive();
         this.initScreenPrimitive();
     }
 
-    setupUnifroms(pixelSize) {
-        this.lonRange = new Cesium.Cartesian2(0.0, 360.0);
-        this.latRange = new Cesium.Cartesian2(-90.0, 90.0);
-        this.relativeSpeedRange = new Cesium.Cartesian2(
+    setupUnifromValues(pixelSize) {
+        this.uniformValues = {};
+        this.uniformValues.lonRange = new Cesium.Cartesian2(0.0, 360.0);
+        this.uniformValues.latRange = new Cesium.Cartesian2(-90.0, 90.0);
+        this.uniformValues.relativeSpeedRange = new Cesium.Cartesian2(
             this.particleSystemOptions.uvMinFactor * pixelSize,
             this.particleSystemOptions.uvMaxFactor * pixelSize
         );
     }
 
-    setupParticleTexturesAndFramebuffers(particlesTextureSize, particlesArray) {
-        const particlesTextureOptions = {
-            context: this.context,
-            width: particlesTextureSize,
-            height: particlesTextureSize,
-            pixelFormat: Cesium.PixelFormat.RGBA,
-            pixelDatatype: Cesium.PixelDatatype.FLOAT,
-            flipY: false,
-            sampler: Util.getDataTextureSampler()
-        };
-
-        this.particlesTexture0 = Util.createTexture(particlesTextureOptions, particlesArray);
-        this.particlesTexture1 = Util.createTexture(particlesTextureOptions, particlesArray);
-
-        this.particlesFramebuffer0 = Util.createFramebuffer(this.context, this.particlesTexture0);
-        this.particlesFramebuffer1 = Util.createFramebuffer(this.context, this.particlesTexture1);
-
-        // used for ping-pong render
-        this.fromParticles = this.particlesFramebuffer0;
-        this.toParticles = this.particlesFramebuffer1;
-    }
-
-    setupAllTexturesAndFramebuffers(data) {
-        this.setupParticleTexturesAndFramebuffers(data.particles.textureSize, data.particles.array);
-
+    setupDataTextures() {
         const uvTextureOptions = {
             context: this.context,
-            width: data.dimensions.lon,
-            height: data.dimensions.lat * data.dimensions.lev,
+            width: this.data.dimensions.lon,
+            height: this.data.dimensions.lat * this.data.dimensions.lev,
             pixelFormat: Cesium.PixelFormat.LUMINANCE,
             pixelDatatype: Cesium.PixelDatatype.FLOAT,
             flipY: false, // the data we provide should not be flipped
-            sampler: Util.getDataTextureSampler()
+            sampler: new Cesium.Sampler({
+                // the values of data texture should not be interpolated
+                minificationFilter: Cesium.TextureMinificationFilter.NEAREST,
+                magnificationFilter: Cesium.TextureMagnificationFilter.NEAREST
+            })
         };
 
-        this.U = Util.createTexture(uvTextureOptions, data.U.array);
-        this.V = Util.createTexture(uvTextureOptions, data.V.array);
+        this.uniformValues.U = Util.createTexture(uvTextureOptions, this.data.U.array);
+        this.uniformValues.V = Util.createTexture(uvTextureOptions, this.data.V.array);
 
-        var colorRampData = DataProcess.loadColorRamp('data/colorRamp.json');
-        const colorRampTextureOptions = {
+        const colorTableTextureOptions = {
             context: this.context,
-            width: colorRampData.num,
+            width: this.data.colorTable.colorNum,
             height: 1,
             pixelFormat: Cesium.PixelFormat.RGB,
             pixelDatatype: Cesium.PixelDatatype.FLOAT,
@@ -81,15 +60,44 @@ class ParticleSystem {
                 magnificationFilter: Cesium.TextureMagnificationFilter.LINEAR
             })
         }
-        this.colorRamp = Util.createTexture(colorRampTextureOptions, colorRampData.array);
+        this.uniformValues.colorTable = Util.createTexture(colorTableTextureOptions, this.data.colorTable.array);
+    }
 
+    setupParticlesFramebuffers(particlesArray) {
+        var particlesArray = Cesium.defaultValue(particlesArray, this.data.particles.array);
+
+        const particlesTextureSize = this.particleSystemOptions.particlesTextureSize;
+        const particlesTextureOptions = {
+            context: this.context,
+            width: particlesTextureSize,
+            height: particlesTextureSize,
+            pixelFormat: Cesium.PixelFormat.RGBA,
+            pixelDatatype: Cesium.PixelDatatype.FLOAT,
+            sampler: new Cesium.Sampler({
+                // the values of particles texture should not be interpolated
+                minificationFilter: Cesium.TextureMinificationFilter.NEAREST,
+                magnificationFilter: Cesium.TextureMagnificationFilter.NEAREST
+            })
+        };
+
+        var particlesTexture0 = Util.createTexture(particlesTextureOptions, particlesArray);
+        var particlesTexture1 = Util.createTexture(particlesTextureOptions, particlesArray);
+
+        var particlesFramebuffer0 = Util.createFramebuffer(this.context, particlesTexture0);
+        var particlesFramebuffer1 = Util.createFramebuffer(this.context, particlesTexture1);
+
+        // used for ping-pong render
+        this.fromParticles = particlesFramebuffer0;
+        this.toParticles = particlesFramebuffer1;
+    }
+
+    setupOutputFramebuffers() {
         const colorTextureOptions = {
             context: this.context,
             width: this.context.drawingBufferWidth,
             height: this.context.drawingBufferHeight,
             pixelFormat: Cesium.PixelFormat.RGBA,
-            pixelDatatype: Cesium.PixelDatatype.UNSIGNED_BYTE,
-            sampler: Util.getDataTextureSampler()
+            pixelDatatype: Cesium.PixelDatatype.UNSIGNED_BYTE
         }
 
         const depthTextureOptions = {
@@ -97,27 +105,24 @@ class ParticleSystem {
             width: this.context.drawingBufferWidth,
             height: this.context.drawingBufferHeight,
             pixelFormat: Cesium.PixelFormat.DEPTH_COMPONENT,
-            pixelDatatype: Cesium.PixelDatatype.UNSIGNED_INT,
-            sampler: Util.getDataTextureSampler()
+            pixelDatatype: Cesium.PixelDatatype.UNSIGNED_INT
         }
 
-        this.pointsColorTexture = Util.createTexture(colorTextureOptions);
-        this.pointsDepthTexture = Util.createTexture(depthTextureOptions);
+        var pointsColorTexture = Util.createTexture(colorTextureOptions);
+        var pointsDepthTexture = Util.createTexture(depthTextureOptions);
+        this.pointsFramebuffer = Util.createFramebuffer(this.context, pointsColorTexture, pointsDepthTexture);
 
-        this.trailsColorTexture0 = Util.createTexture(colorTextureOptions);
-        this.trailsColorTexture1 = Util.createTexture(colorTextureOptions);
+        var trailsColorTexture0 = Util.createTexture(colorTextureOptions);
+        var trailsDepthTexture0 = Util.createTexture(depthTextureOptions);
+        var trailsFramebuffer0 = Util.createFramebuffer(this.context, trailsColorTexture0, trailsDepthTexture0);
 
-        this.trailsDepthTexture0 = Util.createTexture(depthTextureOptions);
-        this.trailsDepthTexture1 = Util.createTexture(depthTextureOptions);
-
-        this.pointsFramebuffer = Util.createFramebuffer(this.context, this.pointsColorTexture, this.pointsDepthTexture);
-
-        this.trailsFramebuffer0 = Util.createFramebuffer(this.context, this.trailsColorTexture0, this.trailsDepthTexture0);
-        this.trailsFramebuffer1 = Util.createFramebuffer(this.context, this.trailsColorTexture1, this.trailsDepthTexture1);
+        var trailsColorTexture1 = Util.createTexture(colorTextureOptions);
+        var trailsDepthTexture1 = Util.createTexture(depthTextureOptions);
+        var trailsFramebuffer1 = Util.createFramebuffer(this.context, trailsColorTexture1, trailsDepthTexture1);
 
         // used for ping-pong render
-        this.currentTrails = this.trailsFramebuffer0;
-        this.nextTrails = this.trailsFramebuffer1;
+        this.currentTrails = trailsFramebuffer0;
+        this.nextTrails = trailsFramebuffer1;
     }
 
     initComputePrimitive() {
@@ -152,10 +157,10 @@ class ParticleSystem {
         const that = this;
         const uniformMap = {
             U: function () {
-                return that.U;
+                return that.uniformValues.U;
             },
             V: function () {
-                return that.V;
+                return that.uniformValues.V;
             },
             particles: function () {
                 return that.fromParticles.getColorTexture(0);
@@ -179,36 +184,37 @@ class ParticleSystem {
                 return vSpeedRange;
             },
             relativeSpeedRange: function () {
-                return that.relativeSpeedRange;
+                return that.uniformValues.relativeSpeedRange;
             },
             lonRange: function () {
-                return that.lonRange;
+                return that.uniformValues.lonRange;
             },
             latRange: function () {
-                return that.latRange;
+                return that.uniformValues.latRange;
             },
             dropRate: function () {
                 return that.particleSystemOptions.dropRate;
             },
             dropRateBump: function () {
-                return that.particleSystemOptions.dropRateBump;;
+                return that.particleSystemOptions.dropRateBump;
             }
         }
 
+        const particlesTextureSize = this.particleSystemOptions.particlesTextureSize;
         const rawRenderState = Util.createRawRenderState({
             viewport: new Cesium.BoundingRectangle(0, 0,
-                this.data.particles.textureSize, this.data.particles.textureSize),
+                particlesTextureSize, particlesTextureSize),
             depthTest: {
                 enabled: false
             }
         });
 
         const vertexShaderSource = new Cesium.ShaderSource({
-            sources: [Util.getText('glsl/fullscreen.vert')]
+            sources: [Util.loadText('glsl/fullscreen.vert')]
         });
 
         const fragmentShaderSource = new Cesium.ShaderSource({
-            sources: [Util.getText('glsl/update.frag')]
+            sources: [Util.loadText('glsl/update.frag')]
         });
 
         this.computePrimitive = new CustomPrimitive({
@@ -234,38 +240,44 @@ class ParticleSystem {
         }
     }
 
-    initParticleLinePrimitive() {
+    initParticlePointPrimitive() {
         var particleIndex = [];
 
-        for (var s = 0; s < this.data.particles.textureSize; s++) {
-            for (var t = 0; t < this.data.particles.textureSize; t++) {
-                particleIndex.push(s / this.data.particles.textureSize);
-                particleIndex.push(t / this.data.particles.textureSize);
+        for (var s = 0; s < this.particleSystemOptions.particlesTextureSize; s++) {
+            for (var t = 0; t < this.particleSystemOptions.particlesTextureSize; t++) {
+                for (var i = 0; i < 2; i++) {
+                    particleIndex.push(s / this.particleSystemOptions.particlesTextureSize);
+                    particleIndex.push(t / this.particleSystemOptions.particlesTextureSize);
+                    particleIndex.push(i);
+                }
             }
         }
         particleIndex = new Float32Array(particleIndex);
 
         const particlePoints = new Cesium.Geometry({
             attributes: new Cesium.GeometryAttributes({
-                st: new Cesium.GeometryAttribute({
+                position: new Cesium.GeometryAttribute({
                     componentDatatype: Cesium.ComponentDatatype.FLOAT,
-                    componentsPerAttribute: 2,
+                    componentsPerAttribute: 3,
                     values: particleIndex
                 })
             })
         });
 
         const attributeLocations = {
-            st: 0
+            position: 0
         };
 
         const that = this;
         const uniformMap = {
-            particles: function () {
+            fromParticles: function () {
+                return that.fromParticles.getColorTexture(0);
+            },
+            toParticles: function () {
                 return that.toParticles.getColorTexture(0);
             },
-            colorRamp: function () {
-                return that.colorRamp;
+            colorTable: function () {
+                return that.uniformValues.colorTable;
             }
         };
 
@@ -279,17 +291,17 @@ class ParticleSystem {
         });
 
         const vertexShaderSource = new Cesium.ShaderSource({
-            sources: [Util.getText('glsl/pointDraw.vert')]
+            sources: [Util.loadText('glsl/pointDraw.vert')]
         });
 
         const fragmentShaderSource = new Cesium.ShaderSource({
-            sources: [Util.getText('glsl/pointDraw.frag')]
+            sources: [Util.loadText('glsl/pointDraw.frag')]
         });
 
         this.particlePointsPrimitive = new CustomPrimitive({
             geometry: particlePoints,
             attributeLocations: attributeLocations,
-            primitiveType: Cesium.PrimitiveType.POINTS,
+            primitiveType: Cesium.PrimitiveType.LINES,
             uniformMap: uniformMap,
             vertexShaderSource: vertexShaderSource,
             fragmentShaderSource: fragmentShaderSource,
@@ -336,12 +348,12 @@ class ParticleSystem {
         // prevent Cesium from writing depth because the depth here should be written manually
         const vertexShaderSource = new Cesium.ShaderSource({
             defines: ['DISABLE_GL_POSITION_LOG_DEPTH'],
-            sources: [Util.getText('glsl/fullscreen.vert')]
+            sources: [Util.loadText('glsl/fullscreen.vert')]
         });
 
         const fragmentShaderSource = new Cesium.ShaderSource({
             defines: ['DISABLE_LOG_DEPTH_FRAGMENT_WRITE'],
-            sources: [Util.getText('glsl/trailDraw.frag')]
+            sources: [Util.loadText('glsl/trailDraw.frag')]
         });
 
         this.particleTrailsPrimitive = new CustomPrimitive({
@@ -404,12 +416,12 @@ class ParticleSystem {
         // prevent Cesium from writing depth because the depth here should be written manually
         const vertexShaderSource = new Cesium.ShaderSource({
             defines: ['DISABLE_GL_POSITION_LOG_DEPTH'],
-            sources: [Util.getText('glsl/fullscreen.vert')]
+            sources: [Util.loadText('glsl/fullscreen.vert')]
         });
 
         const fragmentShaderSource = new Cesium.ShaderSource({
             defines: ['DISABLE_LOG_DEPTH_FRAGMENT_WRITE'],
-            sources: [Util.getText('glsl/screenDraw.frag')]
+            sources: [Util.loadText('glsl/screenDraw.frag')]
         });
 
         this.screenPrimitive = new CustomPrimitive({
@@ -438,21 +450,22 @@ class ParticleSystem {
         this.clearFramebuffer();
 
         var lonLatRange = viewerParameters.lonLatRange;
-        this.lonRange.x = lonLatRange.lon.min;
-        this.lonRange.y = lonLatRange.lon.max;
-        this.latRange.x = lonLatRange.lat.min;
-        this.latRange.y = lonLatRange.lat.max;
+        this.uniformValues.lonRange.x = lonLatRange.lon.min;
+        this.uniformValues.lonRange.y = lonLatRange.lon.max;
+        this.uniformValues.latRange.x = lonLatRange.lat.min;
+        this.uniformValues.latRange.y = lonLatRange.lat.max;
 
         var pixelSize = viewerParameters.pixelSize;
-        this.relativeSpeedRange.x = this.particleSystemOptions.uvMinFactor * pixelSize;
-        this.relativeSpeedRange.y = this.particleSystemOptions.uvMaxFactor * pixelSize;
+        this.uniformValues.relativeSpeedRange.x = this.particleSystemOptions.uvMinFactor * pixelSize;
+        this.uniformValues.relativeSpeedRange.y = this.particleSystemOptions.uvMaxFactor * pixelSize;
 
-        var maxParticles = this.data.particles.textureSize * this.data.particles.textureSize;
+        const particlesTextureSize = this.particleSystemOptions.particlesTextureSize;
+        var maxParticles = particlesTextureSize * particlesTextureSize;
         this.data.particles.array = DataProcess.randomizeParticle(maxParticles, lonLatRange);
 
         this.fromParticles.destroy();
         this.toParticles.destroy();
-        this.setupParticleTexturesAndFramebuffers(this.data.particles.textureSize, this.data.particles.array);
+        this.setupParticlesFramebuffers();
     }
 
     canvasResize(cesiumContext) {
@@ -463,7 +476,9 @@ class ParticleSystem {
         this.nextTrails.destroy();
 
         this.context = cesiumContext;
-        this.setupAllTexturesAndFramebuffers(this.data);
+        this.setupDataTextures();
+        this.setupParticlesFramebuffers();
+        this.setupOutputFramebuffers();
 
         this.computePrimitive._drawCommand.framebuffer = this.toParticles;
         this.particlePointsPrimitive._clearCommand.framebuffer = this.pointsFramebuffer;

@@ -1,5 +1,5 @@
 var Util = (function () {
-	var getText = function (filePath) {
+	var loadText = function (filePath) {
 		var request = new XMLHttpRequest();
 		request.open('GET', filePath, false);
 		request.send(null);
@@ -42,18 +42,6 @@ var Util = (function () {
 		return fullscreenQuad;
 	}
 
-	var dataTextureSampler = undefined;
-	var getDataTextureSampler = function () {
-		if (!Cesium.defined(dataTextureSampler)) {
-			dataTextureSampler = new Cesium.Sampler({
-				// the values of data texture should not be interpolated
-				minificationFilter: Cesium.TextureMinificationFilter.NEAREST,
-				magnificationFilter: Cesium.TextureMagnificationFilter.NEAREST
-			});
-		}
-		return dataTextureSampler;
-	}
-
 	var createTexture = function (options, typedArray) {
 		if (Cesium.defined(typedArray)) {
 			// typed array needs to be passed as source option, this is required by Cesium.Texture
@@ -89,7 +77,7 @@ var Util = (function () {
 		return rawRenderState;
 	}
 
-	var rectangleToLonLatRange = function (viewRectangle) {
+	var viewRectangleToLonLatRange = function (viewRectangle) {
 		var range = {};
 
 		var postiveWest = Cesium.Math.mod(viewRectangle.west, Cesium.Math.TWO_PI);
@@ -141,12 +129,11 @@ var Util = (function () {
 	}
 
 	return {
-		getText: getText,
+		loadText: loadText,
 		getFullscreenQuad: getFullscreenQuad,
-		getDataTextureSampler: getDataTextureSampler,
 		createTexture: createTexture,
 		createFramebuffer: createFramebuffer,
 		createRawRenderState: createRawRenderState,
-		rectangleToLonLatRange: rectangleToLonLatRange
+		viewRectangleToLonLatRange: viewRectangleToLonLatRange
 	};
 })();

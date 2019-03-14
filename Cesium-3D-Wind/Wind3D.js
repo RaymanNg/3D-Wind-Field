@@ -1,5 +1,5 @@
 class Wind3D {
-    constructor(filePath, particleSystemOptions) {
+    constructor(fileOptions, particleSystemOptions) {
         this.viewer = new Cesium.Viewer('cesiumContainer', {
             scene3DOnly: true,
             fullscreenElement: 'cesiumContainer',
@@ -13,7 +13,7 @@ class Wind3D {
         this.globeBoundingSphere = new Cesium.BoundingSphere(Cesium.Cartesian3.ZERO, 0.99 * 6378137.0);
         var viewerParameters = this.getViewerParameters();
 
-        DataProcess.process(filePath, particleSystemOptions, viewerParameters.lonLatRange).then(
+        DataProcess.process(fileOptions, particleSystemOptions, viewerParameters.lonLatRange).then(
             (data) => {
                 this.particleSystem = new ParticleSystem(
                     this.scene.context, data,
@@ -34,7 +34,7 @@ class Wind3D {
         var viewerParameters = {};
 
         var viewRectangle = this.camera.computeViewRectangle(this.scene.globe.ellipsoid);
-        viewerParameters.lonLatRange = Util.rectangleToLonLatRange(viewRectangle);
+        viewerParameters.lonLatRange = Util.viewRectangleToLonLatRange(viewRectangle);
 
         viewerParameters.pixelSize = this.camera.getPixelSize(
             this.globeBoundingSphere,
