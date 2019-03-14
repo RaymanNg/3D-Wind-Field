@@ -82,38 +82,29 @@ var DataProcess = (function () {
         data.colorTable.array = colorsArray;
     }
 
-    var randomizeParticle = function (maxParticles, lonLatRange) {
-        var array = new Float32Array(4 * maxParticles);
+    var loadData = async function (fileOptions) {
+        var ncFilePath = fileOptions.directory + fileOptions.dataFilePrefix + fileOptions.dataIndex + '.nc';
+        await loadNetCDF(ncFilePath);
+
+        var colorTableFilePath = fileOptions.directory + fileOptions.colorTableFileName;
+        loadColorTable(colorTableFilePath);
+
+        return data;
+    }
+
+    var randomizeParticleLonLatLev = function (maxParticles, lonLatRange) {
+        var array = new Float32Array(3 * maxParticles);
         for (var i = 0; i < maxParticles; i++) {
-            array[4 * i] = Cesium.Math.randomBetween(lonLatRange.lon.min, lonLatRange.lon.max);
-            array[4 * i + 1] = Cesium.Math.randomBetween(lonLatRange.lat.min, lonLatRange.lat.max);
-            array[4 * i + 2] = Cesium.Math.randomBetween(data.lev.min, data.lev.max);
-            array[4 * i + 3] = Cesium.Math.randomBetween(-20.0, 20.0);
+            array[3 * i] = Cesium.Math.randomBetween(lonLatRange.lon.min, lonLatRange.lon.max);
+            array[3 * i + 1] = Cesium.Math.randomBetween(lonLatRange.lat.min, lonLatRange.lat.max);
+            array[3 * i + 2] = Cesium.Math.randomBetween(data.lev.max, data.lev.max);
         }
         return array;
     }
 
-    var setupParticle = function (particleSystemOptions, lonLatRange) {
-        const particlesTextureSize = particleSystemOptions.particlesTextureSize;
-        const maxParticles = particlesTextureSize * particlesTextureSize;
-
-        data.particles = {};
-        data.particles.array = randomizeParticle(maxParticles, lonLatRange);
-    }
-
-    var process = async function (fileOptions, particleSystemOptions, lonLatRange) {
-        var filePath = fileOptions.directory + fileOptions.dataFilePrefix + fileOptions.dataIndex + '.nc';
-        await loadNetCDF(filePath).then(function () {
-            setupParticle(particleSystemOptions, lonLatRange);
-        });
-
-        loadColorTable(fileOptions.directory + fileOptions.colorTableFileName);
-        return data;
-    }
-
     return {
-        process: process,
-        randomizeParticle: randomizeParticle
+        loadData: loadData,
+        randomizeParticleLonLatLev: randomizeParticleLonLatLev
     };
 
 })();

@@ -1,5 +1,7 @@
-varying vec4 particleColor;
+uniform sampler2D colorTable;
+
+varying float relativeSpeed;
 
 void main() {
-    gl_FragColor = particleColor;
+    gl_FragColor = texture2D(colorTable, vec2(relativeSpeed, 0.0));
 }
