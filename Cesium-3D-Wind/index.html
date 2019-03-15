@@ -3,16 +3,21 @@
 
 <head>
   <script src="lib/netcdfjs.js"></script>
-  <script charset="UTF-8" src="lib/CesiumUnminified/Cesium.js"></script>
   <link href="lib/CesiumUnminified/Widgets/widgets.css" rel="stylesheet" />
+  <style>
+    .myPanel {
+      position: absolute;
+      top: 5px;
+      left: 5px;
+    }
+  </style>
+  <script charset="UTF-8" src="lib/CesiumUnminified/Cesium.js"></script>
   <script src="lib/spector.bundle.js"></script>
   <script type="text/javascript" src="lib/dat.gui.min.js"></script>
 </head>
 
 <body>
-  <div id="cesiumContainer">
-    <div id='panel'></div>
-  </div>
+  <div id="cesiumContainer"></div>
   <script src="util.js"></script>
   <script src="dataProcess.js"></script>
   <script src="customPrimitive.js"></script>

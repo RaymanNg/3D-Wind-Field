@@ -39,7 +39,8 @@ class Panel {
             gui.add(that, 'dropRateBump', 0, 0.2).onFinishChange(onAnyValueChange);
             gui.add(that, 'speedFactor', 0.5, 10).onFinishChange(onAnyValueChange);
 
-            var panelContainer = document.getElementsByClassName('cesium-viewer-toolbar').item(0);
+            var panelContainer = document.getElementsByClassName('cesium-widget').item(0);
+            gui.domElement.classList.add('myPanel');
             panelContainer.appendChild(gui.domElement);
         };
     }
