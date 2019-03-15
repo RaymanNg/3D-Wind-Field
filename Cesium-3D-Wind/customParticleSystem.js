@@ -248,7 +248,7 @@ class ParticleSystem {
             commandType: 'Compute',
             uniformMap: uniformMap,
             fragmentShaderSource: fragmentShaderSource,
-            outputTexture: this.outputTextures.toParticles
+            outputTextures: [this.outputTextures.toParticles]
         });
 
         // redefine the preExecute function for ping-pong particles computation
@@ -259,7 +259,7 @@ class ParticleSystem {
             that.outputTextures.fromParticles = that.outputTextures.toParticles;
             that.outputTextures.toParticles = temp;
 
-            this.commandToExecute.outputTexture = that.outputTextures.toParticles;
+            this.commandToExecute.outputTextures[0] = that.outputTextures.toParticles;
         }
 
         return primitive;
@@ -511,7 +511,7 @@ class ParticleSystem {
         this.setupParticlesTextures();
         this.setupOutputFramebuffers();
 
-        this.primitives.compute.commandToExecute.outputTexture = this.outputTextures.toParticles;
+        this.primitives.compute.commandToExecute.outputTextures[0] = this.outputTextures.toParticles;
         this.primitives.segments.clearCommand.framebuffer = this.framebuffers.segments;
         this.primitives.segments.commandToExecute.framebuffer = this.framebuffers.segments;
         this.primitives.trails.clearCommand.framebuffer = this.framebuffers.nextTrails;
