@@ -7,6 +7,8 @@ class ParticleSystem {
         this.particleSystemOptions.particlesTextureSize = Math.ceil(Math.sqrt(this.particleSystemOptions.maxParticles));
         this.particlesArray = DataProcess.randomizeParticleLonLatLev(this.particleSystemOptions.maxParticles, viewerParameters.lonLatRange);
 
+        this.viewerParameters = viewerParameters;
+
         this.clearCommand = new Cesium.ClearCommand({
             color: new Cesium.Color(0.0, 0.0, 0.0, 0.0),
             depth: 1.0,
@@ -27,15 +29,12 @@ class ParticleSystem {
          * @type {uniformVariables}
          */
         this.uniformVariables = {
-            lonRange: new Cesium.Cartesian2(0.0, 360.0),
-            latRange: new Cesium.Cartesian2(-90.0, 90.0),
-            relativeSpeedRange: new Cesium.Cartesian2(
-                this.particleSystemOptions.uvMinFactor * viewerParameters.pixelSize,
-                this.particleSystemOptions.uvMaxFactor * viewerParameters.pixelSize
-            )
+            lonRange: new Cesium.Cartesian2(),
+            latRange: new Cesium.Cartesian2(),
+            relativeSpeedRange: new Cesium.Cartesian2()
         };
 
-        this.setUnifromValues(viewerParameters);
+        this.setRangeValues();
         this.setupDataTextures();
 
         /**
@@ -71,16 +70,16 @@ class ParticleSystem {
         };
     }
 
-    setUnifromValues(viewerParameters) {
-        var lonLatRange = viewerParameters.lonLatRange;
+    setRangeValues() {
+        var lonLatRange = this.viewerParameters.lonLatRange;
         this.uniformVariables.lonRange.x = lonLatRange.lon.min;
         this.uniformVariables.lonRange.y = lonLatRange.lon.max;
         this.uniformVariables.latRange.x = lonLatRange.lat.min;
         this.uniformVariables.latRange.y = lonLatRange.lat.max;
 
-        var pixelSize = viewerParameters.pixelSize;
-        this.uniformVariables.relativeSpeedRange.x = this.particleSystemOptions.uvMinFactor * pixelSize;
-        this.uniformVariables.relativeSpeedRange.y = this.particleSystemOptions.uvMaxFactor * pixelSize;
+        var pixelSize = this.viewerParameters.pixelSize;
+        this.uniformVariables.relativeSpeedRange.x = -this.particleSystemOptions.speedFactor * pixelSize;
+        this.uniformVariables.relativeSpeedRange.y = this.particleSystemOptions.speedFactor * pixelSize;
     }
 
     setupDataTextures() {
@@ -172,11 +171,6 @@ class ParticleSystem {
     }
 
     initComputePrimitive() {
-        const attributeLocations = {
-            position: 0,
-            st: 1
-        };
-
         const minimum = new Cesium.Cartesian3(this.data.lon.min, this.data.lat.min, this.data.lev.min);
         const maximum = new Cesium.Cartesian3(this.data.lon.max, this.data.lat.max, this.data.lev.max);
         const dimension = new Cesium.Cartesian3(
@@ -246,36 +240,19 @@ class ParticleSystem {
             }
         }
 
-        const rawRenderState = Util.createRawRenderState({
-            viewport: new Cesium.BoundingRectangle(0, 0,
-                this.particleSystemOptions.particlesTextureSize, this.particleSystemOptions.particlesTextureSize),
-            depthTest: {
-                enabled: false
-            }
-        });
-
-        const vertexShaderSource = new Cesium.ShaderSource({
-            sources: [Util.loadText('glsl/fullscreen.vert')]
-        });
-
         const fragmentShaderSource = new Cesium.ShaderSource({
             sources: [Util.loadText('glsl/update.frag')]
         });
 
         var primitive = new CustomPrimitive({
             commandType: 'Compute',
-            geometry: Util.getFullscreenQuad(),
-            attributeLocations: attributeLocations,
-            primitiveType: Cesium.PrimitiveType.TRIANGLES,
             uniformMap: uniformMap,
-            vertexShaderSource: vertexShaderSource,
             fragmentShaderSource: fragmentShaderSource,
-            rawRenderState: rawRenderState,
             outputTexture: this.outputTextures.toParticles
         });
 
         // redefine the preExecute function for ping-pong particles computation
-        primitive.compute.preExecute = function () {
+        primitive.preExecute = function () {
             // swap framebuffers before binding framebuffer
             var temp;
             temp = that.outputTextures.fromParticles;
@@ -484,7 +461,7 @@ class ParticleSystem {
         return primitive;
     }
 
-    clearFramebuffer() {
+    clearOutputFramebuffers() {
         this.clearCommand.framebuffer = this.framebuffers.segments;
         this.clearCommand.execute(this.context);
 
@@ -500,10 +477,15 @@ class ParticleSystem {
     }
 
     refreshParticle(viewerParameters) {
-        this.clearFramebuffer();
+        this.viewerParameters = viewerParameters;
 
-        this.setUnifromValues(viewerParameters);
-        this.particlesArray = DataProcess.randomizeParticleLonLatLev(this.particleSystemOptions.maxParticles, viewerParameters.lonLatRange);
+        this.clearOutputFramebuffers();
+
+        this.setRangeValues();
+
+        var maxParticles = this.particleSystemOptions.maxParticles;
+        var lonLatRange = this.viewerParameters.lonLatRange;
+        this.particlesArray = DataProcess.randomizeParticleLonLatLev(maxParticles, lonLatRange);
 
         this.destroyParticlesTextures();
         this.setupParticlesTextures();
@@ -516,8 +498,6 @@ class ParticleSystem {
 
         this.destroyParticlesTextures();
 
-        this.outputTextures.fromParticles.destroy();
-        this.outputTextures.toParticles.destroy();
         this.framebuffers.segments.destroy();
         this.framebuffers.currentTrails.destroy();
         this.framebuffers.nextTrails.destroy();
@@ -536,5 +516,12 @@ class ParticleSystem {
         this.primitives.segments.commandToExecute.framebuffer = this.framebuffers.segments;
         this.primitives.trails.clearCommand.framebuffer = this.framebuffers.nextTrails;
         this.primitives.trails.commandToExecute.framebuffer = this.framebuffers.nextTrails;
+    }
+
+    applyParticleSystemOptions(particleSystemOptions) {
+        this.particleSystemOptions = particleSystemOptions;
+        this.particleSystemOptions.particlesTextureSize = Math.ceil(Math.sqrt(this.particleSystemOptions.maxParticles));
+        this.setRangeValues();
+        this.refreshParticle(this.viewerParameters);
     }
 }

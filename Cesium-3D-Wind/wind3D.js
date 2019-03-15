@@ -1,9 +1,13 @@
 class Wind3D {
-    constructor(fileOptions, particleSystemOptions) {
+    constructor(fileOptions, particleSystemOptions, debugMode) {
         this.viewer = new Cesium.Viewer('cesiumContainer', {
+            baseLayerPicker: false,
+            geocoder: false,
+            infoBox: false,
             fullscreenElement: 'cesiumContainer',
-            scene3DOnly: true,
-            terrainProvider: Cesium.createWorldTerrain()
+            useDefaultRenderLoop: !debugMode,
+            terrainProvider: Cesium.createWorldTerrain(),
+            scene3DOnly: true
         });
         this.scene = this.viewer.scene;
         this.camera = this.viewer.camera;
@@ -23,6 +27,10 @@ class Wind3D {
                 this.scene.primitives.add(this.particleSystem.primitives.screen);
 
                 this.setupEventListeners();
+
+                if (debugMode) {
+                    this.debug();
+                }
             });
     }
 
@@ -67,13 +75,18 @@ class Wind3D {
                 that.scene.primitives.show = true;
             }
         });
+
+        window.addEventListener('panelChanged', function (event) {
+            that.particleSystem.applyParticleSystemOptions(event.detail);
+        });
     }
 
     debug() {
         const that = this;
 
         var animate = function () {
-            that.scene.render();
+            that.viewer.resize();
+            that.viewer.render();
             requestAnimationFrame(animate);
         }
 
