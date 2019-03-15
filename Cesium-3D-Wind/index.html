@@ -6,15 +6,19 @@
   <script charset="UTF-8" src="lib/CesiumUnminified/Cesium.js"></script>
   <link href="lib/CesiumUnminified/Widgets/widgets.css" rel="stylesheet" />
   <script src="lib/spector.bundle.js"></script>
+  <script type="text/javascript" src="lib/dat.gui.min.js"></script>
 </head>
 
 <body>
-  <div id="cesiumContainer"></div>
-  <script src="dataProcess.js"></script>
+  <div id="cesiumContainer">
+    <div id='panel'></div>
+  </div>
   <script src="util.js"></script>
+  <script src="dataProcess.js"></script>
   <script src="customPrimitive.js"></script>
   <script src="customParticleSystem.js"></script>
   <script src="wind3D.js"></script>
+  <script src="gui.js"></script>
   <script src="app.js"></script>
 </body>
 
