@@ -35,7 +35,7 @@ class Panel {
             gui.add(that, 'dataIndex', 0, 431).onFinishChange(onAnyValueChange);
             gui.add(that, 'maxParticles', 32 * 32, 256 * 256).onFinishChange(onAnyValueChange);
             gui.add(that, 'fadeOpacity', 0.96, 0.999, 0.001).onFinishChange(onAnyValueChange);
-            gui.add(that, 'dropRate', 0, 0.1).onFinishChange(onAnyValueChange);
+            gui.add(that, 'dropRate', 0.0, 0.1).onFinishChange(onAnyValueChange);
             gui.add(that, 'dropRateBump', 0, 0.2).onFinishChange(onAnyValueChange);
             gui.add(that, 'speedFactor', 0.5, 10).onFinishChange(onAnyValueChange);
 

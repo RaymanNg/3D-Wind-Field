@@ -14,7 +14,7 @@ class CustomPrimitive {
         this.rawRenderState = options.rawRenderState;
         this.framebuffer = options.framebuffer;
 
-        this.outputTexture = options.outputTexture;
+        this.outputTextures = options.outputTextures;
 
         this.autoClear = Cesium.defaultValue(options.autoClear, false);
 
@@ -66,7 +66,7 @@ class CustomPrimitive {
                     owner: this,
                     fragmentShaderSource: this.fragmentShaderSource,
                     uniformMap: this.uniformMap,
-                    outputTexture: this.outputTexture,
+                    outputTextures: this.outputTextures,
                     persists: true
                 });
             }
