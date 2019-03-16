@@ -1,7 +1,8 @@
 attribute vec3 position;
 
-uniform sampler2D fromParticles;
-uniform sampler2D toParticles;
+uniform sampler2D fromParticlesRandomized;
+uniform sampler2D toParticlesRandomized;
+uniform sampler2D particlesRelativeSpeed;
 
 varying float relativeSpeed;
 
@@ -13,10 +14,10 @@ vec3 convertCoordinate(vec3 lonLatLev) {
     float a = 6378137.0; // Semi-major axis 
     float b = 6356752.3142; // Semi-minor axis 
     float e2 = 6.69437999014e-3; // First eccentricity squared
-	
-	float latitude = radians(lonLatLev.y);
-	float longitude = radians(lonLatLev.x);
-	
+
+    float latitude = radians(lonLatLev.y);
+    float longitude = radians(lonLatLev.x);
+
     float cosLat = cos(latitude);
     float sinLat = sin(latitude);
     float cosLon = cos(longitude);
@@ -33,23 +34,22 @@ vec3 convertCoordinate(vec3 lonLatLev) {
 }
 
 void main() {
-    vec4 texel = vec4(0.0);
     vec2 particleIndex = position.xy;
-    if (position.z > 0.0) {
-        texel = texture2D(fromParticles, particleIndex);
+    vec4 texel = vec4(0.0);
+    if (position.z < 1.0) {
+        texel = texture2D(fromParticlesRandomized, particleIndex);
     } else {
-        texel = texture2D(toParticles, particleIndex);
+        texel = texture2D(toParticlesRandomized, particleIndex);
     }
 
-    vec3 lonLatLev = texel.rgb;
-
     // the range of longitude in Cesium is [-180, 180] but the range of longitude in the NetCDF file is [0, 360]
-    // [0, 180] is corresponding to [0, 180] and [180, 360] is corresponding to [-180, 0]
+    // [0, 180] is corresponding to [0, 180] and [180, 360] is corresponding to [-180, 0
+    vec3 lonLatLev = texel.rgb;
     lonLatLev.x = mod(lonLatLev.x + 180.0, 360.0) - 180.0;
     vec3 particlePosition = convertCoordinate(lonLatLev);
     vec4 cesiumPosition = vec4(particlePosition, 1.0);
 
-    relativeSpeed = texel.a;
+    relativeSpeed = length(texture2D(particlesRelativeSpeed, particleIndex).rgb);
 
     gl_Position = czm_modelViewProjection * cesiumPosition;
 }
