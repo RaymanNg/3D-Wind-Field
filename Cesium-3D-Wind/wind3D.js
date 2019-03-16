@@ -21,7 +21,8 @@ class Wind3D {
                 this.particleSystem = new ParticleSystem(this.scene.context, windData, particleSystemOptions, viewerParameters);
 
                 // the order of primitives.add should respect the dependency of primitives
-                this.scene.primitives.add(this.particleSystem.primitives.compute);
+                this.scene.primitives.add(this.particleSystem.primitives.particlesUpdate);
+                this.scene.primitives.add(this.particleSystem.primitives.particlesRandomize);
                 this.scene.primitives.add(this.particleSystem.primitives.segments);
                 this.scene.primitives.add(this.particleSystem.primitives.trails);
                 this.scene.primitives.add(this.particleSystem.primitives.screen);
