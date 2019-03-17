@@ -1,4 +1,4 @@
-# 3D-Wind-Field - [Demo](https://RaymanNg.github.io/3D-Wind-Field/demo/)
+# 3D-Wind-Field - [Demo](https://raymanng.github.io/3D-Wind-Field/demo/)
 My graduation project
 
 ## How to start the application
