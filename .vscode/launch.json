@@ -1,0 +1,27 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "chrome",
+            "request": "launch",
+            "runtimeExecutable": "${env:CHROME_PATH}\\GoogleChromePortable.exe",
+            "runtimeArgs": [
+                "--incognito"
+            ],
+            "name": "Launch Cesium 3D Wind",
+            "url": "http://localhost:5500/Cesium-3D-Wind/index.html",
+            "webRoot": "${workspaceFolder}"
+        },
+        {
+            "type": "PowerShell",
+            "request": "launch",
+            "name": "launch PowerShell script",
+            "script": "${file}",
+            "args": [],
+            "cwd": "${file}"
+        }
+    ]
+}

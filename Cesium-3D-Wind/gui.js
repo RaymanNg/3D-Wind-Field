@@ -1,7 +1,9 @@
 var demo = Cesium.defaultValue(demo, false);
 
 const defaultFileOptions = {
-    directory: demo == true ? '../3D-Wind-Field/' : '',
+    useDemoData: demo,
+    dataDirectory: '../data/',
+    glslDirectory: demo ? '../Cesium-3D-Wind/glsl/' : 'glsl/',
     dataIndex: 0
 }
 
@@ -15,7 +17,9 @@ const defaultParticleSystemOptions = {
 
 class Panel {
     constructor() {
-        this.directory = defaultFileOptions.directory;
+        this.useDemoData = defaultFileOptions.useDemoData;
+        this.dataDirectory = defaultFileOptions.dataDirectory;
+        this.glslDirectory = defaultFileOptions.glslDirectory;
         this.dataIndex = defaultFileOptions.dataIndex;
 
         this.maxParticles = defaultParticleSystemOptions.maxParticles;
@@ -51,7 +55,9 @@ class Panel {
 
     getFileOptions() {
         return {
-            directory: this.directory,
+            useDemoData: this.useDemoData,
+            dataDirectory: this.dataDirectory,
+            glslDirectory: this.glslDirectory,
             dataIndex: this.dataIndex
         }
     }

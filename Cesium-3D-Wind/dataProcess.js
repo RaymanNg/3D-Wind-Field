@@ -83,10 +83,15 @@ var DataProcess = (function () {
     }
 
     var loadData = async function (fileOptions) {
-        var ncFilePath = fileOptions.directory + 'data/data_' + fileOptions.dataIndex + '.nc';
+        var ncFilePath;
+        if (fileOptions.useDemoData) {
+            ncFilePath = fileOptions.dataDirectory + 'data_' + fileOptions.dataIndex + '.nc';
+        } else {
+            ncFilePath = 'https://raw.githubusercontent.com/RaymanNg/3D-Wind-Field/master/Cesium-3D-Wind/data/demo.nc';
+        }
         await loadNetCDF(ncFilePath);
 
-        var colorTableFilePath = fileOptions.directory + 'data/colorTable.json';
+        var colorTableFilePath = fileOptions.dataDirectory + 'colorTable.json';
         loadColorTable(colorTableFilePath);
 
         return data;
