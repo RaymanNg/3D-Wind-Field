@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "Util"
+		},
+		{
+			"path": "demo"
 		}
 	],
 	"settings": {

@@ -43,7 +43,7 @@ void main() {
     }
 
     // the range of longitude in Cesium is [-180, 180] but the range of longitude in the NetCDF file is [0, 360]
-    // [0, 180] is corresponding to [0, 180] and [180, 360] is corresponding to [-180, 0
+    // [0, 180] is corresponding to [0, 180] and [180, 360] is corresponding to [-180, 0]
     vec3 lonLatLev = texel.rgb;
     lonLatLev.x = mod(lonLatLev.x + 180.0, 360.0) - 180.0;
     vec3 particlePosition = convertCoordinate(lonLatLev);
