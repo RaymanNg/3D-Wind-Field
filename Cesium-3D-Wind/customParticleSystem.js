@@ -1,11 +1,13 @@
 class ParticleSystem {
-    constructor(cesiumContext, windData, particleSystemOptions, viewerParameters) {
+    constructor(cesiumContext, windData, particleSystemOptions, fileOptions, viewerParameters) {
         this.context = cesiumContext;
         this.data = windData;
 
         this.particleSystemOptions = particleSystemOptions;
         this.particleSystemOptions.particlesTextureSize = Math.ceil(Math.sqrt(this.particleSystemOptions.maxParticles));
         this.particlesArray = DataProcess.randomizeParticleLonLatLev(this.particleSystemOptions.maxParticles, viewerParameters.lonLatRange);
+
+        this.fileOptions = fileOptions;
 
         this.viewerParameters = viewerParameters;
 
@@ -239,7 +241,7 @@ class ParticleSystem {
         }
 
         const fragmentShaderSource = new Cesium.ShaderSource({
-            sources: [Util.loadText('glsl/update.frag')]
+            sources: [Util.loadText(this.fileOptions.directory + 'glsl/update.frag')]
         });
 
         var primitive = new CustomPrimitive({
@@ -301,7 +303,7 @@ class ParticleSystem {
         }
 
         const fragmentShaderSource = new Cesium.ShaderSource({
-            sources: [Util.loadText('glsl/random.frag')]
+            sources: [Util.loadText(this.fileOptions.directory + 'glsl/random.frag')]
         });
 
         var primitive = new CustomPrimitive({
@@ -380,11 +382,11 @@ class ParticleSystem {
         });
 
         const vertexShaderSource = new Cesium.ShaderSource({
-            sources: [Util.loadText('glsl/segmentDraw.vert')]
+            sources: [Util.loadText(this.fileOptions.directory + 'glsl/segmentDraw.vert')]
         });
 
         const fragmentShaderSource = new Cesium.ShaderSource({
-            sources: [Util.loadText('glsl/segmentDraw.frag')]
+            sources: [Util.loadText(this.fileOptions.directory + 'glsl/segmentDraw.frag')]
         });
 
         var primitive = new CustomPrimitive({
@@ -445,12 +447,12 @@ class ParticleSystem {
         // prevent Cesium from writing depth because the depth here should be written manually
         const vertexShaderSource = new Cesium.ShaderSource({
             defines: ['DISABLE_GL_POSITION_LOG_DEPTH'],
-            sources: [Util.loadText('glsl/fullscreen.vert')]
+            sources: [Util.loadText(this.fileOptions.directory + 'glsl/fullscreen.vert')]
         });
 
         const fragmentShaderSource = new Cesium.ShaderSource({
             defines: ['DISABLE_LOG_DEPTH_FRAGMENT_WRITE'],
-            sources: [Util.loadText('glsl/trailDraw.frag')]
+            sources: [Util.loadText(this.fileOptions.directory + 'glsl/trailDraw.frag')]
         });
 
         var primitive = new CustomPrimitive({
@@ -509,12 +511,12 @@ class ParticleSystem {
         // prevent Cesium from writing depth because the depth here should be written manually
         const vertexShaderSource = new Cesium.ShaderSource({
             defines: ['DISABLE_GL_POSITION_LOG_DEPTH'],
-            sources: [Util.loadText('glsl/fullscreen.vert')]
+            sources: [Util.loadText(this.fileOptions.directory + 'glsl/fullscreen.vert')]
         });
 
         const fragmentShaderSource = new Cesium.ShaderSource({
             defines: ['DISABLE_LOG_DEPTH_FRAGMENT_WRITE'],
-            sources: [Util.loadText('glsl/screenDraw.frag')]
+            sources: [Util.loadText(this.fileOptions.directory + 'glsl/screenDraw.frag')]
         });
 
         var primitive = new CustomPrimitive({

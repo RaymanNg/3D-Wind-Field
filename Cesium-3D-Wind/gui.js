@@ -1,4 +1,7 @@
+var demo = Cesium.defaultValue(demo, false);
+
 const defaultFileOptions = {
+    directory: demo == true ? '../3D-Wind-Field/' : '',
     dataIndex: 0
 }
 
@@ -12,6 +15,7 @@ const defaultParticleSystemOptions = {
 
 class Panel {
     constructor() {
+        this.directory = defaultFileOptions.directory;
         this.dataIndex = defaultFileOptions.dataIndex;
 
         this.maxParticles = defaultParticleSystemOptions.maxParticles;
@@ -47,6 +51,7 @@ class Panel {
 
     getFileOptions() {
         return {
+            directory: this.directory,
             dataIndex: this.dataIndex
         }
     }
