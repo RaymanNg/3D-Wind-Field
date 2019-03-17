@@ -85,9 +85,9 @@ var DataProcess = (function () {
     var loadData = async function (fileOptions) {
         var ncFilePath;
         if (fileOptions.useDemoData) {
-            ncFilePath = fileOptions.dataDirectory + 'data_' + fileOptions.dataIndex + '.nc';
-        } else {
             ncFilePath = 'https://raw.githubusercontent.com/RaymanNg/3D-Wind-Field/master/data/demo.nc';
+        } else {
+            ncFilePath = fileOptions.dataDirectory + 'data_' + fileOptions.dataIndex + '.nc';
         }
         await loadNetCDF(ncFilePath);
 
