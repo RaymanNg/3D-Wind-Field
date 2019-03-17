@@ -87,7 +87,7 @@ var DataProcess = (function () {
         if (fileOptions.useDemoData) {
             ncFilePath = fileOptions.dataDirectory + 'data_' + fileOptions.dataIndex + '.nc';
         } else {
-            ncFilePath = 'https://raw.githubusercontent.com/RaymanNg/3D-Wind-Field/master/Cesium-3D-Wind/data/demo.nc';
+            ncFilePath = 'https://raw.githubusercontent.com/RaymanNg/3D-Wind-Field/master/data/demo.nc';
         }
         await loadNetCDF(ncFilePath);
 
