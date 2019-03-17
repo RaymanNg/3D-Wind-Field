@@ -1,6 +1,6 @@
 // this file must use UNIX Style End of Line
 // otherwise the regex for #extension in Cesium.ShaderSource won't work
-#extension GL_EXT_draw_buffers : enable
+#extension GL_EXT_draw_buffers: enable
 
 // the size of UV textures: width = lon, height = lat*lev
 uniform sampler2D U; // eastward wind 
@@ -48,7 +48,7 @@ vec3 getWindVector(vec3 lonLatLev) {
     vec2 normalizedIndex2D = mapPositionToNormalizedIndex2D(lonLatLev);
     float u = texture2D(U, normalizedIndex2D).r;
     float v = texture2D(V, normalizedIndex2D).r;
-	float w = 0.0;
+    float w = 0.0;
     return vec3(u, v, w);
 }
 
@@ -112,10 +112,10 @@ void update(vec3 lonLatLev, vec3 windVector) {
     float w = 0.0;
     vec3 windVectorInLonLatLev = vec3(u, v, w);
 
-	vec3 nextParticle = lonLatLev + windVectorInLonLatLev;
-	
-	gl_FragData[0] = vec4(nextParticle, 0.0);
-	gl_FragData[1] = vec4(percent, 0.0);
+    vec3 nextParticle = lonLatLev + windVectorInLonLatLev;
+
+    gl_FragData[0] = vec4(nextParticle, 0.0);
+    gl_FragData[1] = vec4(percent, 0.0);
 }
 
 void main() {
