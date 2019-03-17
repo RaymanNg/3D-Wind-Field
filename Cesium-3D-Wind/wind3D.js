@@ -1,14 +1,25 @@
 class Wind3D {
     constructor(fileOptions, particleSystemOptions, mode) {
-        this.viewer = new Cesium.Viewer('cesiumContainer', {
+        var options = {
             baseLayerPicker: false,
             geocoder: false,
             infoBox: false,
             fullscreenElement: 'cesiumContainer',
-            useDefaultRenderLoop: !mode.debug,
-            terrainProvider: Cesium.createWorldTerrain(),
             scene3DOnly: true
-        });
+        }
+
+        if (mode.debug) {
+            options.useDefaultRenderLoop = false;
+        }
+        if (mode.offline) {
+            options.imageryProvider = Cesium.createTileMapServiceImageryProvider({
+                url: Cesium.buildModuleUrl('Assets/Textures/NaturalEarthII')
+            });
+        } else {
+            options.terrainProvider = Cesium.createWorldTerrain();
+        }
+
+        this.viewer = new Cesium.Viewer('cesiumContainer', options);
         this.scene = this.viewer.scene;
         this.camera = this.viewer.camera;
 
