@@ -1,7 +1,7 @@
 attribute vec3 position;
 
-uniform sampler2D fromParticlesRandomized;
-uniform sampler2D toParticlesRandomized;
+uniform sampler2D currentParticlesRandomized;
+uniform sampler2D nextParticlesRandomized;
 uniform sampler2D particlesRelativeSpeed;
 
 varying float relativeSpeed;
@@ -37,9 +37,9 @@ void main() {
     vec2 particleIndex = position.xy;
     vec4 texel = vec4(0.0);
     if (position.z < 1.0) {
-        texel = texture2D(fromParticlesRandomized, particleIndex);
+        texel = texture2D(currentParticlesRandomized, particleIndex);
     } else {
-        texel = texture2D(toParticlesRandomized, particleIndex);
+        texel = texture2D(nextParticlesRandomized, particleIndex);
     }
 
     // the range of longitude in Cesium is [-180, 180] but the range of longitude in the NetCDF file is [0, 360]
