@@ -5,9 +5,8 @@ My graduation project
 Just create a HTTP server for the index.html file(in the Cesium-3D-Wind folder).
 
 If you have VSCode installed, I recommend to intall the "liveserver" extension. 
-Open the 3D-Wind-Field.code-workspace file in VSCode, then use "liveserver" to create a HTTP server.
 
-Besides, remember to remove the "runtimeExecutable" option in Cesium-3D-Wind\.vscode\launch.json file before 
+Besides, remember to modify the "runtimeExecutable" option in .vscode\launch.json file before 
 starting debug in VSCode
 
 ## Rerference
