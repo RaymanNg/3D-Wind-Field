@@ -6,7 +6,7 @@
 uniform sampler2D U; // eastward wind 
 uniform sampler2D V; // northward wind
 
-uniform sampler2D particlesPosition; // (lon, lat, lev)
+uniform sampler2D currentParticlesPosition; // (lon, lat, lev)
 
 uniform vec3 dimension; // (lon, lat, lev)
 uniform vec3 minimum; // minimum of each dimension
@@ -120,7 +120,7 @@ void update(vec3 lonLatLev, vec3 windVector) {
 
 void main() {
     // texture coordinate must be normalized
-    vec3 lonLatLev = texture2D(particlesPosition, v_textureCoordinates).rgb;
+    vec3 lonLatLev = texture2D(currentParticlesPosition, v_textureCoordinates).rgb;
     vec3 windVector = interpolate(lonLatLev);
 
     update(lonLatLev, windVector);

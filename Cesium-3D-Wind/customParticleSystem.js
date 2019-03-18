@@ -41,11 +41,13 @@ class ParticleSystem {
 
         /**
          * @typedef {Object} outputTextures
-         * @property {Cesium.Texture} fromParticlesPosition
-         * @property {Cesium.Texture} toParticlesPosition
+         * @property {Cesium.Texture} previousParticlesPosition
+         * @property {Cesium.Texture} currentParticlesPosition
+         * @property {Cesium.Texture} nextParticlesPosition
          * @property {Cesium.Texture} particlesRelativeSpeed
-         * @property {Cesium.Texture} fromParticlesRandomized
-         * @property {Cesium.Texture} toParticlesRandomized
+         * @property {Cesium.Texture} previousParticlesRandomized
+         * @property {Cesium.Texture} currentParticlesRandomized
+         * @property {Cesium.Texture} nextParticlesRandomized
          */
 
         /**
@@ -137,15 +139,21 @@ class ParticleSystem {
         var particlesPositionTexture0 = Util.createTexture(particlesTextureOptions, this.particlesArray);
         var particlesPositionTexture1 = Util.createTexture(particlesTextureOptions, this.particlesArray);
         var particlesPositionTexture2 = Util.createTexture(particlesTextureOptions, this.particlesArray);
+
         var particlesPositionTexture3 = Util.createTexture(particlesTextureOptions, this.particlesArray);
+        var particlesPositionTexture4 = Util.createTexture(particlesTextureOptions, this.particlesArray);
+        var particlesPositionTexture5 = Util.createTexture(particlesTextureOptions, this.particlesArray);
 
         this.outputTextures.particlesRelativeSpeed = Util.createTexture(particlesTextureOptions);
 
         // used for ping-pong render
-        this.outputTextures.fromParticlesPosition = particlesPositionTexture0;
-        this.outputTextures.toParticlesPosition = particlesPositionTexture1;
-        this.outputTextures.fromParticlesRandomized = particlesPositionTexture2;
-        this.outputTextures.toParticlesRandomized = particlesPositionTexture3;
+        this.outputTextures.previousParticlesPosition = particlesPositionTexture0;
+        this.outputTextures.currentParticlesPosition = particlesPositionTexture1;
+        this.outputTextures.nextParticlesPosition = particlesPositionTexture2;
+
+        this.outputTextures.previousParticlesRandomized = particlesPositionTexture3;
+        this.outputTextures.currentParticlesRandomized = particlesPositionTexture4;
+        this.outputTextures.nextParticlesRandomized = particlesPositionTexture5;
     }
 
     setupOutputFramebuffers() {
@@ -214,8 +222,8 @@ class ParticleSystem {
             V: function () {
                 return that.uniformVariables.V;
             },
-            particlesPosition: function () {
-                return that.outputTextures.fromParticlesPosition;
+            currentParticlesPosition: function () {
+                return that.outputTextures.currentParticlesPosition;
             },
             dimension: function () {
                 return dimension;
@@ -249,7 +257,7 @@ class ParticleSystem {
             uniformMap: uniformMap,
             fragmentShaderSource: fragmentShaderSource,
             outputTextures: [
-                this.outputTextures.toParticlesPosition,
+                this.outputTextures.nextParticlesPosition,
                 this.outputTextures.particlesRelativeSpeed
             ]
         });
@@ -258,13 +266,22 @@ class ParticleSystem {
         primitive.preExecute = function () {
             // swap framebuffers before binding them
             var temp;
-            temp = that.outputTextures.fromParticlesPosition;
-            that.outputTextures.fromParticlesPosition = that.outputTextures.toParticlesRandomized;
-            that.outputTextures.toParticlesRandomized = temp;
+
+            temp = that.outputTextures.previousParticlesPosition;
+            that.outputTextures.previousParticlesPosition = that.outputTextures.currentParticlesRandomized;
+            that.outputTextures.currentParticlesRandomized = temp;
+
+            temp = that.outputTextures.currentParticlesPosition;
+            that.outputTextures.currentParticlesPosition = that.outputTextures.nextParticlesRandomized;
+            that.outputTextures.nextParticlesRandomized = temp;
+
+            temp = that.outputTextures.nextParticlesPosition;
+            that.outputTextures.nextParticlesPosition = that.outputTextures.previousParticlesRandomized;
+            that.outputTextures.previousParticlesRandomized = temp;
 
             // keep the outputTextures up to date
             this.commandToExecute.outputTextures = [
-                that.outputTextures.toParticlesPosition,
+                that.outputTextures.nextParticlesPosition,
                 that.outputTextures.particlesRelativeSpeed
             ];
         }
@@ -275,11 +292,14 @@ class ParticleSystem {
     initParticlesRandomizePrimitive() {
         const that = this;
         const uniformMap = {
-            fromParticlesPosition: function () {
-                return that.outputTextures.fromParticlesPosition;
+            previousParticlesPosition: function () {
+                return that.outputTextures.previousParticlesPosition;
             },
-            toParticlesPosition: function () {
-                return that.outputTextures.toParticlesPosition;
+            currentParticlesPosition: function () {
+                return that.outputTextures.currentParticlesPosition;
+            },
+            nextParticlesPosition: function () {
+                return that.outputTextures.nextParticlesPosition;
             },
             particlesRelativeSpeed: function () {
                 return that.outputTextures.particlesRelativeSpeed;
@@ -311,16 +331,18 @@ class ParticleSystem {
             uniformMap: uniformMap,
             fragmentShaderSource: fragmentShaderSource,
             outputTextures: [
-                this.outputTextures.fromParticlesRandomized,
-                this.outputTextures.toParticlesRandomized
+                this.outputTextures.previousParticlesRandomized,
+                this.outputTextures.currentParticlesRandomized,
+                this.outputTextures.nextParticlesRandomized
             ]
         });
 
         primitive.preExecute = function () {
             // keep the outputTextures up to date
             this.commandToExecute.outputTextures = [
-                that.outputTextures.fromParticlesRandomized,
-                that.outputTextures.toParticlesRandomized
+                that.outputTextures.previousParticlesRandomized,
+                that.outputTextures.currentParticlesRandomized,
+                that.outputTextures.nextParticlesRandomized
             ];
         }
 
@@ -358,11 +380,11 @@ class ParticleSystem {
 
         const that = this;
         const uniformMap = {
-            fromParticlesRandomized: function () {
-                return that.outputTextures.fromParticlesRandomized;
+            currentParticlesRandomized: function () {
+                return that.outputTextures.currentParticlesRandomized;
             },
-            toParticlesRandomized: function () {
-                return that.outputTextures.toParticlesRandomized;
+            nextParticlesRandomized: function () {
+                return that.outputTextures.nextParticlesRandomized;
             },
             particlesRelativeSpeed: function () {
                 return that.outputTextures.particlesRelativeSpeed;
@@ -544,11 +566,11 @@ class ParticleSystem {
     }
 
     destroyParticlesTextures() {
-        this.outputTextures.fromParticlesPosition.destroy();
-        this.outputTextures.toParticlesPosition.destroy();
+        this.outputTextures.currentParticlesPosition.destroy();
+        this.outputTextures.nextParticlesPosition.destroy();
         this.outputTextures.particlesRelativeSpeed.destroy();
-        this.outputTextures.fromParticlesRandomized.destroy();
-        this.outputTextures.toParticlesRandomized.destroy();
+        this.outputTextures.currentParticlesRandomized.destroy();
+        this.outputTextures.nextParticlesRandomized.destroy();
     }
 
     refreshParticle(viewerParameters) {
