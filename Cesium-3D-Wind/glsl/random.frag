@@ -2,7 +2,6 @@
 // otherwise the regex for #extension in Cesium.ShaderSource won't work
 #extension GL_EXT_draw_buffers : enable
 
-uniform sampler2D previousParticlesPosition;
 uniform sampler2D currentParticlesPosition;
 uniform sampler2D nextParticlesPosition;
 uniform sampler2D particlesRelativeSpeed;
@@ -39,7 +38,6 @@ void main() {
     vec3 relativeSpeed = texture2D(particlesRelativeSpeed, v_textureCoordinates).rgb;
     float particleDropRate = dropRate + dropRateBump * length(relativeSpeed);
 
-    vec4 previousParticle = texture2D(previousParticlesPosition, v_textureCoordinates);
     vec4 currentParticle = texture2D(currentParticlesPosition, v_textureCoordinates);
     vec4 nextParticle = texture2D(nextParticlesPosition, v_textureCoordinates);
 	
@@ -49,12 +47,10 @@ void main() {
 
     float randomNumber = rand(seed2, normalRange);
     if (randomNumber > particleDropRate) {
-        gl_FragData[0] = previousParticle;
-        gl_FragData[1] = currentParticle;
-		gl_FragData[2] = nextParticle;
+        gl_FragData[0] = currentParticle;
+		gl_FragData[1] = nextParticle;
     } else {
         gl_FragData[0] = randomParticle;
-        gl_FragData[1] = randomParticle;
-		gl_FragData[2] = randomParticle;
+		gl_FragData[1] = randomParticle;
     }
 }

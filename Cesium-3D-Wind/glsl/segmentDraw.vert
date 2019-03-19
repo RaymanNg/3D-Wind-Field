@@ -1,8 +1,14 @@
-attribute vec3 position;
+attribute vec2 st;
+// it is not normal itself, but used to control normal
+attribute vec3 normal; // (point to use, offset sign, not used component)
 
 uniform sampler2D currentParticlesRandomized;
 uniform sampler2D nextParticlesRandomized;
 uniform sampler2D particlesRelativeSpeed;
+
+uniform float aspect;
+uniform float pixelSize;
+uniform float lineWidth;
 
 varying float relativeSpeed;
 
@@ -33,23 +39,45 @@ vec3 convertCoordinate(vec3 lonLatLev) {
     return cartesian;
 }
 
-void main() {
-    vec2 particleIndex = position.xy;
-    vec4 texel = vec4(0.0);
-    if (position.z < 1.0) {
-        texel = texture2D(currentParticlesRandomized, particleIndex);
-    } else {
-        texel = texture2D(nextParticlesRandomized, particleIndex);
-    }
-
+vec4 calcProjectedCoord(vec3 lonLatLev) {
     // the range of longitude in Cesium is [-180, 180] but the range of longitude in the NetCDF file is [0, 360]
     // [0, 180] is corresponding to [0, 180] and [180, 360] is corresponding to [-180, 0]
-    vec3 lonLatLev = texel.rgb;
     lonLatLev.x = mod(lonLatLev.x + 180.0, 360.0) - 180.0;
     vec3 particlePosition = convertCoordinate(lonLatLev);
-    vec4 cesiumPosition = vec4(particlePosition, 1.0);
+    vec4 projectedCoord = czm_modelViewProjection * vec4(particlePosition, 1.0);
+    return projectedCoord;
+}
+
+vec4 calcOffset(vec4 currentProjectedCoord, vec4 nextProjectedCoord) {
+    vec2 aspectVec2 = vec2(aspect, 1.0);
+    vec2 currentXY = (currentProjectedCoord.xy / currentProjectedCoord.w) * aspectVec2;
+    vec2 nextXY = (nextProjectedCoord.xy / nextProjectedCoord.w) * aspectVec2;
+
+    float offsetLength = lineWidth / 2.0;
+    vec2 direction = normalize(nextXY - currentXY);
+    vec2 normalVector = vec2(-direction.y, direction.x);
+	normalVector.x = normalVector.x / aspect;
+    normalVector = offsetLength * normalVector;
+
+    float offsetSign = normal.y;
+    vec4 offset = vec4(offsetSign * normalVector, 0.0, 0.0);
+    return offset;
+}
+
+void main() {
+    vec2 particleIndex = st;
+
+    vec4 currentProjectedCoord = calcProjectedCoord(texture2D(currentParticlesRandomized, particleIndex).rgb);
+    vec4 nextProjectedCoord = calcProjectedCoord(texture2D(nextParticlesRandomized, particleIndex).rgb);
+    float pointToUse = normal.x; // -1 is currentProjectedCoord and +1 is nextProjectedCoord
+
+    vec4 offset = pixelSize * calcOffset(currentProjectedCoord, nextProjectedCoord);
+    if (pointToUse < 0.0) {
+        gl_Position = currentProjectedCoord + offset;
+    } else {
+        gl_Position = nextProjectedCoord + offset;
+    }
+	gl_PointSize = 1.0;
 
     relativeSpeed = length(texture2D(particlesRelativeSpeed, particleIndex).rgb);
-
-    gl_Position = czm_modelViewProjection * cesiumPosition;
 }

@@ -71,7 +71,7 @@ class Wind3D {
 
         this.camera.moveEnd.addEventListener(function () {
             var viewerParameters = that.getViewerParameters();
-            that.particleSystem.refreshParticle(viewerParameters);
+            that.particleSystem.refreshParticle(viewerParameters, false);
             that.scene.primitives.show = true;
         });
 

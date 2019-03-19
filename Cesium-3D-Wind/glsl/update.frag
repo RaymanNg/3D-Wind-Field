@@ -13,10 +13,12 @@ uniform vec3 minimum; // minimum of each dimension
 uniform vec3 maximum; // maximum of each dimension
 uniform vec3 interval; // interval of each dimension
 
-// use to map wind speed to suitable new range
-uniform vec3 uSpeedRange; // (min, max, max - min);
-uniform vec3 vSpeedRange;
-uniform vec2 relativeSpeedRange;
+uniform vec2 uSpeedRange; // (min, max);
+uniform vec2 vSpeedRange;
+
+// use to calculate the relative speed
+uniform float pixelSize;
+uniform float speedFactor;
 
 varying vec2 v_textureCoordinates;
 
@@ -100,11 +102,14 @@ vec2 lengthOfLonLat(vec3 lonLatLev) {
 
 void update(vec3 lonLatLev, vec3 windVector) {
     vec3 percent = vec3(0.0);
-    percent.x = (windVector.x - uSpeedRange.x) / uSpeedRange.z;
-    percent.y = (windVector.y - vSpeedRange.x) / vSpeedRange.z;
-
-    windVector.x = mix(relativeSpeedRange.x, relativeSpeedRange.y, percent.x);
-    windVector.y = mix(relativeSpeedRange.x, relativeSpeedRange.y, percent.y);
+    percent.x = (windVector.x - uSpeedRange.x) / (uSpeedRange.y - uSpeedRange.x);
+    percent.y = (windVector.y - vSpeedRange.x) / (vSpeedRange.y - vSpeedRange.x);
+	
+	float minRelativeSpeed = -speedFactor * pixelSize;
+	float maxRelativeSpeed = speedFactor * pixelSize;
+	
+    windVector.x = mix(minRelativeSpeed, maxRelativeSpeed, percent.x);
+    windVector.y = mix(minRelativeSpeed, maxRelativeSpeed, percent.y);
 
     vec2 lonLatLen = lengthOfLonLat(lonLatLev);
     float u = windVector.x / lonLatLen.x;
