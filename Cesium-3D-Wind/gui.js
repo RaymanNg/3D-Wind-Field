@@ -13,6 +13,7 @@ const defaultParticleSystemOptions = {
     dropRate: 0.003,
     dropRateBump: 0.01,
     speedFactor: 4.0,
+    lineWidth: 4.0
 }
 
 class Panel {
@@ -30,6 +31,8 @@ class Panel {
 
         this.speedFactor = defaultParticleSystemOptions.speedFactor;
 
+        this.lineWidth = defaultParticleSystemOptions.lineWidth;
+
         this.changed = false;
 
         const that = this;
@@ -40,12 +43,13 @@ class Panel {
 
         window.onload = function () {
             var gui = new dat.GUI({ autoPlace: false });
-            gui.add(that, 'dataIndex', 0, 431).onFinishChange(onAnyValueChange);
-            gui.add(that, 'maxParticles', 32 * 32, 256 * 256).onFinishChange(onAnyValueChange);
-            gui.add(that, 'fadeOpacity', 0.96, 0.999, 0.001).onFinishChange(onAnyValueChange);
+            gui.add(that, 'dataIndex', 0, 431, 1).onFinishChange(onAnyValueChange);
+            gui.add(that, 'maxParticles', 1, 256 * 256, 1).onFinishChange(onAnyValueChange);
+            gui.add(that, 'fadeOpacity', 0.90, 0.999, 0.001).onFinishChange(onAnyValueChange);
             gui.add(that, 'dropRate', 0.0, 0.1).onFinishChange(onAnyValueChange);
             gui.add(that, 'dropRateBump', 0, 0.2).onFinishChange(onAnyValueChange);
             gui.add(that, 'speedFactor', 0.5, 10).onFinishChange(onAnyValueChange);
+            gui.add(that, 'lineWidth', 1.0, 10.0, 0.5).onFinishChange(onAnyValueChange);
 
             var panelContainer = document.getElementsByClassName('cesium-widget').item(0);
             gui.domElement.classList.add('myPanel');
@@ -68,7 +72,8 @@ class Panel {
             fadeOpacity: this.fadeOpacity,
             dropRate: this.dropRate,
             dropRateBump: this.dropRateBump,
-            speedFactor: this.speedFactor
+            speedFactor: this.speedFactor,
+            lineWidth: this.lineWidth,
         }
     }
 }

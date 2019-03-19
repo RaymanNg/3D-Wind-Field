@@ -73,6 +73,17 @@ class CustomPrimitive {
         }
     }
 
+    setGeometry(context, geometry) {
+        this.geometry = geometry;
+        var vertexArray = Cesium.VertexArray.fromGeometry({
+            context: context,
+            geometry: this.geometry,
+            attributeLocations: this.attributeLocations,
+            bufferUsage: Cesium.BufferUsage.STATIC_DRAW,
+        });
+        this.commandToExecute.vertexArray = vertexArray;
+    }
+
     preExecute() {
         // this function will be executed before the command
     }
