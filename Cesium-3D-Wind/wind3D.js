@@ -41,7 +41,7 @@ class Wind3D {
 
                 this.setupEventListeners();
 
-                if (mode) {
+                if (mode.debug) {
                     this.debug();
                 }
             });
