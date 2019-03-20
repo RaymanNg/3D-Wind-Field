@@ -23,8 +23,9 @@ uniform float speedFactor;
 varying vec2 v_textureCoordinates;
 
 vec2 mapPositionToNormalizedIndex2D(vec3 lonLatLev) {
-    // ensure the longitude is in [0, 360]
-    lonLatLev.x = clamp(lonLatLev.x, 0.0, 360.0);
+    // ensure the range of longitude and latitude
+    lonLatLev.x = mod(lonLatLev.x, 360.0);
+	lonLatLev.y = clamp(lonLatLev.y, -90.0, 90.0);
 
     vec3 index3D = vec3(0.0);
     index3D.x = (lonLatLev.x - minimum.x) / interval.x;
