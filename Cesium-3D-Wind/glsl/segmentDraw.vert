@@ -11,7 +11,6 @@ uniform float pixelSize;
 uniform float lineWidth;
 
 varying float relativeSpeed;
-varying float offsetLength;
 
 vec3 convertCoordinate(vec3 lonLatLev) {
     // WGS84 (lon, lat, lev) -> ECEF (x, y, z)
@@ -49,7 +48,7 @@ vec4 calcProjectedCoord(vec3 lonLatLev) {
     return projectedCoord;
 }
 
-vec4 calcOffset(vec4 currentProjectedCoord, vec4 nextProjectedCoord) {
+vec4 calcOffset(vec4 currentProjectedCoord, vec4 nextProjectedCoord, float offsetSign) {
     vec2 aspectVec2 = vec2(aspect, 1.0);
     vec2 currentXY = (currentProjectedCoord.xy / currentProjectedCoord.w) * aspectVec2;
     vec2 nextXY = (nextProjectedCoord.xy / nextProjectedCoord.w) * aspectVec2;
@@ -60,7 +59,6 @@ vec4 calcOffset(vec4 currentProjectedCoord, vec4 nextProjectedCoord) {
 	normalVector.x = normalVector.x / aspect;
     normalVector = offsetLength * normalVector;
 
-    float offsetSign = normal.y;
     vec4 offset = vec4(offsetSign * normalVector, 0.0, 0.0);
     return offset;
 }
@@ -70,9 +68,11 @@ void main() {
 
     vec4 currentProjectedCoord = calcProjectedCoord(texture2D(currentParticlesRandomized, particleIndex).rgb);
     vec4 nextProjectedCoord = calcProjectedCoord(texture2D(nextParticlesRandomized, particleIndex).rgb);
-    float pointToUse = normal.x; // -1 is currentProjectedCoord and +1 is nextProjectedCoord
-
-    vec4 offset = pixelSize * calcOffset(currentProjectedCoord, nextProjectedCoord);
+    
+	float pointToUse = normal.x; // -1 is currentProjectedCoord and +1 is nextProjectedCoord
+	float offsetSign = normal.y;
+	
+    vec4 offset = pixelSize * calcOffset(currentProjectedCoord, nextProjectedCoord, offsetSign);
     if (pointToUse < 0.0) {
         gl_Position = currentProjectedCoord + offset;
     } else {
