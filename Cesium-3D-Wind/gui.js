@@ -49,7 +49,7 @@ class Panel {
             gui.add(that, 'dropRate', 0.0, 0.1).onFinishChange(onAnyValueChange);
             gui.add(that, 'dropRateBump', 0, 0.2).onFinishChange(onAnyValueChange);
             gui.add(that, 'speedFactor', 0.5, 10).onFinishChange(onAnyValueChange);
-            gui.add(that, 'lineWidth', 0.5, 10.0, 0.3).onFinishChange(onAnyValueChange);
+            gui.add(that, 'lineWidth', 0.5, 16.0).onFinishChange(onAnyValueChange);
 
             var panelContainer = document.getElementsByClassName('cesium-widget').item(0);
             gui.domElement.classList.add('myPanel');
