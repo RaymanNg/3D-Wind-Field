@@ -24,7 +24,7 @@ varying vec2 v_textureCoordinates;
 
 vec2 mapPositionToNormalizedIndex2D(vec3 lonLatLev) {
     // ensure the longitude is in [0, 360]
-    lonLatLev.x = mod(lonLatLev.x, 360.0);
+    lonLatLev.x = clamp(lonLatLev.x, 0.0, 360.0);
 
     vec3 index3D = vec3(0.0);
     index3D.x = (lonLatLev.x - minimum.x) / interval.x;

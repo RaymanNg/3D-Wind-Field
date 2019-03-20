@@ -11,11 +11,12 @@ uniform float pixelSize;
 uniform float lineWidth;
 
 varying float relativeSpeed;
+varying float offsetLength;
 
 vec3 convertCoordinate(vec3 lonLatLev) {
     // WGS84 (lon, lat, lev) -> ECEF (x, y, z)
     // see https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_geodetic_to_ECEF_coordinates for detail
-
+	
     // WGS 84 geometric constants 
     float a = 6378137.0; // Semi-major axis 
     float b = 6356752.3142; // Semi-minor axis 
@@ -77,7 +78,6 @@ void main() {
     } else {
         gl_Position = nextProjectedCoord + offset;
     }
-	gl_PointSize = 1.0;
-
+	
     relativeSpeed = length(texture2D(particlesRelativeSpeed, particleIndex).rgb);
 }
