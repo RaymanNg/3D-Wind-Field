@@ -411,6 +411,9 @@ class ParticleSystem {
             colorTable: function () {
                 return that.uniformVariables.colorTable;
             },
+            particleHeight: function () {
+                return that.particleSystemOptions.particleHeight;
+            },
             aspect: function () {
                 return that.context.drawingBufferWidth / that.context.drawingBufferHeight;
             },

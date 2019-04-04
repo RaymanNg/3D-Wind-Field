@@ -25,12 +25,13 @@ class Wind3D {
 
         // use a smaller earth radius to make sure distance to camera > 0
         this.globeBoundingSphere = new Cesium.BoundingSphere(Cesium.Cartesian3.ZERO, 0.99 * 6378137.0);
-        var viewerParameters = this.getViewerParameters();
+        this.viewerParameters = {};
+        this.updateViewerParameters();
 
         DataProcess.loadData(fileOptions).then(
             (windData) => {
                 this.particleSystem = new ParticleSystem(this.scene.context, windData,
-                    particleSystemOptions, fileOptions, viewerParameters);
+                    particleSystemOptions, fileOptions, this.viewerParameters);
 
                 // the order of primitives.add should respect the dependency of primitives
                 this.scene.primitives.add(this.particleSystem.primitives.particlesUpdate);
@@ -47,7 +48,7 @@ class Wind3D {
             });
     }
 
-    getViewerParameters() {
+    updateViewerParameters() {
         var viewerParameters = {};
 
         var viewRectangle = this.camera.computeViewRectangle(this.scene.globe.ellipsoid);
@@ -59,7 +60,11 @@ class Wind3D {
             this.scene.drawingBufferHeight
         );
 
-        return viewerParameters;
+        if (viewerParameters.pixelSize == 0) {
+            viewerParameters.pixelSize = this.viewerParameters.pixelSize;
+        }
+
+        this.viewerParameters = viewerParameters;
     }
 
     setupEventListeners() {
@@ -70,8 +75,8 @@ class Wind3D {
         });
 
         this.camera.moveEnd.addEventListener(function () {
-            var viewerParameters = that.getViewerParameters();
-            that.particleSystem.refreshParticle(viewerParameters, false);
+            that.updateViewerParameters();
+            that.particleSystem.refreshParticle(that.viewerParameters, false);
             that.scene.primitives.show = true;
         });
 
