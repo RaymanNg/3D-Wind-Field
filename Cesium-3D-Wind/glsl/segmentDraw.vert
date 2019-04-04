@@ -6,6 +6,8 @@ uniform sampler2D currentParticlesRandomized;
 uniform sampler2D nextParticlesRandomized;
 uniform sampler2D particlesRelativeSpeed;
 
+uniform float particleHeight;
+
 uniform float aspect;
 uniform float pixelSize;
 uniform float lineWidth;
@@ -30,7 +32,7 @@ vec3 convertCoordinate(vec3 lonLatLev) {
     float sinLon = sin(longitude);
 
     float N_Phi = a / sqrt(1.0 - e2 * sinLat * sinLat);
-    float h = 100.0; // it should be high enough otherwise the particle may not pass the terrain depth test
+    float h = particleHeight; // it should be high enough otherwise the particle may not pass the terrain depth test
 
     vec3 cartesian = vec3(0.0);
     cartesian.x = (N_Phi + h) * cosLat * cosLon;
