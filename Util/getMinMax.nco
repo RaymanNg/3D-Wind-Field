@@ -1,0 +1,5 @@
+// this file must use UNIX Style End of Line
+U@min = U.min();
+U@max = U.max();
+V@min = V.min();
+V@max = V.max();
