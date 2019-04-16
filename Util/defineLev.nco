@@ -1,0 +1,4 @@
+// this file must use UNIX Style End of Line
+defdim("lev", 1, 1);
+lev[$lev] = 1.0;
+lev@long_name = "Level";

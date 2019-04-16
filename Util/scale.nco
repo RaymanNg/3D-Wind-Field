@@ -1,0 +1,16 @@
+// this file must use UNIX Style End of Line
+*minimum = Wind_speed_gust_surface.min();
+*maximum = Wind_speed_gust_surface.max();
+Wind_speed_gust_surface = (Wind_speed_gust_surface - minimum) / (maximum - minimum) * 255.0;
+
+minimum = Temperature_surface.min();
+maximum = Temperature_surface.max();
+Temperature_surface = (Temperature_surface - minimum) / (maximum - minimum) * 255.0;
+
+minimum = Pressure_surface.min();
+maximum = Pressure_surface.max();
+Pressure_surface = (Pressure_surface - minimum) / (maximum - minimum) * 255.0;
+
+minimum = Precipitable_water_entire_atmosphere_single_layer.min();
+maximum = Precipitable_water_entire_atmosphere_single_layer.max();
+Precipitable_water_entire_atmosphere_single_layer = (Precipitable_water_entire_atmosphere_single_layer - minimum) / (maximum - minimum) * 255.0;

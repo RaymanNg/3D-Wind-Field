@@ -1,11 +1,26 @@
-$colorArray1 = "#00007B", "#2964FF", "#5EB3FF", "#89DCFF", "#A9F3FF", "#E1FDB8",
-"#FFE803", "#FF9E00", "#FF3000", "#DA0000", "#870000"
+$colorArray = 
+"#040ED8",
+"#2050FF",
+"#4196FF",
+"#6DC1FF",
+"#86D9FF",
+"#9CEEFF",
+"#AFF5FF",
+"#CEFFFF",
+"#FFFE47",
+"#FFEB00",
+"#FFC400",
+"#FF9000",
+"#FF4800",
+"#FF0000",
+"#D50000",
+"#9E0000"
 
-$start = -0.001044628
-$end = 0.0006542896
-$divide = 10
+$start = 0
+$end = 255
+$divide = $colorArray.Length
 
-$interval = ($end - $start) / $divide
+$interval = ($end - $start) / ($divide - 1)
 $quantity = $start
 $quantityArray = @()
 for ($i = 0; $i -le $divide; $i++) {
@@ -16,12 +31,12 @@ for ($i = 0; $i -le $divide; $i++) {
 $xmlsettings = New-Object System.Xml.XmlWriterSettings
 $xmlsettings.Indent = $true
 $xmlsettings.IndentChars = "  "
-$XmlWriter = [System.XML.XmlWriter]::Create("style.xml", $xmlsettings)
+$XmlWriter = [System.XML.XmlWriter]::Create("./Util/style.xml", $xmlsettings)
 
 $xmlWriter.WriteStartElement("ColorMap")
-for ($i = 0; $i -lt $colorArray1.Length; $i++) {
+for ($i = 0; $i -lt $colorArray.Length; $i++) {
     $xmlWriter.WriteStartElement("ColorMapEntry")
-    $xmlWriter.WriteAttributeString("color", $colorArray1[$i])
+    $xmlWriter.WriteAttributeString("color", $colorArray[$i])
     $xmlWriter.WriteAttributeString("quantity", $quantityArray[$i])
     $xmlWriter.WriteEndElement() 
 }
