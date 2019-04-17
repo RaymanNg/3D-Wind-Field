@@ -80,12 +80,7 @@ var DataProcess = (function () {
     }
 
     var loadData = async function (fileOptions) {
-        var ncFilePath;
-        if (fileOptions.useDemoData) {
-            ncFilePath = 'https://raw.githubusercontent.com/RaymanNg/3D-Wind-Field/master/data/demo.nc';
-        } else {
-            ncFilePath = fileOptions.dataDirectory + 'data_' + fileOptions.dataIndex + '.nc';
-        }
+        var ncFilePath = fileOptions.dataDirectory + "demo.nc";
         await loadNetCDF(ncFilePath);
 
         var colorTableFilePath = fileOptions.dataDirectory + 'colorTable.json';
@@ -99,7 +94,7 @@ var DataProcess = (function () {
         for (var i = 0; i < maxParticles; i++) {
             array[3 * i] = Cesium.Math.randomBetween(lonLatRange.lon.min, lonLatRange.lon.max);
             array[3 * i + 1] = Cesium.Math.randomBetween(lonLatRange.lat.min, lonLatRange.lat.max);
-            array[3 * i + 2] = Cesium.Math.randomBetween(data.lev.min, data.lev.min);
+            array[3 * i + 2] = Cesium.Math.randomBetween(data.lev.min, data.lev.max);
         }
         return array;
     }

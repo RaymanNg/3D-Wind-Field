@@ -31,7 +31,6 @@ vec2 mapPositionToNormalizedIndex2D(vec3 lonLatLev) {
     index3D.x = (lonLatLev.x - minimum.x) / interval.x;
     index3D.y = (lonLatLev.y - minimum.y) / interval.y;
     index3D.z = (lonLatLev.z - minimum.z) / interval.z;
-	index3D.z = 0.0;
 
     // the st texture coordinate corresponding to (col, row) index
     // example
@@ -68,10 +67,10 @@ float oneDimensionInterpolation(float t, float p0, float p1, float p2, float p3)
 }
 
 float calculateB(sampler2D windTexture, float t, float lon, float lat, float lev) {
-    float lon0 = floor(lon) - 1.0;
+    float lon0 = floor(lon) - 1.0 * interval.x;
     float lon1 = floor(lon);
-    float lon2 = floor(lon) + 1.0;
-    float lon3 = floor(lon) + 2.0;
+    float lon2 = floor(lon) + 1.0 * interval.x;
+    float lon3 = floor(lon) + 2.0 * interval.x;
 
     float p0 = getWind(windTexture, vec3(lon0, lat, lev));
     float p1 = getWind(windTexture, vec3(lon1, lat, lev));
@@ -86,10 +85,10 @@ float interpolateOneTexture(sampler2D windTexture, vec3 lonLatLev) {
     float lat = lonLatLev.y;
     float lev = lonLatLev.z;
 
-    float lat0 = floor(lat) - 1.0;
+    float lat0 = floor(lat) - 1.0 * interval.y;
     float lat1 = floor(lat);
-    float lat2 = floor(lat) + 1.0;
-    float lat3 = floor(lat) + 2.0;
+    float lat2 = floor(lat) + 1.0 * interval.y;
+    float lat3 = floor(lat) + 2.0 * interval.y;
 
     vec2 coef = lonLatLev.xy - floor(lonLatLev.xy);
     float b0 = calculateB(windTexture, coef.x, lon, lat0, lev);
