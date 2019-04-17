@@ -7,7 +7,7 @@
         {
             "type": "chrome",
             "request": "launch",
-            "runtimeExecutable": "${env:CHROME_PATH}\\GoogleChromePortable.exe",
+            "runtimeExecutable": "${env:My_Chrome_Path}\\GoogleChromePortable.exe",
             "runtimeArgs": [
                 "--incognito"
             ],
