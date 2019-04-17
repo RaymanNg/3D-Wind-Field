@@ -2,6 +2,7 @@ $NCOPath = $Env:My_NetCDF_Operators_Path
 $ncap2 = "$NCOPath\ncap2.exe"
 $ncecat = "$NCOPath\ncecat.exe"
 $ncks = "$NCOPath\ncks.exe"
+$ncpdq = "$NCOPath\ncpdq.exe"
 $ncrename = "$NCOPath\ncrename.exe"
 
 Add-Type -AssemblyName Microsoft.VisualBasic
@@ -55,9 +56,10 @@ switch ($operation) {
         & $ncks -v "$windVariable" "$inputFile" "$filePath\tempWind.nc"
         & $ncrename -v "$uWind,U" -v "$vWind,V" "$filePath\tempWind.nc" "$filePath\tempUV.nc" 
         & $ncap2 -S "defineLev.nco" "$filePath\tempUV.nc" "$filePath\tempLevDim.nc" 
-        & $ncecat -v "U,V,lev" -u "lev" "$filePath\tempLevDim.nc" "$filePath\tempRecDim.nc"
+        & $ncecat -u "lev" "$filePath\tempLevDim.nc" "$filePath\tempRecDim.nc"
         & $ncks --no_rec_dmn "lev" "$filePath\tempRecDim.nc" "$filePath\tempFixDim.nc"
-        & $ncap2 -3 -S "getMinMax.nco" "$filePath\tempFixDim.nc" "$filePath\uv.nc"
+        & $ncpdq -a "-lat" "$filePath\tempFixDim.nc" "$filePath\tempInvDim.nc"
+        & $ncap2 -3 -S "getMinMax.nco" "$filePath\tempInvDim.nc" "$filePath\uv.nc"
         Remove-TempNCFile $filePath
     }
 }

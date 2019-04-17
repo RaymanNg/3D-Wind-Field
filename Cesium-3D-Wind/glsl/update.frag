@@ -31,6 +31,7 @@ vec2 mapPositionToNormalizedIndex2D(vec3 lonLatLev) {
     index3D.x = (lonLatLev.x - minimum.x) / interval.x;
     index3D.y = (lonLatLev.y - minimum.y) / interval.y;
     index3D.z = (lonLatLev.z - minimum.z) / interval.z;
+	index3D.z = 0.0;
 
     // the st texture coordinate corresponding to (col, row) index
     // example

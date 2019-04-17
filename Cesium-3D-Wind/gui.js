@@ -4,7 +4,7 @@ const defaultFileOptions = {
     useDemoData: demo,
     dataDirectory: '../data/',
     glslDirectory: demo ? '../Cesium-3D-Wind/glsl/' : 'glsl/',
-    dataIndex: 0
+    dataIndex: 1
 }
 
 const defaultParticleSystemOptions = {
@@ -51,7 +51,7 @@ class Panel {
             gui.add(that, 'fadeOpacity', 0.90, 0.999, 0.001).onFinishChange(onAnyValueChange);
             gui.add(that, 'dropRate', 0.0, 0.1).onFinishChange(onAnyValueChange);
             gui.add(that, 'dropRateBump', 0, 0.2).onFinishChange(onAnyValueChange);
-            gui.add(that, 'speedFactor', 0.5, 10).onFinishChange(onAnyValueChange);
+            gui.add(that, 'speedFactor', 0.5, 100).onFinishChange(onAnyValueChange);
             gui.add(that, 'lineWidth', 0.01, 16.0).onFinishChange(onAnyValueChange);
 
             var panelContainer = document.getElementsByClassName('cesium-widget').item(0);
