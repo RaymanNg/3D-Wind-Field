@@ -1,10 +1,8 @@
 var demo = Cesium.defaultValue(demo, false);
 
 const defaultFileOptions = {
-    useDemoData: demo,
-    dataDirectory: '../data/',
-    glslDirectory: demo ? '../Cesium-3D-Wind/glsl/' : 'glsl/',
-    dataIndex: 1
+    dataDirectory: demo ? 'https://raw.githubusercontent.com/RaymanNg/3D-Wind-Field/master/data/' : '../data/',
+    glslDirectory: demo ? '../Cesium-3D-Wind/glsl/' : 'glsl/'
 }
 
 const defaultParticleSystemOptions = {
@@ -17,42 +15,67 @@ const defaultParticleSystemOptions = {
     lineWidth: 4.0
 }
 
+const layerSources = [
+    "NaturalEarthII",
+    "WMS",
+    "WorldTerrain"
+]
+
+const WMSlayers = [
+    "cite:Precipitable_water_entire_atmosphere_single_layer_20180916",
+    "cite:Pressure_surface_20180916",
+    "cite:Temperature_surface_20180916",
+    "cite:Wind_speed_gust_surface_20180916"
+];
+
+const defaultDisplayOptions = {
+    "layerSource": layerSources[0],
+    "WMSURL": "http://localhost:8080/geoserver/cite/wms",
+    "WMSlayer": WMSlayers[0]
+}
+
 class Panel {
     constructor() {
-        this.useDemoData = defaultFileOptions.useDemoData;
         this.dataDirectory = defaultFileOptions.dataDirectory;
         this.glslDirectory = defaultFileOptions.glslDirectory;
-        this.dataIndex = defaultFileOptions.dataIndex;
 
         this.maxParticles = defaultParticleSystemOptions.maxParticles;
         this.particleHeight = defaultParticleSystemOptions.particleHeight;
         this.fadeOpacity = defaultParticleSystemOptions.fadeOpacity;
-
         this.dropRate = defaultParticleSystemOptions.dropRate;
         this.dropRateBump = defaultParticleSystemOptions.dropRateBump;
-
         this.speedFactor = defaultParticleSystemOptions.speedFactor;
-
         this.lineWidth = defaultParticleSystemOptions.lineWidth;
+
+        this.layerSource = defaultDisplayOptions.layerSource;
+        this.WMSURL = defaultDisplayOptions.WMSURL;
+        this.WMSlayer = defaultDisplayOptions.WMSlayer;
 
         this.changed = false;
 
         const that = this;
-        var onAnyValueChange = function () {
-            var event = new CustomEvent('panelChanged', { detail: that.getParticleSystemOptions() });
+        var onParticleSystemOptionsChange = function () {
+            var event = new CustomEvent('particleSystemOptionsChanged', { detail: that.getParticleSystemOptions() });
+            window.dispatchEvent(event);
+        }
+
+        var onDisplayOptionsChange = function () {
+            var event = new CustomEvent('displayOptionsChanged', { detail: that.getDisplayOptions() });
             window.dispatchEvent(event);
         }
 
         window.onload = function () {
             var gui = new dat.GUI({ autoPlace: false });
-            gui.add(that, 'dataIndex', 0, 431, 1).onFinishChange(onAnyValueChange);
-            gui.add(that, 'maxParticles', 1, 256 * 256, 1).onFinishChange(onAnyValueChange);
-            gui.add(that, 'particleHeight', 1, 10000, 1).onFinishChange(onAnyValueChange);
-            gui.add(that, 'fadeOpacity', 0.90, 0.999, 0.001).onFinishChange(onAnyValueChange);
-            gui.add(that, 'dropRate', 0.0, 0.1).onFinishChange(onAnyValueChange);
-            gui.add(that, 'dropRateBump', 0, 0.2).onFinishChange(onAnyValueChange);
-            gui.add(that, 'speedFactor', 0.5, 100).onFinishChange(onAnyValueChange);
-            gui.add(that, 'lineWidth', 0.01, 16.0).onFinishChange(onAnyValueChange);
+            gui.add(that, 'maxParticles', 1, 256 * 256, 1).onFinishChange(onParticleSystemOptionsChange);
+            gui.add(that, 'particleHeight', 1, 10000, 1).onFinishChange(onParticleSystemOptionsChange);
+            gui.add(that, 'fadeOpacity', 0.90, 0.999, 0.001).onFinishChange(onParticleSystemOptionsChange);
+            gui.add(that, 'dropRate', 0.0, 0.1).onFinishChange(onParticleSystemOptionsChange);
+            gui.add(that, 'dropRateBump', 0, 0.2).onFinishChange(onParticleSystemOptionsChange);
+            gui.add(that, 'speedFactor', 0.5, 100).onFinishChange(onParticleSystemOptionsChange);
+            gui.add(that, 'lineWidth', 0.01, 16.0).onFinishChange(onParticleSystemOptionsChange);
+
+            gui.add(that, 'layerSource', layerSources).onFinishChange(onDisplayOptionsChange);
+            gui.add(that, 'WMSlayer', WMSlayers).onFinishChange(onDisplayOptionsChange);
 
             var panelContainer = document.getElementsByClassName('cesium-widget').item(0);
             gui.domElement.classList.add('myPanel');
@@ -62,10 +85,8 @@ class Panel {
 
     getFileOptions() {
         return {
-            useDemoData: this.useDemoData,
             dataDirectory: this.dataDirectory,
-            glslDirectory: this.glslDirectory,
-            dataIndex: this.dataIndex
+            glslDirectory: this.glslDirectory
         }
     }
 
@@ -78,6 +99,14 @@ class Panel {
             dropRateBump: this.dropRateBump,
             speedFactor: this.speedFactor,
             lineWidth: this.lineWidth,
+        }
+    }
+
+    getDisplayOptions() {
+        return {
+            layerSource: this.layerSource,
+            WMSURL: this.WMSURL,
+            WMSlayer: this.WMSlayer
         }
     }
 }

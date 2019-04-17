@@ -1,5 +1,5 @@
 class Wind3D {
-    constructor(fileOptions, particleSystemOptions, mode) {
+    constructor(fileOptions, particleSystemOptions, displayOptions, mode) {
         var options = {
             baseLayerPicker: false,
             geocoder: false,
@@ -10,13 +10,6 @@ class Wind3D {
 
         if (mode.debug) {
             options.useDefaultRenderLoop = false;
-        }
-        if (mode.offline) {
-            options.imageryProvider = Cesium.createTileMapServiceImageryProvider({
-                url: Cesium.buildModuleUrl('Assets/Textures/NaturalEarthII')
-            });
-        } else {
-            options.terrainProvider = Cesium.createWorldTerrain();
         }
 
         this.viewer = new Cesium.Viewer('cesiumContainer', options);
@@ -46,6 +39,9 @@ class Wind3D {
                     this.debug();
                 }
             });
+
+        this.imageryLayers = this.viewer.imageryLayers;
+        this.setGlobeLayer(displayOptions);
     }
 
     updateViewerParameters() {
@@ -65,6 +61,42 @@ class Wind3D {
         }
 
         this.viewerParameters = viewerParameters;
+    }
+
+    setGlobeLayer(displayOptions) {
+        this.viewer.imageryLayers.removeAll();
+        this.viewer.terrainProvider = new Cesium.EllipsoidTerrainProvider();
+
+        var layerSource = displayOptions.layerSource;
+        switch (layerSource) {
+            case "NaturalEarthII": {
+                this.viewer.imageryLayers.addImageryProvider(
+                    Cesium.createTileMapServiceImageryProvider({
+                        url: Cesium.buildModuleUrl('Assets/Textures/NaturalEarthII')
+                    })
+                );
+                break;
+            }
+            case "WMS": {
+                this.viewer.imageryLayers.addImageryProvider(new Cesium.WebMapServiceImageryProvider({
+                    url: displayOptions.WMSURL,
+                    layers: displayOptions.WMSlayer,
+                    parameters: {
+                        "interpolations": "bicubic",
+                        "styles": "panoply",
+                    }
+                }));
+                break;
+            }
+            case "WorldTerrain": {
+                this.viewer.imageryLayers.addImageryProvider(
+                    Cesium.createWorldImagery()
+                );
+                this.viewer.terrainProvider = Cesium.createWorldTerrain();
+                break;
+            }
+        }
+
     }
 
     setupEventListeners() {
@@ -94,8 +126,12 @@ class Wind3D {
             }
         });
 
-        window.addEventListener('panelChanged', function (event) {
+        window.addEventListener('particleSystemOptionsChanged', function (event) {
             that.particleSystem.applyParticleSystemOptions(event.detail);
+        });
+
+        window.addEventListener('displayOptionsChanged', function (event) {
+            that.setGlobeLayer(event.detail);
         });
     }
 

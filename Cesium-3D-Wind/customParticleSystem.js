@@ -255,7 +255,7 @@ class ParticleSystem {
         const interval = new Cesium.Cartesian3(
             (maximum.x - minimum.x) / (dimension.x - 1),
             (maximum.y - minimum.y) / (dimension.y - 1),
-            (maximum.z - minimum.z) / (dimension.z - 1)
+            dimension.z > 1 ? (maximum.z - minimum.z) / (dimension.z - 1) : 1.0
         );
         const uSpeedRange = new Cesium.Cartesian2(
             this.data.U.min,
