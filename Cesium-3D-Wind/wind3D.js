@@ -80,11 +80,7 @@ class Wind3D {
             case "WMS": {
                 this.viewer.imageryLayers.addImageryProvider(new Cesium.WebMapServiceImageryProvider({
                     url: displayOptions.WMSURL,
-                    layers: displayOptions.WMSlayer,
-                    parameters: {
-                        "interpolations": "bicubic",
-                        "styles": "panoply",
-                    }
+                    layers: displayOptions.WMSlayer
                 }));
                 break;
             }
