@@ -22,15 +22,16 @@ const layerSources = [
 ]
 
 const WMSlayers = [
-    "cite:Precipitable_water_entire_atmosphere_single_layer_20180916",
-    "cite:Pressure_surface_20180916",
-    "cite:Temperature_surface_20180916",
-    "cite:Wind_speed_gust_surface_20180916"
+    "Precipitable_water_entire_atmosphere_single_layer",
+    "Pressure_surface",
+    "Temperature_surface",
+    "Wind_speed_gust_surface"
 ];
 
+// the date of the wind field data is 20180916_0000
 const defaultDisplayOptions = {
     "layerSource": layerSources[0],
-    "WMSURL": "http://localhost:8080/geoserver/cite/wms",
+    "WMSURL": "https://www.ncei.noaa.gov/thredds/wms/gfs-004-files/201809/20180916/gfs_4_20180916_0000_000.grb2",
     "WMSlayer": WMSlayers[0]
 }
 
