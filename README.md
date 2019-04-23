@@ -1,5 +1,5 @@
 # 3D-Wind-Field [Demo](https://raymanng.github.io/3D-Wind-Field/demo/)
-Visualize the wind on a 3D globe, powered by [Cesium JS](https://github.com/AnalyticalGraphicsInc/cesium)
+Visualize the wind on earth, powered by [Cesium JS](https://github.com/AnalyticalGraphicsInc/cesium)
 
 ## How to start the application
 Just create a HTTP server for the "index.html" file in the "Cesium-3D-Wind" folder.

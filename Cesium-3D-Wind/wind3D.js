@@ -80,7 +80,10 @@ class Wind3D {
             case "WMS": {
                 this.viewer.imageryLayers.addImageryProvider(new Cesium.WebMapServiceImageryProvider({
                     url: displayOptions.WMSURL,
-                    layers: displayOptions.WMSlayer
+                    layers: displayOptions.WMSlayer.name,
+                    parameters: {
+                        ColorScaleRange: displayOptions.WMSlayer.ColorScaleRange
+                    }
                 }));
                 break;
             }
