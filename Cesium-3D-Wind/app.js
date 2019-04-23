@@ -1,5 +1,5 @@
 const mode = {
-    debug: demo ? false : false
+    debug: demo ? false : true
 };
 
 var panel = new Panel();
