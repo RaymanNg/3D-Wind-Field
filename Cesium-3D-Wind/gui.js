@@ -22,10 +22,10 @@ const layerSources = [
 ]
 
 const WMSlayers = [
-    "Precipitable_water_entire_atmosphere_single_layer",
-    "Pressure_surface",
-    "Temperature_surface",
-    "Wind_speed_gust_surface"
+    { name: "Precipitable_water_entire_atmosphere_single_layer", ColorScaleRange: '0.1,66.8' },
+    { name: "Pressure_surface", ColorScaleRange: '51640,103500' },
+    { name: "Temperature_surface", ColorScaleRange: '204.1,317.5' },
+    { name: "Wind_speed_gust_surface", ColorScaleRange: '0.1095,35.31' },
 ];
 
 // the date of the wind field data is 20180916_0000
@@ -50,7 +50,13 @@ class Panel {
 
         this.layerSource = defaultDisplayOptions.layerSource;
         this.WMSURL = defaultDisplayOptions.WMSURL;
+        this.WMSlayerSelect = WMSlayers[0].name;
         this.WMSlayer = defaultDisplayOptions.WMSlayer;
+
+        var layerNames = [];
+        WMSlayers.forEach(function (layer) {
+            layerNames.push(layer.name);
+        });
 
         this.changed = false;
 
@@ -61,6 +67,9 @@ class Panel {
         }
 
         var onDisplayOptionsChange = function () {
+            that.WMSlayer = WMSlayers.find(function (layer) {
+                return layer.name == that.WMSlayerSelect;
+            });
             var event = new CustomEvent('displayOptionsChanged', { detail: that.getDisplayOptions() });
             window.dispatchEvent(event);
         }
@@ -76,7 +85,7 @@ class Panel {
             gui.add(that, 'lineWidth', 0.01, 16.0).onFinishChange(onParticleSystemOptionsChange);
 
             gui.add(that, 'layerSource', layerSources).onFinishChange(onDisplayOptionsChange);
-            gui.add(that, 'WMSlayer', WMSlayers).onFinishChange(onDisplayOptionsChange);
+            gui.add(that, 'WMSlayerSelect', layerNames).onFinishChange(onDisplayOptionsChange);
 
             var panelContainer = document.getElementsByClassName('cesium-widget').item(0);
             gui.domElement.classList.add('myPanel');
