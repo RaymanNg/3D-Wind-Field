@@ -15,24 +15,19 @@ const defaultParticleSystemOptions = {
     lineWidth: 4.0
 }
 
-const layerSources = [
-    "NaturalEarthII",
-    "WMS",
-    "WorldTerrain"
+const globeLayers = [
+    { name: "NaturalEarthII", type: "NaturalEarthII" },
+    { name: "WMS:Rainfall", type: "WMS", layer: "Precipitable_water_entire_atmosphere_single_layer", ColorScaleRange: '0.1,66.8' },
+    { name: "WMS:Air Pressure", type: "WMS", layer: "Pressure_surface", ColorScaleRange: '51640,103500' },
+    { name: "WMS:Temperature", type: "WMS", layer: "Temperature_surface", ColorScaleRange: '204.1,317.5' },
+    { name: "WMS:Wind Speed", type: "WMS", layer: "Wind_speed_gust_surface", ColorScaleRange: '0.1095,35.31' },
+    { name: "WorldTerrain", type: "WorldTerrain" }
 ]
-
-const WMSlayers = [
-    { name: "Precipitable_water_entire_atmosphere_single_layer", ColorScaleRange: '0.1,66.8' },
-    { name: "Pressure_surface", ColorScaleRange: '51640,103500' },
-    { name: "Temperature_surface", ColorScaleRange: '204.1,317.5' },
-    { name: "Wind_speed_gust_surface", ColorScaleRange: '0.1095,35.31' },
-];
 
 // the date of the wind field data is 20180916_0000
 const defaultDisplayOptions = {
-    "layerSource": layerSources[0],
-    "WMSURL": "https://www.ncei.noaa.gov/thredds/wms/gfs-004-files/201809/20180916/gfs_4_20180916_0000_000.grb2",
-    "WMSlayer": WMSlayers[0]
+    "globeLayer": globeLayers[0],
+    "WMS_URL": "https://www.ncei.noaa.gov/thredds/wms/gfs-004-files/201809/20180916/gfs_4_20180916_0000_000.grb2",
 }
 
 class Panel {
@@ -48,15 +43,14 @@ class Panel {
         this.speedFactor = defaultParticleSystemOptions.speedFactor;
         this.lineWidth = defaultParticleSystemOptions.lineWidth;
 
-        this.layerSource = defaultDisplayOptions.layerSource;
-        this.WMSURL = defaultDisplayOptions.WMSURL;
-        this.WMSlayerSelect = WMSlayers[0].name;
-        this.WMSlayer = defaultDisplayOptions.WMSlayer;
+        this.globeLayer = defaultDisplayOptions.globeLayer;
+        this.WMS_URL = defaultDisplayOptions.WMS_URL;
 
         var layerNames = [];
-        WMSlayers.forEach(function (layer) {
+        globeLayers.forEach(function (layer) {
             layerNames.push(layer.name);
         });
+        this.layerToShow = layerNames[0];
 
         this.changed = false;
 
@@ -67,9 +61,12 @@ class Panel {
         }
 
         var onDisplayOptionsChange = function () {
-            that.WMSlayer = WMSlayers.find(function (layer) {
-                return layer.name == that.WMSlayerSelect;
-            });
+            for (var i = 0; i < globeLayers.length; i++) {
+                if (that.layerToShow == globeLayers[i].name) {
+                    that.globeLayer = globeLayers[i];
+                    break;
+                }
+            }
             var event = new CustomEvent('displayOptionsChanged', { detail: that.getDisplayOptions() });
             window.dispatchEvent(event);
         }
@@ -84,8 +81,7 @@ class Panel {
             gui.add(that, 'speedFactor', 0.5, 100).onFinishChange(onParticleSystemOptionsChange);
             gui.add(that, 'lineWidth', 0.01, 16.0).onFinishChange(onParticleSystemOptionsChange);
 
-            gui.add(that, 'layerSource', layerSources).onFinishChange(onDisplayOptionsChange);
-            gui.add(that, 'WMSlayerSelect', layerNames).onFinishChange(onDisplayOptionsChange);
+            gui.add(that, 'layerToShow', layerNames).onFinishChange(onDisplayOptionsChange);
 
             var panelContainer = document.getElementsByClassName('cesium-widget').item(0);
             gui.domElement.classList.add('myPanel');
@@ -114,9 +110,8 @@ class Panel {
 
     getDisplayOptions() {
         return {
-            layerSource: this.layerSource,
-            WMSURL: this.WMSURL,
-            WMSlayer: this.WMSlayer
+            globeLayer: this.globeLayer,
+            WMS_URL: this.WMS_URL
         }
     }
 }
