@@ -67,8 +67,8 @@ class Wind3D {
         this.viewer.imageryLayers.removeAll();
         this.viewer.terrainProvider = new Cesium.EllipsoidTerrainProvider();
 
-        var layerSource = displayOptions.layerSource;
-        switch (layerSource) {
+        var globeLayer = displayOptions.globeLayer;
+        switch (globeLayer.type) {
             case "NaturalEarthII": {
                 this.viewer.imageryLayers.addImageryProvider(
                     Cesium.createTileMapServiceImageryProvider({
@@ -79,10 +79,10 @@ class Wind3D {
             }
             case "WMS": {
                 this.viewer.imageryLayers.addImageryProvider(new Cesium.WebMapServiceImageryProvider({
-                    url: displayOptions.WMSURL,
-                    layers: displayOptions.WMSlayer.name,
+                    url: displayOptions.WMS_URL,
+                    layers: globeLayer.layer,
                     parameters: {
-                        ColorScaleRange: displayOptions.WMSlayer.ColorScaleRange
+                        ColorScaleRange: globeLayer.ColorScaleRange
                     }
                 }));
                 break;
