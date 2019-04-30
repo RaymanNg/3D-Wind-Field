@@ -1,5 +1,6 @@
 # 3D-Wind-Field [Demo](https://raymanng.github.io/3D-Wind-Field/demo/)
 Visualize the wind on earth, powered by [Cesium JS](https://github.com/AnalyticalGraphicsInc/cesium).
+More detail is in this blog post:[GPU Powered Wind Visualization With Cesium](https://cesium.com/blog/2019/04/29/gpu-powered-wind/)
 
 ## How to start the application
 Just create a HTTP server for the "index.html" file in the "Cesium-3D-Wind" folder.
