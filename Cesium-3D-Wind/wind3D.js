@@ -1,5 +1,5 @@
 class Wind3D {
-    constructor(userInput, mode) {
+    constructor(panel, mode) {
         var options = {
             baseLayerPicker: false,
             geocoder: false,
@@ -16,30 +16,22 @@ class Wind3D {
         this.scene = this.viewer.scene;
         this.camera = this.viewer.camera;
 
-        // use a smaller earth radius to make sure distance to camera > 0
-        this.globeBoundingSphere = new Cesium.BoundingSphere(Cesium.Cartesian3.ZERO, 0.99 * 6378137.0);
+        this.panel = panel;
+
         this.viewerParameters = {
             lonRange: new Cesium.Cartesian2(),
             latRange: new Cesium.Cartesian2(),
             pixelSize: 0.0
         };
+        // use a smaller earth radius to make sure distance to camera > 0
+        this.globeBoundingSphere = new Cesium.BoundingSphere(Cesium.Cartesian3.ZERO, 0.99 * 6378137.0);
         this.updateViewerParameters();
 
         DataProcess.loadData().then(
             (data) => {
                 this.particleSystem = new ParticleSystem(this.scene.context, data,
-                    userInput, this.viewerParameters);
-
-                // the order of primitives.add should respect the dependency of primitives
-                this.scene.primitives.add(this.particleSystem.particlesComputing.primitives.getWind);
-                this.scene.primitives.add(this.particleSystem.particlesComputing.primitives.updateSpeed);
-                this.scene.primitives.add(this.particleSystem.particlesComputing.primitives.updatePosition);
-                this.scene.primitives.add(this.particleSystem.particlesComputing.primitives.postProcessingPosition);
-                this.scene.primitives.add(this.particleSystem.particlesComputing.primitives.postProcessingSpeed);
-
-                this.scene.primitives.add(this.particleSystem.particlesRendering.primitives.segments);
-                this.scene.primitives.add(this.particleSystem.particlesRendering.primitives.trails);
-                this.scene.primitives.add(this.particleSystem.particlesRendering.primitives.screen);
+                    this.panel.getUserInput(), this.viewerParameters);
+                this.addPrimitives();
 
                 this.setupEventListeners();
 
@@ -49,7 +41,21 @@ class Wind3D {
             });
 
         this.imageryLayers = this.viewer.imageryLayers;
-        this.setGlobeLayer(userInput);
+        this.setGlobeLayer(this.panel.getUserInput());
+    }
+
+    addPrimitives() {
+        // the order of primitives.add() should respect the dependency of primitives
+        this.scene.primitives.add(this.particleSystem.particlesComputing.primitives.getWind);
+        this.scene.primitives.add(this.particleSystem.particlesComputing.primitives.updateSpeed);
+        this.scene.primitives.add(this.particleSystem.particlesComputing.primitives.updatePosition);
+        this.scene.primitives.add(this.particleSystem.particlesComputing.primitives.postProcessingPosition);
+        this.scene.primitives.add(this.particleSystem.particlesComputing.primitives.postProcessingSpeed);
+
+        this.scene.primitives.add(this.particleSystem.particlesRendering.primitives.segments);
+        this.scene.primitives.add(this.particleSystem.particlesRendering.primitives.trails);
+        this.scene.primitives.add(this.particleSystem.particlesRendering.primitives.screen);
+
     }
 
     updateViewerParameters() {
@@ -103,7 +109,6 @@ class Wind3D {
                 break;
             }
         }
-
     }
 
     setupEventListeners() {
@@ -123,22 +128,24 @@ class Wind3D {
         window.addEventListener("resize", function () {
             resized = true;
             that.scene.primitives.show = false;
+            that.scene.primitives.removeAll();
         });
 
         this.scene.preRender.addEventListener(function () {
             if (resized) {
                 that.particleSystem.canvasResize(that.scene.context);
                 resized = false;
+                that.addPrimitives();
                 that.scene.primitives.show = true;
             }
         });
 
-        window.addEventListener('particleSystemOptionsChanged', function (event) {
-            that.particleSystem.applyUserInput(event.detail);
+        window.addEventListener('particleSystemOptionsChanged', function () {
+            that.particleSystem.applyUserInput(that.panel.getUserInput());
         });
 
-        window.addEventListener('displayOptionsChanged', function (event) {
-            that.setGlobeLayer(event.detail);
+        window.addEventListener('layerOptionsChanged', function () {
+            that.setGlobeLayer(that.panel.getUserInput());
         });
     }
 

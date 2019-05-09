@@ -28,8 +28,15 @@ class ParticleSystem {
         });
 
         this.context = context;
-        this.particlesComputing = new ParticlesComputing(this.context, this.data, this.userInput, this.viewerParameters);
-        this.particlesRendering = new ParticlesRendering(this.context, this.data, this.userInput, this.viewerParameters);
+        this.particlesComputing = new ParticlesComputing(
+            this.context, this.data,
+            this.userInput, this.viewerParameters
+        );
+        this.particlesRendering = new ParticlesRendering(
+            this.context, this.data,
+            this.userInput, this.viewerParameters,
+            this.particlesComputing
+        );
     }
 
     clearFramebuffers() {
@@ -40,19 +47,17 @@ class ParticleSystem {
             pass: Cesium.Pass.OPAQUE
         });
 
-        clearCommand.framebuffer = this.particlesRendering.framebuffers.segments;
-        clearCommand.execute(this.context);
-        clearCommand.framebuffer = this.particlesRendering.framebuffers.currentTrails;
-        clearCommand.execute(this.context);
-        clearCommand.framebuffer = this.particlesRendering.framebuffers.nextTrails;
-        clearCommand.execute(this.context);
+        Object.keys(this.particlesRendering.framebuffers).forEach((key) => {
+            clearCommand.framebuffer = this.particlesRendering.framebuffers[key];
+            clearCommand.execute(this.context);
+        });
     }
 
-    refreshParticle(maxParticlesChanged) {
+    refreshParticles(maxParticlesChanged) {
         this.clearFramebuffers();
         if (maxParticlesChanged) {
             this.particlesComputing.destroyParticlesTextures();
-            this.particlesComputing.createParticlesTextures(this.context, this.userInput);
+            this.particlesComputing.createParticlesTextures(this.context, this.userInput, this.viewerParameters);
         }
     }
 
@@ -65,13 +70,13 @@ class ParticleSystem {
         Object.keys(userInput).forEach((key) => {
             this.userInput[key] = userInput[key];
         });
-        this.refreshParticle(maxParticlesChanged);
+        this.refreshParticles(maxParticlesChanged);
     }
 
     applyViewerParameters(viewerParameters) {
         Object.keys(viewerParameters).forEach((key) => {
             this.viewerParameters[key] = viewerParameters[key];
         });
-        this.refreshParticle(false);
+        this.refreshParticles(false);
     }
 }

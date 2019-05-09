@@ -24,8 +24,7 @@ const globeLayers = [
     { name: "WorldTerrain", type: "WorldTerrain" }
 ]
 
-// the date of the wind field data is 20180916_0000
-const defaultDisplayOptions = {
+const defaultLayerOptions = {
     "globeLayer": globeLayers[0],
     "WMS_URL": "https://www.ncei.noaa.gov/thredds/wms/gfs-004-files/201809/20180916/gfs_4_20180916_0000_000.grb2",
 }
@@ -40,8 +39,8 @@ class Panel {
         this.speedFactor = defaultParticleSystemOptions.speedFactor;
         this.lineWidth = defaultParticleSystemOptions.lineWidth;
 
-        this.globeLayer = defaultDisplayOptions.globeLayer;
-        this.WMS_URL = defaultDisplayOptions.WMS_URL;
+        this.globeLayer = defaultLayerOptions.globeLayer;
+        this.WMS_URL = defaultLayerOptions.WMS_URL;
 
         var layerNames = [];
         globeLayers.forEach(function (layer) {
@@ -49,20 +48,20 @@ class Panel {
         });
         this.layerToShow = layerNames[0];
 
-        const that = this;
         var onParticleSystemOptionsChange = function () {
-            var event = new CustomEvent('particleSystemOptionsChanged', { detail: that.getUserInput() });
+            var event = new CustomEvent('particleSystemOptionsChanged');
             window.dispatchEvent(event);
         }
 
-        var onDisplayOptionsChange = function () {
+        const that = this;
+        var onLayerOptionsChange = function () {
             for (var i = 0; i < globeLayers.length; i++) {
                 if (that.layerToShow == globeLayers[i].name) {
                     that.globeLayer = globeLayers[i];
                     break;
                 }
             }
-            var event = new CustomEvent('displayOptionsChanged', { detail: that.getUserInput() });
+            var event = new CustomEvent('layerOptionsChanged');
             window.dispatchEvent(event);
         }
 
@@ -76,7 +75,7 @@ class Panel {
             gui.add(that, 'speedFactor', 0.5, 100).onFinishChange(onParticleSystemOptionsChange);
             gui.add(that, 'lineWidth', 0.01, 16.0).onFinishChange(onParticleSystemOptionsChange);
 
-            gui.add(that, 'layerToShow', layerNames).onFinishChange(onDisplayOptionsChange);
+            gui.add(that, 'layerToShow', layerNames).onFinishChange(onLayerOptionsChange);
 
             var panelContainer = document.getElementsByClassName('cesium-widget').item(0);
             gui.domElement.classList.add('myPanel');
