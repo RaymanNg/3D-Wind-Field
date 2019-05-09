@@ -1,7 +1,7 @@
 uniform sampler2D colorTable;
 
-varying float relativeSpeed;
+varying float speedNormalization;
 
 void main() {
-    gl_FragColor = texture2D(colorTable, vec2(relativeSpeed, 0.0));
+    gl_FragColor = texture2D(colorTable, vec2(speedNormalization, 0.0));
 }

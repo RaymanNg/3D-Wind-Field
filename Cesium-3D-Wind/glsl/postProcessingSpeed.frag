@@ -5,11 +5,11 @@ varying vec2 v_textureCoordinates;
 
 void main() {
 	vec4 randomParticle = texture2D(postProcessingPosition, v_textureCoordinates);
-	vec3 particleSpeed = texture2D(nextParticlesSpeed, v_textureCoordinates).rgb;
+	vec4 particleSpeed = texture2D(nextParticlesSpeed, v_textureCoordinates);
 	
     if (randomParticle.a > 0.0) {
 		gl_FragColor = vec4(0.0);
     } else {
-		gl_FragColor = vec4(particleSpeed, 0.0);
+		gl_FragColor = particleSpeed;
     }
 }

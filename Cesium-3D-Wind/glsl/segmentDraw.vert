@@ -12,7 +12,7 @@ uniform float aspect;
 uniform float pixelSize;
 uniform float lineWidth;
 
-varying float relativeSpeed;
+varying float speedNormalization;
 
 vec3 convertCoordinate(vec3 lonLatLev) {
     // WGS84 (lon, lat, lev) -> ECEF (x, y, z)
@@ -91,5 +91,5 @@ void main() {
         gl_Position = nextProjectedCoord + offset;
     }
 	
-    relativeSpeed = length(texture2D(postProcessingSpeed, particleIndex).rgb);
+    speedNormalization = texture2D(postProcessingSpeed, particleIndex).a;
 }
