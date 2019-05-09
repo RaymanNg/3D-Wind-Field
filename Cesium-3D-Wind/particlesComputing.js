@@ -106,7 +106,11 @@ class ParticlesComputing {
                 fragmentShaderSource: new Cesium.ShaderSource({
                     sources: [Util.loadText(fileOptions.glslDirectory + 'getWind.frag')]
                 }),
-                outputTexture: this.particlesTextures.particlesWind
+                outputTexture: this.particlesTextures.particlesWind,
+                preExecute: function () {
+                    // keep the outputTexture up to date
+                    that.primitives.getWind.commandToExecute.outputTexture = that.particlesTextures.particlesWind;
+                }
             }),
 
             updateSpeed: new CustomPrimitive({
@@ -141,6 +145,9 @@ class ParticlesComputing {
                     temp = that.particlesTextures.currentParticlesSpeed;
                     that.particlesTextures.currentParticlesSpeed = that.particlesTextures.postProcessingSpeed;
                     that.particlesTextures.postProcessingSpeed = temp;
+
+                    // keep the outputTexture up to date
+                    that.primitives.updateSpeed.commandToExecute.outputTexture = that.particlesTextures.nextParticlesSpeed;
                 }
             }),
 
@@ -164,6 +171,9 @@ class ParticlesComputing {
                     temp = that.particlesTextures.currentParticlesPosition;
                     that.particlesTextures.currentParticlesPosition = that.particlesTextures.postProcessingPosition;
                     that.particlesTextures.postProcessingPosition = temp;
+
+                    // keep the outputTexture up to date
+                    that.primitives.updatePosition.commandToExecute.outputTexture = that.particlesTextures.nextParticlesPosition;
                 }
             }),
 
@@ -198,7 +208,7 @@ class ParticlesComputing {
                 }),
                 outputTexture: this.particlesTextures.postProcessingPosition,
                 preExecute: function () {
-                    // keep the outputTextures up to date
+                    // keep the outputTexture up to date
                     that.primitives.postProcessingPosition.commandToExecute.outputTexture = that.particlesTextures.postProcessingPosition;
                 }
             }),
@@ -218,7 +228,7 @@ class ParticlesComputing {
                 }),
                 outputTexture: this.particlesTextures.postProcessingSpeed,
                 preExecute: function () {
-                    // keep the outputTextures up to date
+                    // keep the outputTexture up to date
                     that.primitives.postProcessingSpeed.commandToExecute.outputTexture = that.particlesTextures.postProcessingSpeed;
                 }
             })
