@@ -73,7 +73,7 @@ void main() {
 	
 	vec4 currentProjectedCoord = vec4(0.0);
 	vec4 nextProjectedCoord = vec4(0.0);
-	if (nextPosition.a > 0.0) {
+	if (nextPosition.w > 0.0) {
 		currentProjectedCoord = calcProjectedCoord(currentPosition);
 		nextProjectedCoord = calcProjectedCoord(currentPosition);
 	} else {

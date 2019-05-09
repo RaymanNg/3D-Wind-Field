@@ -52,7 +52,7 @@ class ParticlesComputing {
             currentParticlesSpeed: Util.createTexture(particlesTextureOptions),
             nextParticlesSpeed: Util.createTexture(particlesTextureOptions),
 
-            postProcessingPosition: Util.createTexture(particlesTextureOptions),
+            postProcessingPosition: Util.createTexture(particlesTextureOptions, particlesArray),
             postProcessingSpeed: Util.createTexture(particlesTextureOptions)
         };
     }
@@ -139,10 +139,8 @@ class ParticlesComputing {
                     // swap textures before binding
                     var temp;
                     temp = that.particlesTextures.currentParticlesSpeed;
-                    that.particlesTextures.currentParticlesSpeed = that.particlesTextures.nextParticlesSpeed;
-                    that.particlesTextures.nextParticlesSpeed = temp;
-
-                    that.primitives.updateSpeed.commandToExecute.outputTexture = that.particlesTextures.nextParticlesSpeed;
+                    that.particlesTextures.currentParticlesSpeed = that.particlesTextures.postProcessingSpeed;
+                    that.particlesTextures.postProcessingSpeed = temp;
                 }
             }),
 
@@ -164,10 +162,8 @@ class ParticlesComputing {
                     // swap textures before binding
                     var temp;
                     temp = that.particlesTextures.currentParticlesPosition;
-                    that.particlesTextures.currentParticlesPosition = that.particlesTextures.nextParticlesPosition;
-                    that.particlesTextures.nextParticlesPosition = temp;
-
-                    that.primitives.updatePosition.commandToExecute.outputTexture = that.particlesTextures.nextParticlesPosition;
+                    that.particlesTextures.currentParticlesPosition = that.particlesTextures.postProcessingPosition;
+                    that.particlesTextures.postProcessingPosition = temp;
                 }
             }),
 
@@ -200,7 +196,11 @@ class ParticlesComputing {
                 fragmentShaderSource: new Cesium.ShaderSource({
                     sources: [Util.loadText(fileOptions.glslDirectory + 'postProcessingPosition.frag')]
                 }),
-                outputTexture: this.particlesTextures.postProcessingPosition
+                outputTexture: this.particlesTextures.postProcessingPosition,
+                preExecute: function () {
+                    // keep the outputTextures up to date
+                    that.primitives.postProcessingPosition.commandToExecute.outputTexture = that.particlesTextures.postProcessingPosition;
+                }
             }),
 
             postProcessingSpeed: new CustomPrimitive({
@@ -216,7 +216,11 @@ class ParticlesComputing {
                 fragmentShaderSource: new Cesium.ShaderSource({
                     sources: [Util.loadText(fileOptions.glslDirectory + 'postProcessingSpeed.frag')]
                 }),
-                outputTexture: this.particlesTextures.postProcessingSpeed
+                outputTexture: this.particlesTextures.postProcessingSpeed,
+                preExecute: function () {
+                    // keep the outputTextures up to date
+                    that.primitives.postProcessingSpeed.commandToExecute.outputTexture = that.particlesTextures.postProcessingSpeed;
+                }
             })
         }
     }
