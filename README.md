@@ -18,7 +18,7 @@ The NetCDF file is in the "data" folder, it should contains below variables:
 
 "lev", "lat", "lon" are names of dimensions, please keep in mind that:
 - The order of dimensions matter
-- Use small(less than 100MB) NetCDF file if possible, or your browser may crash, you may want to use NCO(NetCDF operator) or CDO(Climate Data Operator) to split the NetCDF data
+- Use small(less than 100MB) NetCDF file if possible, or your browser may crash. You may want to use NCO(NetCDF Operator) or CDO(Climate Data Operator) to split the NetCDF data
 - Don't forget to change the filename in the source code("dataProcess.js" function loadData )
 
 ## Note
