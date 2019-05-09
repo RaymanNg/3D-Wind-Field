@@ -142,7 +142,6 @@ class Wind3D {
         window.addEventListener('particleSystemOptionsChanged', function () {
             that.particleSystem.applyUserInput(that.panel.getUserInput());
         });
-
         window.addEventListener('layerOptionsChanged', function () {
             that.setGlobeLayer(that.panel.getUserInput());
         });

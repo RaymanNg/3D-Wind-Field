@@ -60,7 +60,15 @@ class ParticleSystem {
         this.particlesComputing.createParticlesTextures(this.context, this.userInput, this.viewerParameters);
 
         if (maxParticlesChanged) {
-
+            var geometry = this.particlesRendering.createSegmentsGeometry(this.userInput);
+            this.particlesRendering.primitives.segments.geometry = geometry;
+            var vertexArray = Cesium.VertexArray.fromGeometry({
+                context: this.context,
+                geometry: geometry,
+                attributeLocations: this.particlesRendering.primitives.segments.attributeLocations,
+                bufferUsage: Cesium.BufferUsage.STATIC_DRAW,
+            });
+            this.particlesRendering.primitives.segments.commandToExecute.vertexArray = vertexArray;
         }
     }
 
