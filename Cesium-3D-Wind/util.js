@@ -6,39 +6,36 @@ var Util = (function () {
 		return request.responseText;
 	}
 
-	var fullscreenQuad = undefined;
 	var getFullscreenQuad = function () {
-		if (!Cesium.defined(fullscreenQuad)) {
-			fullscreenQuad = new Cesium.Geometry({
-				attributes: new Cesium.GeometryAttributes({
-					position: new Cesium.GeometryAttribute({
-						componentDatatype: Cesium.ComponentDatatype.FLOAT,
-						componentsPerAttribute: 3,
-						//  v3----v2
-						//  |     |
-						//  |     |
-						//  v0----v1
-						values: new Float32Array([
-							-1, -1, 0, // v0
-							1, -1, 0, // v1
-							1, 1, 0, // v2
-							-1, 1, 0, // v3
-						])
-					}),
-					st: new Cesium.GeometryAttribute({
-						componentDatatype: Cesium.ComponentDatatype.FLOAT,
-						componentsPerAttribute: 2,
-						values: new Float32Array([
-							0, 0,
-							1, 0,
-							1, 1,
-							0, 1,
-						])
-					})
+		var fullscreenQuad = new Cesium.Geometry({
+			attributes: new Cesium.GeometryAttributes({
+				position: new Cesium.GeometryAttribute({
+					componentDatatype: Cesium.ComponentDatatype.FLOAT,
+					componentsPerAttribute: 3,
+					//  v3----v2
+					//  |     |
+					//  |     |
+					//  v0----v1
+					values: new Float32Array([
+						-1, -1, 0, // v0
+						1, -1, 0, // v1
+						1, 1, 0, // v2
+						-1, 1, 0, // v3
+					])
 				}),
-				indices: new Uint32Array([3, 2, 0, 0, 2, 1])
-			});
-		}
+				st: new Cesium.GeometryAttribute({
+					componentDatatype: Cesium.ComponentDatatype.FLOAT,
+					componentsPerAttribute: 2,
+					values: new Float32Array([
+						0, 0,
+						1, 0,
+						1, 1,
+						0, 1,
+					])
+				})
+			}),
+			indices: new Uint32Array([3, 2, 0, 0, 2, 1])
+		});
 		return fullscreenQuad;
 	}
 

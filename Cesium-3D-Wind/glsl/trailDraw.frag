@@ -12,7 +12,7 @@ void main() {
     vec4 pointsColor = texture2D(segmentsColorTexture, textureCoordinate);
     vec4 trailsColor = texture2D(currentTrailsColor, textureCoordinate);
 
-    trailsColor = floor(fadeOpacity * 255.0 * trailsColor) / 255.0; // a hack to make sure the trailsColor will be strictly decreased
+    trailsColor = floor(fadeOpacity * 255.0 * trailsColor) / 255.0; // make sure the trailsColor will be strictly decreased
 
     float pointsDepth = texture2D(segmentsDepthTexture, textureCoordinate).r;
     float trailsDepth = texture2D(trailsDepthTexture, textureCoordinate).r;

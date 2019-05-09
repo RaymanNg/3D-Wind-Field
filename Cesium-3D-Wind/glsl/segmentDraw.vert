@@ -70,11 +70,12 @@ void main() {
 	
 	vec3 currentPosition = texture2D(currentParticlesPosition, particleIndex).rgb;
 	vec4 nextPosition = texture2D(postProcessingPosition, particleIndex);
+	
 	vec4 currentProjectedCoord = vec4(0.0);
 	vec4 nextProjectedCoord = vec4(0.0);
 	if (nextPosition.a > 0.0) {
 		currentProjectedCoord = calcProjectedCoord(currentPosition);
-		currentProjectedCoord = calcProjectedCoord(currentPosition);
+		nextProjectedCoord = calcProjectedCoord(currentPosition);
 	} else {
 	    currentProjectedCoord = calcProjectedCoord(currentPosition);
 		nextProjectedCoord = calcProjectedCoord(nextPosition.xyz);
