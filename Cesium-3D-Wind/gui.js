@@ -84,9 +84,13 @@ class Panel {
     }
 
     getUserInput() {
+        // make sure maxParticles is exactly the square of particlesTextureSize
+        var particlesTextureSize = Math.ceil(Math.sqrt(this.maxParticles));
+        this.maxParticles = particlesTextureSize * particlesTextureSize;
+
         return {
+            particlesTextureSize: particlesTextureSize,
             maxParticles: this.maxParticles,
-            particlesTextureSize: Math.ceil(Math.sqrt(this.maxParticles)),
             particleHeight: this.particleHeight,
             fadeOpacity: this.fadeOpacity,
             dropRate: this.dropRate,
