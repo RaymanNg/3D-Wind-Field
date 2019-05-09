@@ -123,6 +123,7 @@ class ParticlesRendering {
                     normal: 1
                 },
                 geometry: this.createSegmentsGeometry(userInput),
+                primitiveType: Cesium.PrimitiveType.TRIANGLES,
                 uniformMap: {
                     currentParticlesPosition: function () {
                         return particlesComputing.particlesTextures.currentParticlesPosition;
@@ -174,6 +175,7 @@ class ParticlesRendering {
                     st: 1
                 },
                 geometry: Util.getFullscreenQuad(),
+                primitiveType: Cesium.PrimitiveType.TRIANGLES,
                 uniformMap: {
                     segmentsColorTexture: function () {
                         return that.textures.segmentsColor;
@@ -229,6 +231,7 @@ class ParticlesRendering {
                     st: 1
                 },
                 geometry: Util.getFullscreenQuad(),
+                primitiveType: Cesium.PrimitiveType.TRIANGLES,
                 uniformMap: {
                     trailsColorTexture: function () {
                         return that.framebuffers.nextTrails.getColorTexture(0);
