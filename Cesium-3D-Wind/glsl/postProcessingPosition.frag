@@ -1,5 +1,5 @@
 uniform sampler2D nextParticlesPosition;
-uniform sampler2D nextParticlesSpeed;
+uniform sampler2D nextParticlesSpeed; // (u, v, w, normalization)
 
 // range (min, max)
 uniform vec2 lonRange;
@@ -35,8 +35,8 @@ bool particleOutbound(vec3 particle) {
 
 void main() {
 	vec3 nextParticle = texture2D(nextParticlesPosition, v_textureCoordinates).rgb;
-    vec3 nextSpeed = texture2D(nextParticlesSpeed, v_textureCoordinates).rgb;
-    float particleDropRate = dropRate + 0.0 * dropRateBump * length(nextSpeed);
+    vec4 nextSpeed = texture2D(nextParticlesSpeed, v_textureCoordinates);
+    float particleDropRate = dropRate + dropRateBump * nextSpeed.a;
 
     vec2 seed1 = nextParticle.xy + v_textureCoordinates;
     vec2 seed2 = nextSpeed.xy + v_textureCoordinates;

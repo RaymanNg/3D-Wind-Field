@@ -1,5 +1,5 @@
 uniform sampler2D currentParticlesPosition; // (lon, lat, lev)
-uniform sampler2D currentParticlesSpeed; // (u, v, w)
+uniform sampler2D currentParticlesSpeed; // (u, v, w, normalization)
 
 varying vec2 v_textureCoordinates;
 
