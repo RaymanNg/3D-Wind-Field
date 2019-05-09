@@ -1,8 +1,8 @@
 class ParticlesRendering {
-    constructor(context, data, userInput, viewerParameters) {
+    constructor(context, data, userInput, viewerParameters, particlesComputing) {
         this.createRenderingTextures(context, data);
         this.createRenderingFramebuffers(context);
-        this.createRenderingPrimitives(context, userInput, viewerParameters);
+        this.createRenderingPrimitives(context, userInput, viewerParameters, particlesComputing);
     }
 
     createRenderingTextures(context, data) {
@@ -231,10 +231,10 @@ class ParticlesRendering {
                 geometry: Util.getFullscreenQuad(),
                 uniformMap: {
                     trailsColorTexture: function () {
-                        return undefined;
+                        return that.framebuffers.nextTrails.getColorTexture(0);
                     },
                     trailsDepthTexture: function () {
-                        return undefined;
+                        return that.framebuffers.nextTrails.depthTexture;
                     }
                 },
                 // prevent Cesium from writing depth because the depth here should be written manually

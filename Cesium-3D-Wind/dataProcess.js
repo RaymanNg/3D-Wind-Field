@@ -89,19 +89,20 @@ var DataProcess = (function () {
         return data;
     }
 
-    var randomizeParticleLonLatLev = function (maxParticles, lonLatRange) {
-        var array = new Float32Array(3 * maxParticles);
+    var randomizeParticles = function (maxParticles, viewerParameters) {
+        var array = new Float32Array(4 * maxParticles);
         for (var i = 0; i < maxParticles; i++) {
-            array[3 * i] = Cesium.Math.randomBetween(lonLatRange.lon.min, lonLatRange.lon.max);
-            array[3 * i + 1] = Cesium.Math.randomBetween(lonLatRange.lat.min, lonLatRange.lat.max);
-            array[3 * i + 2] = Cesium.Math.randomBetween(data.lev.min, data.lev.max);
+            array[4 * i] = Cesium.Math.randomBetween(viewerParameters.lonRange.x, viewerParameters.lonRange.y);
+            array[4 * i + 1] = Cesium.Math.randomBetween(viewerParameters.latRange.x, viewerParameters.latRange.y);
+            array[4 * i + 2] = Cesium.Math.randomBetween(data.lev.min, data.lev.max);
+            array[4 * i + 3] = 0.0;
         }
         return array;
     }
 
     return {
         loadData: loadData,
-        randomizeParticleLonLatLev: randomizeParticleLonLatLev
+        randomizeParticles: randomizeParticles
     };
 
 })();
