@@ -55,9 +55,12 @@ class ParticleSystem {
 
     refreshParticles(maxParticlesChanged) {
         this.clearFramebuffers();
+
+        this.particlesComputing.destroyParticlesTextures();
+        this.particlesComputing.createParticlesTextures(this.context, this.userInput, this.viewerParameters);
+
         if (maxParticlesChanged) {
-            this.particlesComputing.destroyParticlesTextures();
-            this.particlesComputing.createParticlesTextures(this.context, this.userInput, this.viewerParameters);
+
         }
     }
 

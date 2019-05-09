@@ -55,7 +55,6 @@ class Wind3D {
         this.scene.primitives.add(this.particleSystem.particlesRendering.primitives.segments);
         this.scene.primitives.add(this.particleSystem.particlesRendering.primitives.trails);
         this.scene.primitives.add(this.particleSystem.particlesRendering.primitives.screen);
-
     }
 
     updateViewerParameters() {
