@@ -36,7 +36,7 @@ bool particleOutbound(vec3 particle) {
 void main() {
 	vec3 nextParticle = texture2D(nextParticlesPosition, v_textureCoordinates).rgb;
     vec3 nextSpeed = texture2D(nextParticlesSpeed, v_textureCoordinates).rgb;
-    float particleDropRate = dropRate + dropRateBump * length(nextSpeed);
+    float particleDropRate = dropRate + 0.0 * dropRateBump * length(nextSpeed);
 
     vec2 seed1 = nextParticle.xy + v_textureCoordinates;
     vec2 seed2 = nextSpeed.xy + v_textureCoordinates;
