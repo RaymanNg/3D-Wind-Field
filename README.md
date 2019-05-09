@@ -14,5 +14,5 @@ starting debug in VSCode.
 ## Note
 You might want to modify the default parameters for a better visualization result, parameters can be changed in the left panel.
 
-## Rerference
+## Reference
 I find a good tutorial about doing custom render in Cesium https://github.com/cesiumlab/cesium-custom-primitive.
