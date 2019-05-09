@@ -5,18 +5,25 @@ class ParticleSystem {
         this.userInput = userInput;
         this.viewerParameters = viewerParameters;
 
-        this.particlesComputing = new ParticlesComputing(this.context, this.data, this.userInput, this.viewerParameters);
-        this.particlesRendering = new ParticlesRendering(this.context, this.data, this.userInput, this.viewerParameters);
+        this.particlesComputing = new ParticlesComputing(
+            this.context, this.data,
+            this.userInput, this.viewerParameters
+        );
+        this.particlesRendering = new ParticlesRendering(
+            this.context, this.data,
+            this.userInput, this.viewerParameters,
+            this.particlesComputing
+        );
     }
 
     canvasResize(context) {
         this.particlesComputing.destroyParticlesTextures();
-        Object.keys(this.particlesComputing.windTextures).forEach(function (key) {
+        Object.keys(this.particlesComputing.windTextures).forEach((key) => {
             this.particlesComputing.windTextures[key].destroy();
         });
 
         this.particlesRendering.textures.colorTable.destroy();
-        Object.keys(this.particlesRendering.framebuffers).forEach(function (key) {
+        Object.keys(this.particlesRendering.framebuffers).forEach((key) => {
             this.particlesRendering.framebuffers[key].destroy();
         });
 
@@ -55,14 +62,14 @@ class ParticleSystem {
             maxParticlesChanged = true;
         }
 
-        Object.keys(userInput).forEach(function (key) {
+        Object.keys(userInput).forEach((key) => {
             this.userInput[key] = userInput[key];
         });
         this.refreshParticle(maxParticlesChanged);
     }
 
     applyViewerParameters(viewerParameters) {
-        Object.keys(viewerParameters).forEach(function (key) {
+        Object.keys(viewerParameters).forEach((key) => {
             this.viewerParameters[key] = viewerParameters[key];
         });
         this.refreshParticle(false);

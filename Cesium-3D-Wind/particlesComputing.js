@@ -1,7 +1,7 @@
 class ParticlesComputing {
     constructor(context, data, userInput, viewerParameters) {
         this.createWindTextures(context, data);
-        this.createParticlesTextures(context, userInput);
+        this.createParticlesTextures(context, userInput, viewerParameters);
         this.createComputingPrimitives(data, userInput, viewerParameters);
     }
 
@@ -26,7 +26,7 @@ class ParticlesComputing {
         };
     }
 
-    createParticlesTextures(context, userInput) {
+    createParticlesTextures(context, userInput, viewerParameters) {
         var particlesTextureOptions = {
             context: context,
             width: userInput.particlesTextureSize,
@@ -41,11 +41,13 @@ class ParticlesComputing {
             })
         };
 
+        var particlesArray = DataProcess.randomizeParticles(userInput.maxParticles, viewerParameters)
+
         this.particlesTextures = {
             particlesWind: Util.createTexture(particlesTextureOptions),
 
-            currentParticlesPosition: Util.createTexture(particlesTextureOptions),
-            nextParticlesPosition: Util.createTexture(particlesTextureOptions),
+            currentParticlesPosition: Util.createTexture(particlesTextureOptions, particlesArray),
+            nextParticlesPosition: Util.createTexture(particlesTextureOptions, particlesArray),
 
             currentParticlesSpeed: Util.createTexture(particlesTextureOptions),
             nextParticlesSpeed: Util.createTexture(particlesTextureOptions),
@@ -56,7 +58,7 @@ class ParticlesComputing {
     }
 
     destroyParticlesTextures() {
-        Object.keys(this.particlesTextures).forEach(function (key) {
+        Object.keys(this.particlesTextures).forEach((key) => {
             this.particlesTextures[key].destroy();
         });
     }
@@ -139,6 +141,8 @@ class ParticlesComputing {
                     temp = that.particlesTextures.currentParticlesSpeed;
                     that.particlesTextures.currentParticlesSpeed = that.particlesTextures.nextParticlesSpeed;
                     that.particlesTextures.nextParticlesSpeed = temp;
+
+                    that.primitives.updateSpeed.commandToExecute.outputTexture = that.particlesTextures.nextParticlesSpeed;
                 }
             }),
 
@@ -162,6 +166,8 @@ class ParticlesComputing {
                     temp = that.particlesTextures.currentParticlesPosition;
                     that.particlesTextures.currentParticlesPosition = that.particlesTextures.nextParticlesPosition;
                     that.particlesTextures.nextParticlesPosition = temp;
+
+                    that.primitives.updatePosition.commandToExecute.outputTexture = that.particlesTextures.nextParticlesPosition;
                 }
             }),
 
