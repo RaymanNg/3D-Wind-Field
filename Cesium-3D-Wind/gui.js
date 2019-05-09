@@ -1,6 +1,6 @@
 var demo = Cesium.defaultValue(demo, false);
 
-const defaultFileOptions = {
+const fileOptions = {
     dataDirectory: demo ? 'https://raw.githubusercontent.com/RaymanNg/3D-Wind-Field/master/data/' : '../data/',
     glslDirectory: demo ? '../Cesium-3D-Wind/glsl/' : 'glsl/'
 }
@@ -32,9 +32,6 @@ const defaultDisplayOptions = {
 
 class Panel {
     constructor() {
-        this.dataDirectory = defaultFileOptions.dataDirectory;
-        this.glslDirectory = defaultFileOptions.glslDirectory;
-
         this.maxParticles = defaultParticleSystemOptions.maxParticles;
         this.particleHeight = defaultParticleSystemOptions.particleHeight;
         this.fadeOpacity = defaultParticleSystemOptions.fadeOpacity;
@@ -52,11 +49,9 @@ class Panel {
         });
         this.layerToShow = layerNames[0];
 
-        this.changed = false;
-
         const that = this;
         var onParticleSystemOptionsChange = function () {
-            var event = new CustomEvent('particleSystemOptionsChanged', { detail: that.getParticleSystemOptions() });
+            var event = new CustomEvent('particleSystemOptionsChanged', { detail: that.getUserInput() });
             window.dispatchEvent(event);
         }
 
@@ -67,7 +62,7 @@ class Panel {
                     break;
                 }
             }
-            var event = new CustomEvent('displayOptionsChanged', { detail: that.getDisplayOptions() });
+            var event = new CustomEvent('displayOptionsChanged', { detail: that.getUserInput() });
             window.dispatchEvent(event);
         }
 
@@ -89,27 +84,16 @@ class Panel {
         };
     }
 
-    getFileOptions() {
-        return {
-            dataDirectory: this.dataDirectory,
-            glslDirectory: this.glslDirectory
-        }
-    }
-
-    getParticleSystemOptions() {
+    getUserInput() {
         return {
             maxParticles: this.maxParticles,
+            particlesTextureSize: Math.ceil(Math.sqrt(this.maxParticles)),
             particleHeight: this.particleHeight,
             fadeOpacity: this.fadeOpacity,
             dropRate: this.dropRate,
             dropRateBump: this.dropRateBump,
             speedFactor: this.speedFactor,
             lineWidth: this.lineWidth,
-        }
-    }
-
-    getDisplayOptions() {
-        return {
             globeLayer: this.globeLayer,
             WMS_URL: this.WMS_URL
         }

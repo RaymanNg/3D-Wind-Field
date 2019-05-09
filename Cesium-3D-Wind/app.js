@@ -4,8 +4,6 @@ const mode = {
 
 var panel = new Panel();
 var wind3D = new Wind3D(
-    panel.getFileOptions(),
-    panel.getParticleSystemOptions(),
-    panel.getDisplayOptions(),
+    panel.getUserInput(),
     mode
 );
