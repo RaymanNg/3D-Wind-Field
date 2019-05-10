@@ -25,10 +25,11 @@ class Wind3D {
         };
         // use a smaller earth radius to make sure distance to camera > 0
         this.globeBoundingSphere = new Cesium.BoundingSphere(Cesium.Cartesian3.ZERO, 0.99 * 6378137.0);
-        this.updateViewerParameters();
 
         DataProcess.loadData().then(
             (data) => {
+                this.data = data;
+                this.updateViewerParameters();
                 this.particleSystem = new ParticleSystem(this.scene.context, data,
                     this.panel.getUserInput(), this.viewerParameters);
                 this.addPrimitives();
@@ -58,12 +59,10 @@ class Wind3D {
     }
 
     updateViewerParameters() {
-        var viewRectangle = this.camera.computeViewRectangle(this.scene.globe.ellipsoid);
-        var lonLatRange = Util.viewRectangleToLonLatRange(viewRectangle);
-        this.viewerParameters.lonRange.x = lonLatRange.lon.min;
-        this.viewerParameters.lonRange.y = lonLatRange.lon.max;
-        this.viewerParameters.latRange.x = lonLatRange.lat.min;
-        this.viewerParameters.latRange.y = lonLatRange.lat.max;
+        this.viewerParameters.lonRange.x = this.data.lon.min;
+        this.viewerParameters.lonRange.y = this.data.lon.max;
+        this.viewerParameters.latRange.x = this.data.lat.min;
+        this.viewerParameters.latRange.y = this.data.lat.max;
 
         var pixelSize = this.camera.getPixelSize(
             this.globeBoundingSphere,
