@@ -21,7 +21,9 @@ class Wind3D {
         this.viewerParameters = {
             lonRange: new Cesium.Cartesian2(),
             latRange: new Cesium.Cartesian2(),
-            pixelSize: 0.0
+            pixelSize: 0.0,
+            lonDisplayRange: new Cesium.Cartesian2(),
+            latDisplayRange: new Cesium.Cartesian2()
         };
         // use a smaller earth radius to make sure distance to camera > 0
         this.globeBoundingSphere = new Cesium.BoundingSphere(Cesium.Cartesian3.ZERO, 0.99 * 6378137.0);
@@ -58,11 +60,18 @@ class Wind3D {
         this.scene.primitives.add(this.particleSystem.particlesRendering.primitives.screen);
     }
 
-    updateViewerParameters() {
-        this.viewerParameters.lonRange.x = this.data.lon.min;
-        this.viewerParameters.lonRange.y = this.data.lon.max;
-        this.viewerParameters.latRange.x = this.data.lat.min;
-        this.viewerParameters.latRange.y = this.data.lat.max;
+    updateViewerParameters () {
+        var viewRectangle = this.camera.computeViewRectangle(this.scene.globe.ellipsoid);
+        var lonLatRange = Util.viewRectangleToLonLatRange(viewRectangle);
+        this.viewerParameters.lonRange.x = lonLatRange.lon.min;
+        this.viewerParameters.lonRange.y = lonLatRange.lon.max;
+        this.viewerParameters.latRange.x = lonLatRange.lat.min;
+        this.viewerParameters.latRange.y = lonLatRange.lat.max;
+
+        this.viewerParameters.lonDisplayRange.x = this.data.lon.min;
+        this.viewerParameters.lonDisplayRange.y = this.data.lon.max;
+        this.viewerParameters.latDisplayRange.x = this.data.lat.min;
+        this.viewerParameters.latDisplayRange.y = this.data.lat.max;
 
         var pixelSize = this.camera.getPixelSize(
             this.globeBoundingSphere,
