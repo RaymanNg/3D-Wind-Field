@@ -4,6 +4,8 @@ uniform sampler2D nextParticlesSpeed; // (u, v, w, normalization)
 // range (min, max)
 uniform vec2 lonRange;
 uniform vec2 latRange;
+uniform vec2 lonDisplayRange;
+uniform vec2 latDisplayRange;
 
 uniform float randomCoef; // use to improve the pseudo-random generator
 uniform float dropRate; // drop rate is a chance a particle will restart at random position to avoid degeneration
@@ -30,7 +32,7 @@ vec3 generateRandomParticle(vec2 seed, float lev) {
 }
 
 bool particleOutbound(vec3 particle) {
-    return particle.y < latRange.x || particle.y > latRange.y || particle.x < lonRange.x || particle.x > lonRange.y;
+    return particle.y < latDisplayRange.x || particle.y > latDisplayRange.y || particle.x < lonDisplayRange.x || particle.x > lonDisplayRange.y;
 }
 
 void main() {
