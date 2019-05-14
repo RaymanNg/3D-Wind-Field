@@ -113,7 +113,7 @@ vec3 rungeKutta4(vec3 lonLatLev) {
     p4.xy = p4.xy + h * k3.xy;
     vec3 k4 = bicubic(p4);
 
-    vec3 rk4 = (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
+    vec3 rk4 = k1 + (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
     return rk4;
 }
 
