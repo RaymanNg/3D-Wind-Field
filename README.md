@@ -13,17 +13,23 @@ starting debug in VSCode.
 
 ## How to use your own NetCDF data
 The NetCDF file is in the "data" folder, it should contains below variables:
-- U (lev, lat, lon)
-- V (lev, lat, lon)
+- U (lev, lat, lon) @min @max 
+- V (lev, lat, lon) @min @max
 
-"lev", "lat", "lon" are names of dimensions, please keep in mind that:
+"lev", "lat", "lon" are names of dimensions, and "min", "max" are the attributes of the variable.
+
+please keep in mind that:
 - The order of dimensions matter
-- Use small(less than 100MB) NetCDF file if possible, or your browser may crash. You may want to use NCO(NetCDF Operator) or CDO(Climate Data Operator) to split the NetCDF data
-- Don't forget to change the filename in the source code("dataProcess.js" function loadData )
+- Use small (less than 100MB) NetCDF file if possible, or your browser may crash. You may want to use NCO (NetCDF Operator) or CDO (Climate Data Operator) to split the NetCDF data
+- Don't forget to change the filename in the source code ("dataProcess.js" function loadData)
 
 ## Note
 - You might want to modify the default parameters for a better visualization result, parameters can be changed in the left panel.
 - If possible, you should run this demo on Chrome, because I did not test it on other browser.
 
-## Reference
-I find a good tutorial about doing custom render in Cesium https://github.com/cesiumlab/cesium-custom-primitive.
+## Credits
+This demo makes use of below repos:
+- [CesiumJS](https://github.com/AnalyticalGraphicsInc/cesium)
+- [Spector.js](https://github.com/BabylonJS/Spector.js)
+- [netcdfjs](https://github.com/cheminfo-js/netcdfjs)
+- A good Cesium [tutorial](https://github.com/cesiumlab/cesium-custom-primitive) about doing custom render in Cesium.
