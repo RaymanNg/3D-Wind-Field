@@ -192,12 +192,6 @@ class ParticlesComputing {
                     latRange: function () {
                         return viewerParameters.latRange;
                     },
-                    lonDataRange: function () {
-                        return viewerParameters.lonDataRange
-                    },
-                    latDataRange: function () {
-                        return viewerParameters.latDataRange
-                    },
                     randomCoef: function () {
                         var randomCoef = Math.random();
                         return randomCoef;
