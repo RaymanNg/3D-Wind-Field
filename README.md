@@ -32,4 +32,4 @@ This demo makes use of below repos:
 - [CesiumJS](https://github.com/AnalyticalGraphicsInc/cesium)
 - [Spector.js](https://github.com/BabylonJS/Spector.js)
 - [netcdfjs](https://github.com/cheminfo-js/netcdfjs)
-- A good Cesium [tutorial](https://github.com/cesiumlab/cesium-custom-primitive) about doing custom render in Cesium.
+- A good Cesium [tutorial](https://github.com/cesiumlab/cesium-custom-primitive).
