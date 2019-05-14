@@ -96,30 +96,9 @@ vec3 bicubic(vec3 lonLatLev) {
     return vec3(u, v, w);
 }
 
-const float h = 1.0;
-vec3 rungeKutta4(vec3 lonLatLev) {
-    vec3 p1 = lonLatLev;
-    vec3 k1 = bicubic(p1);
-	
-	vec3 p2 = p1;
-    p2.xy = p2.xy + 0.5 * h * k1.xy;
-    vec3 k2 = bicubic(p2);
-
-	vec3 p3 = p1;
-    p3.xy = p3.xy + 0.5 * h * k2.xy;
-    vec3 k3 = bicubic(p3);
-
-	vec3 p4 = p1;
-    p4.xy = p4.xy + h * k3.xy;
-    vec3 k4 = bicubic(p4);
-
-    vec3 rk4 = (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
-    return rk4;
-}
-
 void main() {
     // texture coordinate must be normalized
     vec3 lonLatLev = texture2D(currentParticlesPosition, v_textureCoordinates).rgb;
-    vec3 windVector = rungeKutta4(lonLatLev);
+    vec3 windVector = bicubic(lonLatLev);
 	gl_FragColor = vec4(windVector, 0.0);
 }
