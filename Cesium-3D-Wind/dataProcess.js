@@ -80,7 +80,7 @@ var DataProcess = (function () {
     }
 
     var loadData = async function () {
-        var ncFilePath = fileOptions.dataDirectory + "demo.nc";
+        var ncFilePath = fileOptions.dataDirectory + fileOptions.dataFile;
         await loadNetCDF(ncFilePath);
 
         var colorTableFilePath = fileOptions.dataDirectory + 'colorTable.json';

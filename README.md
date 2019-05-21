@@ -17,11 +17,13 @@ The NetCDF file is in the "data" folder, it should contains below variables:
 - V (lev, lat, lon) @min @max
 
 "lev", "lat", "lon" are names of dimensions, and "min", "max" are the attributes of the variable.
+For more detail, use [Panoply](https://www.giss.nasa.gov/tools/panoply/) to read the "data/demo.nc" file
 
 please keep in mind that:
+- You must use NetCDF version 3 (NOT 4, NOT other file types like HDF or GRIB) file
 - The order of dimensions matter
 - Use small (less than 100MB) NetCDF file if possible, or your browser may crash. You may want to use NCO (NetCDF Operator) or CDO (Climate Data Operator) to split the NetCDF data
-- Don't forget to change the filename in the source code ("dataProcess.js" function loadData)
+- Don't forget to change the filename in the source code ("gui.js")
 
 ## Note
 - You might want to modify the default parameters for a better visualization result, parameters can be changed in the left panel.

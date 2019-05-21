@@ -2,6 +2,7 @@ var demo = Cesium.defaultValue(demo, false);
 
 const fileOptions = {
     dataDirectory: demo ? 'https://raw.githubusercontent.com/RaymanNg/3D-Wind-Field/master/data/' : '../data/',
+    dataFile: "demo.nc",
     glslDirectory: demo ? '../Cesium-3D-Wind/glsl/' : 'glsl/'
 }
 
