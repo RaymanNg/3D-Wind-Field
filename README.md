@@ -25,6 +25,13 @@ please keep in mind that:
 - Use small (less than 100MB) NetCDF file if possible, or your browser may crash. You may want to use NCO (NetCDF Operator) or CDO (Climate Data Operator) to split the NetCDF data
 - Don't forget to change the filename in the source code ("gui.js")
 
+### Data layout
+![demo.nc](https://user-images.githubusercontent.com/18614142/58364512-26cd1e00-7ee8-11e9-8c94-1425221ec8b2.png)
+
+Note: 
+- netcdfjs will read the data row by row, so array(0) is (lon 0, lat -90)
+- The range of longitude is `[0,360]`, not `[-180, 180]`
+
 ## Note
 - You might want to modify the default parameters for a better visualization result, parameters can be changed in the left panel.
 - If possible, you should run this demo on Chrome, because I did not test it on other browser.
