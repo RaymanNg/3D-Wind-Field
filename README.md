@@ -33,6 +33,8 @@ Note:
 - The range of longitude is `[0,360]`, not `[-180, 180]`
 
 ## Note
+- The demo data is from [NOAA Global Forecast System](https://www.ncdc.noaa.gov/data-access/model-data/model-datasets/global-forcast-system-gfs).
+- The original data is in GRIB2 format and I used [toolsUI](https://www.unidata.ucar.edu/software/thredds/v4.5/netcdf-java/ToolsUI.html) to convert the GRIB2 file to a NetCDF V3 file.
 - You might want to modify the default parameters for a better visualization result, parameters can be changed in the left panel.
 - If possible, you should run this demo on Chrome, because I did not test it on other browser.
 
