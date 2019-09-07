@@ -19,7 +19,7 @@ The NetCDF file is in the "data" folder, it should contains below variables:
 "lev", "lat", "lon" are names of dimensions, and "min", "max" are the attributes of the variable.
 For more detail, use [Panoply](https://www.giss.nasa.gov/tools/panoply/) to read the "data/demo.nc" file
 
-please keep in mind that:
+please note that:
 - You must use NetCDF version 3 (NOT 4, NOT other file types like HDF or GRIB) file
 - The order of dimensions matter
 - Use small (less than 100MB) NetCDF file if possible, or your browser may crash. You may want to use NCO (NetCDF Operator) or CDO (Climate Data Operator) to split the NetCDF data
@@ -36,7 +36,7 @@ Note:
 - The demo data is from [NOAA Global Forecast System](https://www.ncdc.noaa.gov/data-access/model-data/model-datasets/global-forcast-system-gfs).
 - The original data is in GRIB2 format and I used [toolsUI](https://www.unidata.ucar.edu/software/thredds/v4.5/netcdf-java/ToolsUI.html) to convert the GRIB2 file to a NetCDF V3 file.
 - You might want to modify the default parameters for a better visualization result, parameters can be changed in the left panel.
-- If possible, you should run this demo on Chrome, because I did not test it on other browser.
+- If possible, you should run this demo in Chrome on PC, because I did not test it in other browser or mobile device.
 
 ## Credits
 This demo makes use of below repos:
