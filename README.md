@@ -8,9 +8,6 @@ Just create a HTTP server for the "index.html" file in the "Cesium-3D-Wind" fold
 
 If you have VSCode installed, I recommend to intall the "liveserver" extension. 
 
-Besides, remember to modify the "runtimeExecutable" option in ".vscode\launch.json" file before 
-starting debug in VSCode.
-
 ## How to use your own NetCDF data
 The NetCDF file is in the "data" folder, it should contains below variables:
 - U (lev, lat, lon) @min @max 
