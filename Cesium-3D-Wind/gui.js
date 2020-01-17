@@ -7,7 +7,7 @@ const fileOptions = {
 }
 
 const defaultParticleSystemOptions = {
-    maxParticles: 128 * 128,
+    maxParticles: 64 * 64,
     particleHeight: 100.0,
     fadeOpacity: 0.996,
     dropRate: 0.003,

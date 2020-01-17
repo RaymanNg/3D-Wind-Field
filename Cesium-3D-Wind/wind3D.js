@@ -84,7 +84,7 @@ class Wind3D {
         switch (globeLayer.type) {
             case "NaturalEarthII": {
                 this.viewer.imageryLayers.addImageryProvider(
-                    Cesium.createTileMapServiceImageryProvider({
+                    new Cesium.TileMapServiceImageryProvider({
                         url: Cesium.buildModuleUrl('Assets/Textures/NaturalEarthII')
                     })
                 );
