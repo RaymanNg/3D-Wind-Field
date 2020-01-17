@@ -20,8 +20,6 @@ Note:
 - The order of dimensions matter
 - Use small (less than 100MB) NetCDF file if possible, or your browser may crash.
 
-For more detail, use [Panoply](https://www.giss.nasa.gov/tools/panoply/) to read the "data/demo.nc" file
-
 The layout of the NetCDF data:
 ![demo.nc](https://user-images.githubusercontent.com/18614142/58364512-26cd1e00-7ee8-11e9-8c94-1425221ec8b2.png)
 
@@ -29,6 +27,8 @@ Note:
 - The range of longitude is `[0,360]`, not `[-180, 180]`
 - netcdfjs will read the data **row by row**, so array(0) is (lon 0, lat -90)
 - You must use NetCDF version 3 (NOT 4, NOT other file types like HDF or GRIB) file
+
+For more detail, use [Panoply](https://www.giss.nasa.gov/tools/panoply/) to read the "data/demo.nc" file
 
 ### How do you generate the `demo.nc` file ?
 The demo data is from [NOAA Global Forecast System](https://www.ncdc.noaa.gov/data-access/model-data/model-datasets/global-forcast-system-gfs). The original data is in GRIB2 format and I used [toolsUI](https://www.unidata.ucar.edu/software/thredds/v4.5/netcdf-java/ToolsUI.html) to convert the GRIB2 file to a NetCDF V3 file.
