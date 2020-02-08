@@ -3,7 +3,7 @@ Visualize the wind on earth, powered by [Cesium JS](https://github.com/Analytica
 
 More detail is in this blog post: [GPU Powered Wind Visualization With Cesium](https://cesium.com/blog/2019/04/29/gpu-powered-wind/)
 
-## FAQ
+## Q&A
 ### How to start the application?
 Just create a HTTP server for the "index.html" file in the "Cesium-3D-Wind" folder.
 
@@ -33,10 +33,16 @@ For more detail, use [Panoply](https://www.giss.nasa.gov/tools/panoply/) to read
 ### How do you generate the `demo.nc` file ?
 The demo data is from [NOAA Global Forecast System](https://www.ncdc.noaa.gov/data-access/model-data/model-datasets/global-forcast-system-gfs). The original data is in GRIB2 format and I used [toolsUI](https://www.unidata.ucar.edu/software/thredds/v4.5/netcdf-java/ToolsUI.html) to convert the GRIB2 file to a NetCDF V3 file.
 
-You can use NCO (NetCDF Operator) for further process of the NetCDF data. I have already wrote some scripts  to extract and transform the data by making use of NCO. You can check the 'Util' folder for detail.
+You can use NCO (NetCDF Operator) for further process of the NetCDF data. I have already wrote a PowerShell script to extract and transform the data by making use of NCO. You can check the 'Util' folder for detail.
 
 ### How do particles get colored?
 The particles colors are defined in the `colorTable.json` file, and this demo uses the color table "GMT_panoply" in [NCL Graphics](https://www.ncl.ucar.edu/Document/Graphics/color_table_gallery.shtml).
+
+### What does the "particleHeight" mean?
+"particleHeight" is the distance from the surface of earth. Particles lower than the terrain will be overlapped.
+
+### Why are some particles not overlapped by higher terrain?
+Because sometimes the depth test for particles is not accurate enough. This problem is similar with [Z-fighting](https://en.wikipedia.org/wiki/Z-fighting), the cause is depth buffer does not have enough precision.
 
 ### How customize the panel ?
 The panel is made with [dat.gui](https://github.com/dataarts/dat.gui) library, you can read its document and modify the gui.js as you need.
@@ -45,7 +51,7 @@ The panel is made with [dat.gui](https://github.com/dataarts/dat.gui) library, y
 ### This demo does not work on my device
 If possible, you should run this demo in Chrome on PC, because I did not test it in other browser or mobile device.
 
-If you got into trouble on other device(for example, mobile phone), you can check your WebGL implementation in [WebGL report](https://webglreport.com/). Check the "Supported Extensions" section, below extensions are required:
+If you got into trouble on other device(for example, mobile phone), you can check your WebGL implementation in [WebGL report](https://webglreport.com/). Check the "Supported Extensions" section, below extensions are at least required:
 - OES_texture_float
 - WEBGL_depth_texture extension
 - EXT_frag_depth
