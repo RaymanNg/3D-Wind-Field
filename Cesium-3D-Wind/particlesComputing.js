@@ -42,6 +42,7 @@ class ParticlesComputing {
         };
 
         var particlesArray = DataProcess.randomizeParticles(userInput.maxParticles, viewerParameters)
+        var zeroArray = new Float32Array(4 * userInput.maxParticles).fill(0);
 
         this.particlesTextures = {
             particlesWind: Util.createTexture(particlesTextureOptions),
@@ -49,11 +50,11 @@ class ParticlesComputing {
             currentParticlesPosition: Util.createTexture(particlesTextureOptions, particlesArray),
             nextParticlesPosition: Util.createTexture(particlesTextureOptions, particlesArray),
 
-            currentParticlesSpeed: Util.createTexture(particlesTextureOptions),
-            nextParticlesSpeed: Util.createTexture(particlesTextureOptions),
+            currentParticlesSpeed: Util.createTexture(particlesTextureOptions, zeroArray),
+            nextParticlesSpeed: Util.createTexture(particlesTextureOptions, zeroArray),
 
             postProcessingPosition: Util.createTexture(particlesTextureOptions, particlesArray),
-            postProcessingSpeed: Util.createTexture(particlesTextureOptions)
+            postProcessingSpeed: Util.createTexture(particlesTextureOptions, zeroArray)
         };
     }
 
