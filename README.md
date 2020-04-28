@@ -57,7 +57,10 @@ If you got into trouble on other device(for example, mobile phone), you can chec
 - EXT_frag_depth
 
 ### I adopt the WebGL code and the demo is not working now
-Unfortunately, there is no easy way to debug WebGL code, and I can't find any debugging tool for setting breakpoints in WebGL. For the moment, I suggest to use [Spector.js](https://github.com/BabylonJS/Spector.js)  to figure out what is happening with your WebGL code. It can tell you the input and output of your code.
+Unfortunately, there is no easy way to debug WebGL code, and I can't find any debugging tool for setting breakpoints in WebGL. For the moment, I suggest to use [Spector.js](https://github.com/BabylonJS/Spector.js) to figure out what is happening with your WebGL code. It can tell you the input and output of your code.
+
+### All WMS layers failed to display
+Probably the WMS URL changed, you may check the latest WMS URL by accessing NOAA's TDS server of GFS Analysis. Click the data file of the date you want (mine is 20190916_0000_000), then the WMS URL for this file will be showed in the web page. After getting the latest URL, you can update the variable "WMS_URL" in gui.js to make WMS layer display work again.
 
 ## Credits
 This demo makes use of below repos:
@@ -65,3 +68,5 @@ This demo makes use of below repos:
 - [Spector.js](https://github.com/BabylonJS/Spector.js)
 - [netcdfjs](https://github.com/cheminfo-js/netcdfjs)
 - A good Cesium [tutorial](https://github.com/cesiumlab/cesium-custom-primitive).
+
+This demo makes use of TDS server of [NOAA GFS](https://www.ncdc.noaa.gov/data-access/model-data/model-datasets/global-forcast-system-gfs) for WMS layer display

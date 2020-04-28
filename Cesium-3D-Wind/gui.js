@@ -27,7 +27,7 @@ const globeLayers = [
 
 const defaultLayerOptions = {
     "globeLayer": globeLayers[0],
-    "WMS_URL": "https://www.ncdc.noaa.gov/thredds/wms/gfs-g4-anl-files/201809/20180916/gfsanl_4_20180916_0000_000.grb2",
+    "WMS_URL": "https://www.ncei.noaa.gov/thredds/wms/model-gfs-g4-anl-files/201809/20180916/gfsanl_4_20180916_0000_000.grb2",
 }
 
 class Panel {
