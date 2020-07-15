@@ -33,10 +33,12 @@ For more detail, use [Panoply](https://www.giss.nasa.gov/tools/panoply/) to read
 ### How do you generate the `demo.nc` file ?
 The demo data is from [NOAA Global Forecast System](https://www.ncdc.noaa.gov/data-access/model-data/model-datasets/global-forcast-system-gfs). The original data is in GRIB2 format and I used [toolsUI](https://www.unidata.ucar.edu/software/thredds/v4.5/netcdf-java/ToolsUI.html) to convert the GRIB2 file to a NetCDF V3 file.
 
-You can use NCO (NetCDF Operator) for further process of the NetCDF data. I have already wrote a PowerShell script to extract and transform the data by making use of NCO. You can check the 'Util' folder for detail.
+After the conversion I used [NetCDF Operator](http://nco.sourceforge.net/#Executables) for further process of the NetCDF data. I wrote a PowerShell script(in the 'Util' folder) to extract and transform the data by making use of NetCDF Operator. You can also use this script once you setup the 'NCOPath' and 'fileToProcess' variables in the script.
 
 ### How do particles get colored?
-The particles colors are defined in the `colorTable.json` file, and this demo uses the color table "GMT_panoply" in [NCL Graphics](https://www.ncl.ucar.edu/Document/Graphics/color_table_gallery.shtml).
+The particles colors are defined in the `colorTable.json` file, and this demo uses the color table "GMT_panoply" in [NCL Graphics](https://www.ncl.ucar.edu/Document/Graphics/color_table_gallery.shtml). The colors in 'colorTable.json' are defined in the form of `[r,g,b,r,g,b,......,r,g,b]`, the first RGB color is for the element with minimum value, and the last color is for the maximum value. Colors can be interpolated.
+
+Note: File `colorTable.json` has nothing to do with the color of WMS layer, which is controlled by the WMS server.
 
 ### What does the "particleHeight" mean?
 "particleHeight" is the distance from the surface of earth. Particles lower than the terrain will be overlapped.
