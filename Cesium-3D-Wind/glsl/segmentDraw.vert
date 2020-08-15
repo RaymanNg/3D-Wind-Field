@@ -17,7 +17,7 @@ varying float speedNormalization;
 vec3 convertCoordinate(vec3 lonLatLev) {
     // WGS84 (lon, lat, lev) -> ECEF (x, y, z)
     // see https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_geodetic_to_ECEF_coordinates for detail
-	
+
     // WGS 84 geometric constants 
     float a = 6378137.0; // Semi-major axis 
     float b = 6356752.3142; // Semi-minor axis 
@@ -58,7 +58,7 @@ vec4 calcOffset(vec4 currentProjectedCoord, vec4 nextProjectedCoord, float offse
     float offsetLength = lineWidth / 2.0;
     vec2 direction = normalize(nextXY - currentXY);
     vec2 normalVector = vec2(-direction.y, direction.x);
-	normalVector.x = normalVector.x / aspect;
+    normalVector.x = normalVector.x / aspect;
     normalVector = offsetLength * normalVector;
 
     vec4 offset = vec4(offsetSign * normalVector, 0.0, 0.0);
@@ -67,29 +67,29 @@ vec4 calcOffset(vec4 currentProjectedCoord, vec4 nextProjectedCoord, float offse
 
 void main() {
     vec2 particleIndex = st;
-	
-	vec3 currentPosition = texture2D(currentParticlesPosition, particleIndex).rgb;
-	vec4 nextPosition = texture2D(postProcessingPosition, particleIndex);
-	
-	vec4 currentProjectedCoord = vec4(0.0);
-	vec4 nextProjectedCoord = vec4(0.0);
-	if (nextPosition.w > 0.0) {
-		currentProjectedCoord = calcProjectedCoord(currentPosition);
-		nextProjectedCoord = calcProjectedCoord(currentPosition);
-	} else {
-	    currentProjectedCoord = calcProjectedCoord(currentPosition);
-		nextProjectedCoord = calcProjectedCoord(nextPosition.xyz);
-	}
 
-	float pointToUse = normal.x; // -1 is currentProjectedCoord and +1 is nextProjectedCoord
-	float offsetSign = normal.y;
-	
+    vec3 currentPosition = texture2D(currentParticlesPosition, particleIndex).rgb;
+    vec4 nextPosition = texture2D(postProcessingPosition, particleIndex);
+
+    vec4 currentProjectedCoord = vec4(0.0);
+    vec4 nextProjectedCoord = vec4(0.0);
+    if (nextPosition.w > 0.0) {
+        currentProjectedCoord = calcProjectedCoord(currentPosition);
+        nextProjectedCoord = calcProjectedCoord(currentPosition);
+    } else {
+        currentProjectedCoord = calcProjectedCoord(currentPosition);
+        nextProjectedCoord = calcProjectedCoord(nextPosition.xyz);
+    }
+
+    float pointToUse = normal.x; // -1 is currentProjectedCoord and +1 is nextProjectedCoord
+    float offsetSign = normal.y;
+
     vec4 offset = pixelSize * calcOffset(currentProjectedCoord, nextProjectedCoord, offsetSign);
     if (pointToUse < 0.0) {
         gl_Position = currentProjectedCoord + offset;
     } else {
         gl_Position = nextProjectedCoord + offset;
     }
-	
+
     speedNormalization = texture2D(postProcessingSpeed, particleIndex).a;
 }

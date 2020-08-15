@@ -16,14 +16,14 @@ void main() {
 
     float pointsDepth = texture2D(segmentsDepthTexture, textureCoordinate).r;
     float trailsDepth = texture2D(trailsDepthTexture, textureCoordinate).r;
-	float globeDepth = czm_unpackDepth(texture2D(czm_globeDepthTexture, textureCoordinate));
-	
-	gl_FragColor = vec4(0.0);
-	if (pointsDepth < globeDepth) {
-		gl_FragColor = gl_FragColor + pointsColor;
-	}
-	if (trailsDepth < globeDepth) {
-		gl_FragColor = gl_FragColor + trailsColor;
-	}
-	gl_FragDepthEXT = min(pointsDepth, trailsDepth);
+    float globeDepth = czm_unpackDepth(texture2D(czm_globeDepthTexture, textureCoordinate));
+
+    gl_FragColor = vec4(0.0);
+    if (pointsDepth < globeDepth) {
+        gl_FragColor = gl_FragColor + pointsColor;
+    }
+    if (trailsDepth < globeDepth) {
+        gl_FragColor = gl_FragColor + trailsColor;
+    }
+    gl_FragDepthEXT = min(pointsDepth, trailsDepth);
 }

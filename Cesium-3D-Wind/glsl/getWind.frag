@@ -100,5 +100,5 @@ void main() {
     // texture coordinate must be normalized
     vec3 lonLatLev = texture2D(currentParticlesPosition, v_textureCoordinates).rgb;
     vec3 windVector = bicubic(lonLatLev);
-	gl_FragColor = vec4(windVector, 0.0);
+    gl_FragColor = vec4(windVector, 0.0);
 }
