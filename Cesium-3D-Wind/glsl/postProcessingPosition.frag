@@ -5,7 +5,7 @@ uniform sampler2D nextParticlesSpeed; // (u, v, w, normalization)
 uniform vec2 lonRange;
 uniform vec2 latRange;
 
-uniform float randomCoef; // use to improve the pseudo-random generator
+uniform float randomCoefficient; // use to improve the pseudo-random generator
 uniform float dropRate; // drop rate is a chance a particle will restart at random position to avoid degeneration
 uniform float dropRateBump;
 
@@ -15,7 +15,7 @@ varying vec2 v_textureCoordinates;
 const vec3 randomConstants = vec3(12.9898, 78.233, 4375.85453);
 const vec2 normalRange = vec2(0.0, 1.0);
 float rand(vec2 seed, vec2 range) {
-    vec2 randomSeed = randomCoef * seed;
+    vec2 randomSeed = randomCoefficient * seed;
     float temp = dot(randomConstants.xy, randomSeed);
     temp = fract(sin(temp) * (randomConstants.z + temp));
     return temp * (range.y - range.x) + range.x;

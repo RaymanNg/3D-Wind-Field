@@ -41,19 +41,19 @@ vec3 convertCoordinate(vec3 lonLatLev) {
     return cartesian;
 }
 
-vec4 calcProjectedCoord(vec3 lonLatLev) {
+vec4 calcProjectedCoordinate(vec3 lonLatLev) {
     // the range of longitude in Cesium is [-180, 180] but the range of longitude in the NetCDF file is [0, 360]
     // [0, 180] is corresponding to [0, 180] and [180, 360] is corresponding to [-180, 0]
     lonLatLev.x = mod(lonLatLev.x + 180.0, 360.0) - 180.0;
     vec3 particlePosition = convertCoordinate(lonLatLev);
-    vec4 projectedCoord = czm_modelViewProjection * vec4(particlePosition, 1.0);
-    return projectedCoord;
+    vec4 projectedCoordinate = czm_modelViewProjection * vec4(particlePosition, 1.0);
+    return projectedCoordinate;
 }
 
-vec4 calcOffset(vec4 currentProjectedCoord, vec4 nextProjectedCoord, float offsetSign) {
+vec4 calcOffset(vec4 currentProjectedCoordinate, vec4 nextProjectedCoordinate, float offsetSign) {
     vec2 aspectVec2 = vec2(aspect, 1.0);
-    vec2 currentXY = (currentProjectedCoord.xy / currentProjectedCoord.w) * aspectVec2;
-    vec2 nextXY = (nextProjectedCoord.xy / nextProjectedCoord.w) * aspectVec2;
+    vec2 currentXY = (currentProjectedCoordinate.xy / currentProjectedCoordinate.w) * aspectVec2;
+    vec2 nextXY = (nextProjectedCoordinate.xy / nextProjectedCoordinate.w) * aspectVec2;
 
     float offsetLength = lineWidth / 2.0;
     vec2 direction = normalize(nextXY - currentXY);
@@ -71,24 +71,24 @@ void main() {
     vec3 currentPosition = texture2D(currentParticlesPosition, particleIndex).rgb;
     vec4 nextPosition = texture2D(postProcessingPosition, particleIndex);
 
-    vec4 currentProjectedCoord = vec4(0.0);
-    vec4 nextProjectedCoord = vec4(0.0);
+    vec4 currentProjectedCoordinate = vec4(0.0);
+    vec4 nextProjectedCoordinate = vec4(0.0);
     if (nextPosition.w > 0.0) {
-        currentProjectedCoord = calcProjectedCoord(currentPosition);
-        nextProjectedCoord = calcProjectedCoord(currentPosition);
+        currentProjectedCoordinate = calcProjectedCoordinate(currentPosition);
+        nextProjectedCoordinate = calcProjectedCoordinate(currentPosition);
     } else {
-        currentProjectedCoord = calcProjectedCoord(currentPosition);
-        nextProjectedCoord = calcProjectedCoord(nextPosition.xyz);
+        currentProjectedCoordinate = calcProjectedCoordinate(currentPosition);
+        nextProjectedCoordinate = calcProjectedCoordinate(nextPosition.xyz);
     }
 
-    float pointToUse = normal.x; // -1 is currentProjectedCoord and +1 is nextProjectedCoord
+    float pointToUse = normal.x; // -1 is currentProjectedCoordinate and +1 is nextProjectedCoordinate
     float offsetSign = normal.y;
 
-    vec4 offset = pixelSize * calcOffset(currentProjectedCoord, nextProjectedCoord, offsetSign);
+    vec4 offset = pixelSize * calcOffset(currentProjectedCoordinate, nextProjectedCoordinate, offsetSign);
     if (pointToUse < 0.0) {
-        gl_Position = currentProjectedCoord + offset;
+        gl_Position = currentProjectedCoordinate + offset;
     } else {
-        gl_Position = nextProjectedCoord + offset;
+        gl_Position = nextProjectedCoordinate + offset;
     }
 
     speedNormalization = texture2D(postProcessingSpeed, particleIndex).a;

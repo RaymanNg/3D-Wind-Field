@@ -193,9 +193,9 @@ class ParticlesComputing {
                     latRange: function () {
                         return viewerParameters.latRange;
                     },
-                    randomCoef: function () {
-                        var randomCoef = Math.random();
-                        return randomCoef;
+                    randomCoefficient: function () {
+                        var randomCoefficient = Math.random();
+                        return randomCoefficient;
                     },
                     dropRate: function () {
                         return userInput.dropRate;

@@ -79,13 +79,13 @@ float interpolateOneTexture(sampler2D windTexture, vec3 lonLatLev) {
     float lat2 = floor(lat) + 1.0 * interval.y;
     float lat3 = floor(lat) + 2.0 * interval.y;
 
-    vec2 coef = lonLatLev.xy - floor(lonLatLev.xy);
-    float b0 = calculateB(windTexture, coef.x, lon, lat0, lev);
-    float b1 = calculateB(windTexture, coef.x, lon, lat1, lev);
-    float b2 = calculateB(windTexture, coef.x, lon, lat2, lev);
-    float b3 = calculateB(windTexture, coef.x, lon, lat3, lev);
+    vec2 coefficient = lonLatLev.xy - floor(lonLatLev.xy);
+    float b0 = calculateB(windTexture, coefficient.x, lon, lat0, lev);
+    float b1 = calculateB(windTexture, coefficient.x, lon, lat1, lev);
+    float b2 = calculateB(windTexture, coefficient.x, lon, lat2, lev);
+    float b3 = calculateB(windTexture, coefficient.x, lon, lat3, lev);
 
-    return oneDimensionInterpolation(coef.y, b0, b1, b2, b3);
+    return oneDimensionInterpolation(coefficient.y, b0, b1, b2, b3);
 }
 
 vec3 bicubic(vec3 lonLatLev) {

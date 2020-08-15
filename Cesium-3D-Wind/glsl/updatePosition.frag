@@ -25,9 +25,9 @@ vec2 lengthOfLonLat(vec3 lonLatLev) {
 }
 
 void updatePosition(vec3 lonLatLev, vec3 speed) {
-    vec2 lonlatLengthgth = lengthOfLonLat(lonLatLev);
-    float u = speed.x / lonlatLengthgth.x;
-    float v = speed.y / lonlatLengthgth.y;
+    vec2 lonLatLength = lengthOfLonLat(lonLatLev);
+    float u = speed.x / lonLatLength.x;
+    float v = speed.y / lonLatLength.y;
     float w = 0.0;
     vec3 windVectorInLonLatLev = vec3(u, v, w);
 
