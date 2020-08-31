@@ -1,19 +1,19 @@
 # Set the install path of NetCDF Operators
-$NCOPath = $Env:My_NetCDF_Operators_Path
+$NCOPath = "path\to\NetCDFOperators"
 $ncap2 = "$NCOPath\ncap2.exe"
 $ncecat = "$NCOPath\ncecat.exe"
 $ncks = "$NCOPath\ncks.exe"
 $ncpdq = "$NCOPath\ncpdq.exe"
 $ncrename = "$NCOPath\ncrename.exe"
 
-# Set the absolute path of NetCDF file you want to process
-$fileToProcess = "fileToProcess.nc"
+# Set the absolute path of the NetCDF file you want to process
+$fileToProcess = "path\to\file.nc"
 
 Add-Type -AssemblyName Microsoft.VisualBasic
 function Remove-TempNCFile($fileDirectory) {
     Get-ChildItem -Path $fileDirectory -Filter "temp*.nc" | ForEach-Object {
         $fileName = $_.name
-        [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile("$fileDirectory\$fileName ", 'OnlyErrorDialogs', 'SendToRecycleBin')
+        [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile("$fileDirectory\$fileName", 'OnlyErrorDialogs', 'SendToRecycleBin')
     }
 }
 

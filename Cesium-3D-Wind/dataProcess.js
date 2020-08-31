@@ -64,7 +64,7 @@ var DataProcess = (function () {
         var string = Util.loadText(filePath);
         var json = JSON.parse(string);
 
-        var colorNum = json['ncolors'];
+        var colorNum = json['colorNum'];
         var colorTable = json['colorTable'];
 
         var colorsArray = new Float32Array(3 * colorNum);

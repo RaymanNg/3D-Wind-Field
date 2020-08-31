@@ -1,5 +1,5 @@
 {
-    "ncolors": 16,
+    "colorNum": 16,
     "colorTable": [
         0.015686,
         0.054902,
