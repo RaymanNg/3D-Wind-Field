@@ -12,7 +12,7 @@ const defaultParticleSystemOptions = {
     fadeOpacity: 0.996,
     dropRate: 0.003,
     dropRateBump: 0.01,
-    speedFactor: 4.0,
+    speedFactor: 1.0,
     lineWidth: 4.0
 }
 
@@ -73,7 +73,7 @@ class Panel {
             gui.add(that, 'fadeOpacity', 0.90, 0.999, 0.001).onFinishChange(onParticleSystemOptionsChange);
             gui.add(that, 'dropRate', 0.0, 0.1).onFinishChange(onParticleSystemOptionsChange);
             gui.add(that, 'dropRateBump', 0, 0.2).onFinishChange(onParticleSystemOptionsChange);
-            gui.add(that, 'speedFactor', 0.5, 100).onFinishChange(onParticleSystemOptionsChange);
+            gui.add(that, 'speedFactor', 0.05, 1).onFinishChange(onParticleSystemOptionsChange);
             gui.add(that, 'lineWidth', 0.01, 16.0).onFinishChange(onParticleSystemOptionsChange);
 
             gui.add(that, 'layerToShow', layerNames).onFinishChange(onLayerOptionsChange);
