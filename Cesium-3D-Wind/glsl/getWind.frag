@@ -36,62 +36,37 @@ vec2 mapPositionToNormalizedIndex2D(vec3 lonLatLev) {
     return normalizedIndex2D;
 }
 
-float getWind(sampler2D windTexture, vec3 lonLatLev) {
+float getWindComponent(sampler2D componentTexture, vec3 lonLatLev) {
     vec2 normalizedIndex2D = mapPositionToNormalizedIndex2D(lonLatLev);
-    float result = texture2D(windTexture, normalizedIndex2D).r;
+    float result = texture2D(componentTexture, normalizedIndex2D).r;
     return result;
 }
 
-const mat4 kernelMatrix = mat4(
-    0.0, -1.0, 2.0, -1.0, // first column
-    2.0, 0.0, -5.0, 3.0, // second column
-    0.0, 1.0, 4.0, -3.0, // third column
-    0.0, 0.0, -1.0, 1.0 // fourth column
-);
-float oneDimensionInterpolation(float t, float p0, float p1, float p2, float p3) {
-    vec4 tVec4 = vec4(1.0, t, t * t, t * t * t);
-    tVec4 = tVec4 / 2.0;
-    vec4 pVec4 = vec4(p0, p1, p2, p3);
-    return dot((tVec4 * kernelMatrix), pVec4);
-}
-
-float calculateB(sampler2D windTexture, float t, float lon, float lat, float lev) {
-    float lon0 = floor(lon) - 1.0 * interval.x;
-    float lon1 = floor(lon);
-    float lon2 = floor(lon) + 1.0 * interval.x;
-    float lon3 = floor(lon) + 2.0 * interval.x;
-
-    float p0 = getWind(windTexture, vec3(lon0, lat, lev));
-    float p1 = getWind(windTexture, vec3(lon1, lat, lev));
-    float p2 = getWind(windTexture, vec3(lon2, lat, lev));
-    float p3 = getWind(windTexture, vec3(lon3, lat, lev));
-
-    return oneDimensionInterpolation(t, p0, p1, p2, p3);
-}
-
-float interpolateOneTexture(sampler2D windTexture, vec3 lonLatLev) {
+float interpolateTexture(sampler2D componentTexture, vec3 lonLatLev) {
     float lon = lonLatLev.x;
     float lat = lonLatLev.y;
     float lev = lonLatLev.z;
 
-    float lat0 = floor(lat) - 1.0 * interval.y;
-    float lat1 = floor(lat);
-    float lat2 = floor(lat) + 1.0 * interval.y;
-    float lat3 = floor(lat) + 2.0 * interval.y;
+    float lon0 = floor(lon / interval.x) * interval.x;
+    float lon1 = lon0 + 1.0 * interval.x;
+    float lat0 = floor(lat / interval.y) * interval.y;
+    float lat1 = lat0 + 1.0 * interval.y;
 
-    vec2 coefficient = lonLatLev.xy - floor(lonLatLev.xy);
-    float b0 = calculateB(windTexture, coefficient.x, lon, lat0, lev);
-    float b1 = calculateB(windTexture, coefficient.x, lon, lat1, lev);
-    float b2 = calculateB(windTexture, coefficient.x, lon, lat2, lev);
-    float b3 = calculateB(windTexture, coefficient.x, lon, lat3, lev);
+    float lon0_lat0 = getWindComponent(componentTexture, vec3(lon0, lat0, lev));
+    float lon1_lat0 = getWindComponent(componentTexture, vec3(lon1, lat0, lev));
+    float lon0_lat1 = getWindComponent(componentTexture, vec3(lon0, lat1, lev));
+    float lon1_lat1 = getWindComponent(componentTexture, vec3(lon1, lat1, lev));
 
-    return oneDimensionInterpolation(coefficient.y, b0, b1, b2, b3);
+    float lon_lat0 = mix(lon0_lat0, lon1_lat0, lon - lon0);
+    float lon_lat1 = mix(lon0_lat1, lon1_lat1, lon - lon0);
+    float lon_lat = mix(lon_lat0, lon_lat1, lat - lat0);
+    return lon_lat;
 }
 
-vec3 bicubic(vec3 lonLatLev) {
-    // https://en.wikipedia.org/wiki/Bicubic_interpolation#Bicubic_convolution_algorithm
-    float u = interpolateOneTexture(U, lonLatLev);
-    float v = interpolateOneTexture(V, lonLatLev);
+vec3 linearInterpolation(vec3 lonLatLev) {
+    // https://en.wikipedia.org/wiki/Bilinear_interpolation
+    float u = interpolateTexture(U, lonLatLev);
+    float v = interpolateTexture(V, lonLatLev);
     float w = 0.0;
     return vec3(u, v, w);
 }
@@ -99,6 +74,6 @@ vec3 bicubic(vec3 lonLatLev) {
 void main() {
     // texture coordinate must be normalized
     vec3 lonLatLev = texture2D(currentParticlesPosition, v_textureCoordinates).rgb;
-    vec3 windVector = bicubic(lonLatLev);
+    vec3 windVector = linearInterpolation(lonLatLev);
     gl_FragColor = vec4(windVector, 0.0);
 }
