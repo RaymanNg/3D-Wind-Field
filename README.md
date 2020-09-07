@@ -35,11 +35,6 @@ The demo data is from [NOAA Global Forecast System](https://www.ncdc.noaa.gov/da
 
 After the conversion I used [NetCDF Operator](http://nco.sourceforge.net/#Executables) for further process of the NetCDF data. I wrote a PowerShell script(in the 'Util' folder) to extract and transform the data by making use of NetCDF Operator. You can also use this script once you setup the 'NCOPath' and 'fileToProcess' variables in the script.
 
-### How do particles get colored?
-The particles colors are defined in the `colorTable.json` file, and this demo uses the color table "GMT_panoply" in [NCL Graphics](https://www.ncl.ucar.edu/Document/Graphics/color_table_gallery.shtml). The colors in 'colorTable.json' are defined in the form of `[r,g,b,r,g,b,......,r,g,b]`, the first RGB color is for the element with minimum value, and the last color is for the maximum value. Colors can be interpolated.
-
-Note: File `colorTable.json` has nothing to do with the color of WMS layer, which is controlled by the WMS server.
-
 ### What does the "particleHeight" mean?
 "particleHeight" is the distance from the surface of earth. Particles lower than the terrain will be overlapped.
 

@@ -1,7 +1,4 @@
-uniform sampler2D colorTable;
-
-varying float speedNormalization;
-
 void main() {
-    gl_FragColor = texture2D(colorTable, vec2(speedNormalization, 0.0));
+    const vec4 white = vec4(1.0);
+    gl_FragColor = white;
 }

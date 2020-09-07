@@ -20,17 +20,6 @@ class ParticlesRendering {
             pixelFormat: Cesium.PixelFormat.DEPTH_COMPONENT,
             pixelDatatype: Cesium.PixelDatatype.UNSIGNED_INT
         };
-        const colorTableTextureOptions = {
-            context: context,
-            width: data.colorTable.colorNum,
-            height: 1,
-            pixelFormat: Cesium.PixelFormat.RGB,
-            pixelDatatype: Cesium.PixelDatatype.FLOAT,
-            sampler: new Cesium.Sampler({
-                minificationFilter: Cesium.TextureMinificationFilter.LINEAR,
-                magnificationFilter: Cesium.TextureMagnificationFilter.LINEAR
-            })
-        };
 
         this.textures = {
             segmentsColor: Util.createTexture(colorTextureOptions),
@@ -41,8 +30,6 @@ class ParticlesRendering {
 
             nextTrailsColor: Util.createTexture(colorTextureOptions),
             nextTrailsDepth: Util.createTexture(depthTextureOptions),
-
-            colorTable: Util.createTexture(colorTableTextureOptions, data.colorTable.array)
         };
     }
 
@@ -133,9 +120,6 @@ class ParticlesRendering {
                     },
                     postProcessingSpeed: function () {
                         return particlesComputing.particlesTextures.postProcessingSpeed;
-                    },
-                    colorTable: function () {
-                        return that.textures.colorTable;
                     },
                     aspect: function () {
                         return context.drawingBufferWidth / context.drawingBufferHeight;

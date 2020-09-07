@@ -22,7 +22,6 @@ class ParticleSystem {
             this.particlesComputing.windTextures[key].destroy();
         });
 
-        this.particlesRendering.textures.colorTable.destroy();
         Object.keys(this.particlesRendering.framebuffers).forEach((key) => {
             this.particlesRendering.framebuffers[key].destroy();
         });

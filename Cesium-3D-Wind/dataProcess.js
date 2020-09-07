@@ -60,31 +60,9 @@ var DataProcess = (function () {
         });
     }
 
-    var loadColorTable = function (filePath) {
-        var string = Util.loadText(filePath);
-        var json = JSON.parse(string);
-
-        var colorNum = json['colorNum'];
-        var colorTable = json['colorTable'];
-
-        var colorsArray = new Float32Array(3 * colorNum);
-        for (var i = 0; i < colorNum; i++) {
-            colorsArray[3 * i] = colorTable[3 * i];
-            colorsArray[3 * i + 1] = colorTable[3 * i + 1];
-            colorsArray[3 * i + 2] = colorTable[3 * i + 2];
-        }
-
-        data.colorTable = {};
-        data.colorTable.colorNum = colorNum;
-        data.colorTable.array = colorsArray;
-    }
-
     var loadData = async function () {
         var ncFilePath = fileOptions.dataDirectory + fileOptions.dataFile;
         await loadNetCDF(ncFilePath);
-
-        var colorTableFilePath = fileOptions.dataDirectory + 'colorTable.json';
-        loadColorTable(colorTableFilePath);
 
         return data;
     }
