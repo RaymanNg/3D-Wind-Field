@@ -1,13 +1,18 @@
 // the size of UV textures: width = lon, height = lat*lev
 uniform sampler2D U; // eastward wind 
 uniform sampler2D V; // northward wind
-
 uniform sampler2D currentParticlesPosition; // (lon, lat, lev)
 
 uniform vec3 dimension; // (lon, lat, lev)
 uniform vec3 minimum; // minimum of each dimension
 uniform vec3 maximum; // maximum of each dimension
 uniform vec3 interval; // interval of each dimension
+
+// used to calculate the wind norm
+uniform vec2 uSpeedRange; // (min, max);
+uniform vec2 vSpeedRange;
+uniform float pixelSize;
+uniform float speedFactor;
 
 varying vec2 v_textureCoordinates;
 
@@ -71,9 +76,20 @@ vec3 linearInterpolation(vec3 lonLatLev) {
     return vec3(u, v, w);
 }
 
+float calculateWindNorm(vec3 speed) {
+    vec3 percent = vec3(0.0);
+    percent.x = (speed.x - uSpeedRange.x) / (uSpeedRange.y - uSpeedRange.x);
+    percent.y = (speed.y - vSpeedRange.x) / (vSpeedRange.y - vSpeedRange.x);
+    float norm = length(percent);
+
+    return norm;
+}
+
 void main() {
     // texture coordinate must be normalized
     vec3 lonLatLev = texture2D(currentParticlesPosition, v_textureCoordinates).rgb;
     vec3 windVector = linearInterpolation(lonLatLev);
-    gl_FragColor = vec4(windVector, 0.0);
+
+    vec4 nextSpeed = vec4(speedFactor * pixelSize * windVector, calculateWindNorm(windVector));
+    gl_FragColor = nextSpeed;
 }

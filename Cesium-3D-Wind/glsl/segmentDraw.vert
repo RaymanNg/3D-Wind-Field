@@ -4,7 +4,6 @@ attribute vec3 normal; // (point to use, offset sign, not used component)
 
 uniform sampler2D currentParticlesPosition;
 uniform sampler2D postProcessingPosition;
-uniform sampler2D postProcessingSpeed;
 
 uniform float particleHeight;
 

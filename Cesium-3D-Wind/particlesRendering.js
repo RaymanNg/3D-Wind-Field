@@ -118,9 +118,6 @@ class ParticlesRendering {
                     postProcessingPosition: function () {
                         return particlesComputing.particlesTextures.postProcessingPosition;
                     },
-                    postProcessingSpeed: function () {
-                        return particlesComputing.particlesTextures.postProcessingSpeed;
-                    },
                     aspect: function () {
                         return context.drawingBufferWidth / context.drawingBufferHeight;
                     },

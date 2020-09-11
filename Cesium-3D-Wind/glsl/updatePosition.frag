@@ -1,5 +1,5 @@
 uniform sampler2D currentParticlesPosition; // (lon, lat, lev)
-uniform sampler2D currentParticlesSpeed; // (u, v, w, normalization)
+uniform sampler2D particlesSpeed; // (u, v, w, norm)
 
 varying vec2 v_textureCoordinates;
 
@@ -39,7 +39,7 @@ void updatePosition(vec3 lonLatLev, vec3 speed) {
 void main() {
     // texture coordinate must be normalized
     vec3 lonLatLev = texture2D(currentParticlesPosition, v_textureCoordinates).rgb;
-    vec3 speed = texture2D(currentParticlesSpeed, v_textureCoordinates).rgb;
+    vec3 speed = texture2D(particlesSpeed, v_textureCoordinates).rgb;
 
     updatePosition(lonLatLev, speed);
 }

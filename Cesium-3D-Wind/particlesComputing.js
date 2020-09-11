@@ -45,16 +45,11 @@ class ParticlesComputing {
         var zeroArray = new Float32Array(4 * userInput.maxParticles).fill(0);
 
         this.particlesTextures = {
-            particlesWind: Util.createTexture(particlesTextureOptions),
-
             currentParticlesPosition: Util.createTexture(particlesTextureOptions, particlesArray),
             nextParticlesPosition: Util.createTexture(particlesTextureOptions, particlesArray),
-
-            currentParticlesSpeed: Util.createTexture(particlesTextureOptions, zeroArray),
-            nextParticlesSpeed: Util.createTexture(particlesTextureOptions, zeroArray),
-
             postProcessingPosition: Util.createTexture(particlesTextureOptions, particlesArray),
-            postProcessingSpeed: Util.createTexture(particlesTextureOptions, zeroArray)
+
+            particlesSpeed: Util.createTexture(particlesTextureOptions, zeroArray)
         };
     }
 
@@ -79,7 +74,7 @@ class ParticlesComputing {
         const that = this;
 
         this.primitives = {
-            getWind: new CustomPrimitive({
+            calculateSpeed: new CustomPrimitive({
                 commandType: 'Compute',
                 uniformMap: {
                     U: function () {
@@ -102,26 +97,6 @@ class ParticlesComputing {
                     },
                     interval: function () {
                         return interval;
-                    }
-                },
-                fragmentShaderSource: new Cesium.ShaderSource({
-                    sources: [Util.loadText(fileOptions.glslDirectory + 'getWind.frag')]
-                }),
-                outputTexture: this.particlesTextures.particlesWind,
-                preExecute: function () {
-                    // keep the outputTexture up to date
-                    that.primitives.getWind.commandToExecute.outputTexture = that.particlesTextures.particlesWind;
-                }
-            }),
-
-            updateSpeed: new CustomPrimitive({
-                commandType: 'Compute',
-                uniformMap: {
-                    currentParticlesSpeed: function () {
-                        return that.particlesTextures.currentParticlesSpeed;
-                    },
-                    particlesWind: function () {
-                        return that.particlesTextures.particlesWind;
                     },
                     uSpeedRange: function () {
                         return uSpeedRange;
@@ -137,18 +112,12 @@ class ParticlesComputing {
                     }
                 },
                 fragmentShaderSource: new Cesium.ShaderSource({
-                    sources: [Util.loadText(fileOptions.glslDirectory + 'updateSpeed.frag')]
+                    sources: [Util.loadText(fileOptions.glslDirectory + 'calculateSpeed.frag')]
                 }),
-                outputTexture: this.particlesTextures.nextParticlesSpeed,
+                outputTexture: this.particlesTextures.particlesSpeed,
                 preExecute: function () {
-                    // swap textures before binding
-                    var temp;
-                    temp = that.particlesTextures.currentParticlesSpeed;
-                    that.particlesTextures.currentParticlesSpeed = that.particlesTextures.postProcessingSpeed;
-                    that.particlesTextures.postProcessingSpeed = temp;
-
                     // keep the outputTexture up to date
-                    that.primitives.updateSpeed.commandToExecute.outputTexture = that.particlesTextures.nextParticlesSpeed;
+                    that.primitives.calculateSpeed.commandToExecute.outputTexture = that.particlesTextures.particlesSpeed;
                 }
             }),
 
@@ -158,8 +127,8 @@ class ParticlesComputing {
                     currentParticlesPosition: function () {
                         return that.particlesTextures.currentParticlesPosition;
                     },
-                    currentParticlesSpeed: function () {
-                        return that.particlesTextures.currentParticlesSpeed;
+                    particlesSpeed: function () {
+                        return that.particlesTextures.particlesSpeed;
                     }
                 },
                 fragmentShaderSource: new Cesium.ShaderSource({
@@ -184,8 +153,8 @@ class ParticlesComputing {
                     nextParticlesPosition: function () {
                         return that.particlesTextures.nextParticlesPosition;
                     },
-                    nextParticlesSpeed: function () {
-                        return that.particlesTextures.nextParticlesSpeed;
+                    particlesSpeed: function () {
+                        return that.particlesTextures.particlesSpeed;
                     },
                     lonRange: function () {
                         return viewerParameters.lonRange;
@@ -211,26 +180,6 @@ class ParticlesComputing {
                 preExecute: function () {
                     // keep the outputTexture up to date
                     that.primitives.postProcessingPosition.commandToExecute.outputTexture = that.particlesTextures.postProcessingPosition;
-                }
-            }),
-
-            postProcessingSpeed: new CustomPrimitive({
-                commandType: 'Compute',
-                uniformMap: {
-                    postProcessingPosition: function () {
-                        return that.particlesTextures.postProcessingPosition;
-                    },
-                    nextParticlesSpeed: function () {
-                        return that.particlesTextures.nextParticlesSpeed;
-                    }
-                },
-                fragmentShaderSource: new Cesium.ShaderSource({
-                    sources: [Util.loadText(fileOptions.glslDirectory + 'postProcessingSpeed.frag')]
-                }),
-                outputTexture: this.particlesTextures.postProcessingSpeed,
-                preExecute: function () {
-                    // keep the outputTexture up to date
-                    that.primitives.postProcessingSpeed.commandToExecute.outputTexture = that.particlesTextures.postProcessingSpeed;
                 }
             })
         }

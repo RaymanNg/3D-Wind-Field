@@ -46,11 +46,9 @@ class Wind3D {
 
     addPrimitives() {
         // the order of primitives.add() should respect the dependency of primitives
-        this.scene.primitives.add(this.particleSystem.particlesComputing.primitives.getWind);
-        this.scene.primitives.add(this.particleSystem.particlesComputing.primitives.updateSpeed);
+        this.scene.primitives.add(this.particleSystem.particlesComputing.primitives.calculateSpeed);
         this.scene.primitives.add(this.particleSystem.particlesComputing.primitives.updatePosition);
         this.scene.primitives.add(this.particleSystem.particlesComputing.primitives.postProcessingPosition);
-        this.scene.primitives.add(this.particleSystem.particlesComputing.primitives.postProcessingSpeed);
 
         this.scene.primitives.add(this.particleSystem.particlesRendering.primitives.segments);
         this.scene.primitives.add(this.particleSystem.particlesRendering.primitives.trails);
