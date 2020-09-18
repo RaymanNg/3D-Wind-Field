@@ -14,6 +14,8 @@ uniform vec2 vSpeedRange;
 uniform float pixelSize;
 uniform float speedFactor;
 
+float speedScaleFactor = speedFactor * pixelSize;
+
 varying vec2 v_textureCoordinates;
 
 vec2 mapPositionToNormalizedIndex2D(vec3 lonLatLev) {
@@ -76,6 +78,49 @@ vec3 linearInterpolation(vec3 lonLatLev) {
     return vec3(u, v, w);
 }
 
+vec2 lengthOfLonLat(vec3 lonLatLev) {
+    // unit conversion: meters -> longitude latitude degrees
+    // see https://en.wikipedia.org/wiki/Geographic_coordinate_system#Length_of_a_degree for detail
+
+    // Calculate the length of a degree of latitude and longitude in meters
+    float latitude = radians(lonLatLev.y);
+
+    float term1 = 111132.92;
+    float term2 = 559.82 * cos(2.0 * latitude);
+    float term3 = 1.175 * cos(4.0 * latitude);
+    float term4 = 0.0023 * cos(6.0 * latitude);
+    float latLength = term1 - term2 + term3 - term4;
+
+    float term5 = 111412.84 * cos(latitude);
+    float term6 = 93.5 * cos(3.0 * latitude);
+    float term7 = 0.118 * cos(5.0 * latitude);
+    float longLength = term5 - term6 + term7;
+
+    return vec2(longLength, latLength);
+}
+
+vec3 convertSpeedUnitToLonLat(vec3 lonLatLev, vec3 speed) {
+    vec2 lonLatLength = lengthOfLonLat(lonLatLev);
+    float u = speed.x / lonLatLength.x;
+    float v = speed.y / lonLatLength.y;
+    float w = 0.0;
+    vec3 windVectorInLonLatLev = vec3(u, v, w);
+
+    return windVectorInLonLatLev;
+}
+
+vec3 calculateSpeedByRungeKutta2(vec3 lonLatLev) {
+    // see https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods#Second-order_methods_with_two_stages for detail
+    const float h = 0.5;
+
+    vec3 y_n = lonLatLev;
+    vec3 f_n = linearInterpolation(lonLatLev);
+    vec3 midpoint = y_n + 0.5 * h * convertSpeedUnitToLonLat(y_n, f_n) * speedScaleFactor;
+    vec3 speed = h * linearInterpolation(midpoint) * speedScaleFactor;
+
+    return speed;
+}
+
 float calculateWindNorm(vec3 speed) {
     vec3 percent = vec3(0.0);
     percent.x = (speed.x - uSpeedRange.x) / (uSpeedRange.y - uSpeedRange.x);
@@ -88,8 +133,9 @@ float calculateWindNorm(vec3 speed) {
 void main() {
     // texture coordinate must be normalized
     vec3 lonLatLev = texture2D(currentParticlesPosition, v_textureCoordinates).rgb;
-    vec3 windVector = linearInterpolation(lonLatLev);
+    vec3 speed = calculateSpeedByRungeKutta2(lonLatLev);
+    vec3 speedInLonLat = convertSpeedUnitToLonLat(lonLatLev, speed);
 
-    vec4 nextSpeed = vec4(speedFactor * pixelSize * windVector, calculateWindNorm(windVector));
-    gl_FragColor = nextSpeed;
+    vec4 particleSpeed = vec4(speedInLonLat, calculateWindNorm(speed / speedScaleFactor));
+    gl_FragColor = particleSpeed;
 }
