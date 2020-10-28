@@ -30,6 +30,11 @@ Note:
 
 For more detail, use [Panoply](https://www.giss.nasa.gov/tools/panoply/) to read the "data/demo.nc" file
 
+### What to do if I want to use JSON file instead of NetCDF?
+You can add a function for loading JSON data in the dataProcess.js, and call your JSON loading function in the exposed function loadData.
+
+However, you should ensure that the data return from your JSON loading function should have the same structure as that of function loadNetCDF.
+
 ### How do you generate the `demo.nc` file ?
 The demo data is from [NOAA Global Forecast System](https://www.ncdc.noaa.gov/data-access/model-data/model-datasets/global-forcast-system-gfs). The original data is in GRIB2 format and I used [toolsUI](https://www.unidata.ucar.edu/software/thredds/v4.5/netcdf-java/ToolsUI.html) to convert the GRIB2 file to a NetCDF V3 file.
 
@@ -52,6 +57,9 @@ If you got into trouble on other device(for example, mobile phone), you can chec
 - OES_texture_float
 - WEBGL_depth_texture extension
 - EXT_frag_depth
+
+### There is no particle or world terrian after starting the demo
+Please check the speed of your network connection. Open the development tools in your browser and refresh the website, then check if your browser is downloading the data in a very slow speed.
 
 ### I adopt the WebGL code and the demo is not working now
 Unfortunately, there is no easy way to debug WebGL code, and I can't find any debugging tool for setting breakpoints in WebGL. For the moment, I suggest to use [Spector.js](https://github.com/BabylonJS/Spector.js) to figure out what is happening with your WebGL code. It can tell you the input and output of your code.
