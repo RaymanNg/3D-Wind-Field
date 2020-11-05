@@ -1,5 +1,5 @@
 attribute vec2 st;
-// it is not normal itself, but used to control normal
+// it is not normal itself, but used to control lines drawing
 attribute vec3 normal; // (point to use, offset sign, not used component)
 
 uniform sampler2D previousParticlesPosition;
@@ -11,6 +11,12 @@ uniform float particleHeight;
 uniform float aspect;
 uniform float pixelSize;
 uniform float lineWidth;
+
+struct adjacentPoints {
+    vec4 previous;
+    vec4 current;
+    vec4 next;
+};
 
 vec3 convertCoordinate(vec3 lonLatLev) {
     // WGS84 (lon, lat, lev) -> ECEF (x, y, z)
@@ -39,7 +45,7 @@ vec3 convertCoordinate(vec3 lonLatLev) {
     return cartesian;
 }
 
-vec4 calcProjectedCoordinate(vec3 lonLatLev) {
+vec4 calculateProjectedCoordinate(vec3 lonLatLev) {
     // the range of longitude in Cesium is [-180, 180] but the range of longitude in the NetCDF file is [0, 360]
     // [0, 180] is corresponding to [0, 180] and [180, 360] is corresponding to [-180, 0]
     lonLatLev.x = mod(lonLatLev.x + 180.0, 360.0) - 180.0;
@@ -48,7 +54,10 @@ vec4 calcProjectedCoordinate(vec3 lonLatLev) {
     return projectedCoordinate;
 }
 
-vec4 calcOffset(vec4 currentProjectedCoordinate, vec4 nextProjectedCoordinate, float offsetSign) {
+vec4 calculateOffsetOnNormalDirection(adjacentPoints projectedCoordinates, float offsetSign) {
+    vec4 currentProjectedCoordinate = projectedCoordinates.current;
+    vec4 nextProjectedCoordinate = projectedCoordinates.next;
+
     vec2 aspectVec2 = vec2(aspect, 1.0);
     vec2 currentXY = (currentProjectedCoordinate.xy / currentProjectedCoordinate.w) * aspectVec2;
     vec2 nextXY = (nextProjectedCoordinate.xy / nextProjectedCoordinate.w) * aspectVec2;
@@ -68,28 +77,31 @@ void main() {
 
     vec3 previousPosition = texture2D(previousParticlesPosition, particleIndex).rgb;
     vec3 currentPosition = texture2D(currentParticlesPosition, particleIndex).rgb;
-    vec4 nextPosition = texture2D(postProcessingPosition, particleIndex);
+    vec3 nextPosition = texture2D(postProcessingPosition, particleIndex).rgb;
 
-    vec4 previousProjectedCoordinate = vec4(0.0);
-    vec4 currentProjectedCoordinate = vec4(0.0);
-    vec4 nextProjectedCoordinate = vec4(0.0);
-    if (nextPosition.w > 0.0) {
-        previousProjectedCoordinate = calcProjectedCoordinate(previousPosition);
-        currentProjectedCoordinate = previousProjectedCoordinate;
-        nextProjectedCoordinate = currentProjectedCoordinate;
+    float isRandomPointUsed = texture2D(postProcessingPosition, particleIndex).a;
+
+    adjacentPoints projectedCoordinates;
+    if (isRandomPointUsed > 0.0) {
+        projectedCoordinates.previous = calculateProjectedCoordinate(previousPosition);
+        projectedCoordinates.current = projectedCoordinates.previous;
+        projectedCoordinates.next = projectedCoordinates.previous;
     } else {
-        previousProjectedCoordinate = calcProjectedCoordinate(previousPosition);
-        currentProjectedCoordinate = calcProjectedCoordinate(currentPosition);
-        nextProjectedCoordinate = calcProjectedCoordinate(nextPosition.xyz);
+        projectedCoordinates.previous = calculateProjectedCoordinate(previousPosition);
+        projectedCoordinates.current = calculateProjectedCoordinate(currentPosition);
+        projectedCoordinates.next = calculateProjectedCoordinate(nextPosition);
     }
 
-    float pointToUse = normal.x; // -1 is currentProjectedCoordinate and +1 is nextProjectedCoordinate
+    int pointToUse = int(normal.x);
     float offsetSign = normal.y;
-
-    vec4 offset = pixelSize * calcOffset(currentProjectedCoordinate, nextProjectedCoordinate, offsetSign);
-    if (pointToUse < 0.0) {
-        gl_Position = currentProjectedCoordinate + offset;
+    vec4 offset = vec4(0.0);
+    if (pointToUse == -1) {
+        offset = pixelSize * calculateOffsetOnNormalDirection(projectedCoordinates, offsetSign);
+        gl_Position = projectedCoordinates.current + offset;
     } else {
-        gl_Position = nextProjectedCoordinate + offset;
+        if (pointToUse == 1) {
+            offset = pixelSize * calculateOffsetOnNormalDirection(projectedCoordinates, offsetSign);
+            gl_Position = projectedCoordinates.next + offset;
+        }
     }
 }
