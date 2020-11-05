@@ -112,6 +112,9 @@ class ParticlesRendering {
                 geometry: this.createSegmentsGeometry(userInput),
                 primitiveType: Cesium.PrimitiveType.TRIANGLES,
                 uniformMap: {
+                    previousParticlesPosition: function () {
+                        return particlesComputing.particlesTextures.previousParticlesPosition;
+                    },
                     currentParticlesPosition: function () {
                         return particlesComputing.particlesTextures.currentParticlesPosition;
                     },

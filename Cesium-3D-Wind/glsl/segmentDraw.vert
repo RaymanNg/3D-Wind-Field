@@ -2,6 +2,7 @@ attribute vec2 st;
 // it is not normal itself, but used to control normal
 attribute vec3 normal; // (point to use, offset sign, not used component)
 
+uniform sampler2D previousParticlesPosition;
 uniform sampler2D currentParticlesPosition;
 uniform sampler2D postProcessingPosition;
 
@@ -65,15 +66,19 @@ vec4 calcOffset(vec4 currentProjectedCoordinate, vec4 nextProjectedCoordinate, f
 void main() {
     vec2 particleIndex = st;
 
+    vec3 previousPosition = texture2D(previousParticlesPosition, particleIndex).rgb;
     vec3 currentPosition = texture2D(currentParticlesPosition, particleIndex).rgb;
     vec4 nextPosition = texture2D(postProcessingPosition, particleIndex);
 
+    vec4 previousProjectedCoordinate = vec4(0.0);
     vec4 currentProjectedCoordinate = vec4(0.0);
     vec4 nextProjectedCoordinate = vec4(0.0);
     if (nextPosition.w > 0.0) {
-        currentProjectedCoordinate = calcProjectedCoordinate(currentPosition);
-        nextProjectedCoordinate = calcProjectedCoordinate(currentPosition);
+        previousProjectedCoordinate = calcProjectedCoordinate(previousPosition);
+        currentProjectedCoordinate = previousProjectedCoordinate;
+        nextProjectedCoordinate = currentProjectedCoordinate;
     } else {
+        previousProjectedCoordinate = calcProjectedCoordinate(previousPosition);
         currentProjectedCoordinate = calcProjectedCoordinate(currentPosition);
         nextProjectedCoordinate = calcProjectedCoordinate(nextPosition.xyz);
     }

@@ -45,6 +45,7 @@ class ParticlesComputing {
         var zeroArray = new Float32Array(4 * userInput.maxParticles).fill(0);
 
         this.particlesTextures = {
+            previousParticlesPosition: Util.createTexture(particlesTextureOptions, particlesArray),
             currentParticlesPosition: Util.createTexture(particlesTextureOptions, particlesArray),
             nextParticlesPosition: Util.createTexture(particlesTextureOptions, particlesArray),
             postProcessingPosition: Util.createTexture(particlesTextureOptions, particlesArray),
@@ -116,6 +117,13 @@ class ParticlesComputing {
                 }),
                 outputTexture: this.particlesTextures.particlesSpeed,
                 preExecute: function () {
+                    // swap textures before binding
+                    var temp;
+                    temp = that.particlesTextures.previousParticlesPosition;
+                    that.particlesTextures.previousParticlesPosition = that.particlesTextures.currentParticlesPosition;
+                    that.particlesTextures.currentParticlesPosition = that.particlesTextures.postProcessingPosition;
+                    that.particlesTextures.postProcessingPosition = temp;
+
                     // keep the outputTexture up to date
                     that.primitives.calculateSpeed.commandToExecute.outputTexture = that.particlesTextures.particlesSpeed;
                 }
@@ -136,12 +144,6 @@ class ParticlesComputing {
                 }),
                 outputTexture: this.particlesTextures.nextParticlesPosition,
                 preExecute: function () {
-                    // swap textures before binding
-                    var temp;
-                    temp = that.particlesTextures.currentParticlesPosition;
-                    that.particlesTextures.currentParticlesPosition = that.particlesTextures.postProcessingPosition;
-                    that.particlesTextures.postProcessingPosition = temp;
-
                     // keep the outputTexture up to date
                     that.primitives.updatePosition.commandToExecute.outputTexture = that.particlesTextures.nextParticlesPosition;
                 }
