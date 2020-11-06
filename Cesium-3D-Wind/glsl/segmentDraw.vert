@@ -54,16 +54,13 @@ vec4 calculateProjectedCoordinate(vec3 lonLatLev) {
     return projectedCoordinate;
 }
 
-vec4 calculateOffsetOnNormalDirection(adjacentPoints projectedCoordinates, float offsetSign) {
-    vec4 currentProjectedCoordinate = projectedCoordinates.current;
-    vec4 nextProjectedCoordinate = projectedCoordinates.next;
-
+vec4 calculateOffsetOnNormalDirection(vec4 pointA, vec4 pointB, float offsetSign) {
     vec2 aspectVec2 = vec2(aspect, 1.0);
-    vec2 currentXY = (currentProjectedCoordinate.xy / currentProjectedCoordinate.w) * aspectVec2;
-    vec2 nextXY = (nextProjectedCoordinate.xy / nextProjectedCoordinate.w) * aspectVec2;
+    vec2 pointA_XY = (pointA.xy / pointA.w) * aspectVec2;
+    vec2 pointB_XY = (pointB.xy / pointB.w) * aspectVec2;
 
     float offsetLength = lineWidth / 2.0;
-    vec2 direction = normalize(nextXY - currentXY);
+    vec2 direction = normalize(pointB_XY - pointA_XY);
     vec2 normalVector = vec2(-direction.y, direction.x);
     normalVector.x = normalVector.x / aspect;
     normalVector = offsetLength * normalVector;
@@ -96,11 +93,11 @@ void main() {
     float offsetSign = normal.y;
     vec4 offset = vec4(0.0);
     if (pointToUse == -1) {
-        offset = pixelSize * calculateOffsetOnNormalDirection(projectedCoordinates, offsetSign);
+        offset = pixelSize * calculateOffsetOnNormalDirection(projectedCoordinates.current, projectedCoordinates.next, offsetSign);
         gl_Position = projectedCoordinates.current + offset;
     } else {
         if (pointToUse == 1) {
-            offset = pixelSize * calculateOffsetOnNormalDirection(projectedCoordinates, offsetSign);
+            offset = pixelSize * calculateOffsetOnNormalDirection(projectedCoordinates.current, projectedCoordinates.next, offsetSign);
             gl_Position = projectedCoordinates.next + offset;
         }
     }
