@@ -20,7 +20,7 @@ struct adjacentPoints {
 
 vec3 convertCoordinate(vec3 lonLatLev) {
     // WGS84 (lon, lat, lev) -> ECEF (x, y, z)
-    // see https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_geodetic_to_ECEF_coordinates for detail
+    // read https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_geodetic_to_ECEF_coordinates for detail
 
     // WGS 84 geometric constants 
     float a = 6378137.0; // Semi-major axis 
@@ -69,6 +69,31 @@ vec4 calculateOffsetOnNormalDirection(vec4 pointA, vec4 pointB, float offsetSign
     return offset;
 }
 
+vec4 calculateOffsetOnMiterDirection(adjacentPoints projectedCoordinates, float offsetSign) {
+    vec2 aspectVec2 = vec2(aspect, 1.0);
+
+    vec4 PointA = projectedCoordinates.previous;
+    vec4 PointB = projectedCoordinates.current;
+    vec4 PointC = projectedCoordinates.next;
+
+    vec2 pointA_XY = (PointA.xy / PointA.w) * aspectVec2;
+    vec2 pointB_XY = (PointB.xy / PointB.w) * aspectVec2;
+    vec2 pointC_XY = (PointC.xy / PointC.w) * aspectVec2;
+
+    vec2 AB = normalize(pointB_XY - pointA_XY);
+    vec2 BC = normalize(pointC_XY - pointA_XY);
+
+    vec2 normalA = vec2(-AB.y, AB.x);
+    vec2 tangent = normalize(AB + BC);
+    vec2 miter = vec2(-tangent.y, tangent.x);
+
+    float offsetLength = lineWidth / 2.0;
+    float miterLength = offsetLength / dot(miter, normalA);
+
+    vec4 offset = vec4(offsetSign * miter * miterLength, 0.0, 0.0);
+    return offset;
+}
+
 void main() {
     vec2 particleIndex = st;
 
@@ -76,10 +101,12 @@ void main() {
     vec3 currentPosition = texture2D(currentParticlesPosition, particleIndex).rgb;
     vec3 nextPosition = texture2D(postProcessingPosition, particleIndex).rgb;
 
-    float isRandomPointUsed = texture2D(postProcessingPosition, particleIndex).a;
+    float isAnyRandomPointUsed = texture2D(postProcessingPosition, particleIndex).a +
+        texture2D(currentParticlesPosition, particleIndex).a +
+        texture2D(previousParticlesPosition, particleIndex).a;
 
     adjacentPoints projectedCoordinates;
-    if (isRandomPointUsed > 0.0) {
+    if (isAnyRandomPointUsed > 0.0) {
         projectedCoordinates.previous = calculateProjectedCoordinate(previousPosition);
         projectedCoordinates.current = projectedCoordinates.previous;
         projectedCoordinates.next = projectedCoordinates.previous;
@@ -92,13 +119,22 @@ void main() {
     int pointToUse = int(normal.x);
     float offsetSign = normal.y;
     vec4 offset = vec4(0.0);
+    // render lines with triangles and miter joint
+    // read https://blog.scottlogic.com/2019/11/18/drawing-lines-with-webgl.html for detail
     if (pointToUse == -1) {
         offset = pixelSize * calculateOffsetOnNormalDirection(projectedCoordinates.current, projectedCoordinates.next, offsetSign);
-        gl_Position = projectedCoordinates.current + offset;
+        gl_Position = projectedCoordinates.previous + offset;
     } else {
-        if (pointToUse == 1) {
-            offset = pixelSize * calculateOffsetOnNormalDirection(projectedCoordinates.current, projectedCoordinates.next, offsetSign);
-            gl_Position = projectedCoordinates.next + offset;
+        if (pointToUse == 0) {
+            offset = pixelSize * calculateOffsetOnMiterDirection(projectedCoordinates, offsetSign);
+            gl_Position = projectedCoordinates.current + offset;
+        } else {
+            if (pointToUse == 1) {
+                offset = pixelSize * calculateOffsetOnNormalDirection(projectedCoordinates.current, projectedCoordinates.next, offsetSign);
+                gl_Position = projectedCoordinates.next + offset;
+            } else {
+
+            }
         }
     }
 }
