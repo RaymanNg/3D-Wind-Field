@@ -81,16 +81,24 @@ vec4 calculateOffsetOnMiterDirection(adjacentPoints projectedCoordinates, float 
     vec2 pointC_XY = (PointC.xy / PointC.w) * aspectVec2;
 
     vec2 AB = normalize(pointB_XY - pointA_XY);
-    vec2 BC = normalize(pointC_XY - pointA_XY);
+    vec2 BC = normalize(pointC_XY - pointB_XY);
 
     vec2 normalA = vec2(-AB.y, AB.x);
     vec2 tangent = normalize(AB + BC);
     vec2 miter = vec2(-tangent.y, tangent.x);
 
     float offsetLength = lineWidth / 2.0;
-    float miterLength = offsetLength / dot(miter, normalA);
+    float projection = dot(miter, normalA);
+    vec4 offset = vec4(0.0);
+    // avoid to use values that are too small
+    if (projection > 0.1) {
+        float miterLength = offsetLength / projection;
+        offset = vec4(offsetSign * miter * miterLength, 0.0, 0.0);
+        offset.x = offset.x / aspect;
+    } else {
+        offset = calculateOffsetOnNormalDirection(PointB, PointC, offsetSign);
+    }
 
-    vec4 offset = vec4(offsetSign * miter * miterLength, 0.0, 0.0);
     return offset;
 }
 
@@ -122,7 +130,7 @@ void main() {
     // render lines with triangles and miter joint
     // read https://blog.scottlogic.com/2019/11/18/drawing-lines-with-webgl.html for detail
     if (pointToUse == -1) {
-        offset = pixelSize * calculateOffsetOnNormalDirection(projectedCoordinates.current, projectedCoordinates.next, offsetSign);
+        offset = pixelSize * calculateOffsetOnNormalDirection(projectedCoordinates.previous, projectedCoordinates.current, offsetSign);
         gl_Position = projectedCoordinates.previous + offset;
     } else {
         if (pointToUse == 0) {
