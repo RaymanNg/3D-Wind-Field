@@ -61,6 +61,9 @@ If you got into trouble on other device(for example, mobile phone), you can chec
 ### There is no particle or world terrian after starting the demo
 Please check the speed of your network connection. Open the development tools in your browser and refresh the website, then check if your browser is downloading the data in a very slow speed.
 
+### World terrian can not be loaded
+Cesium requires access token of [Cesium ION](https://cesium.com/ion/signin/) to access the WorldTerrain data, you can register an account to acquire a valid token, and use it according to the [document](https://cesium.com/docs/cesiumjs-ref-doc/Ion.html).
+
 ### I adopt the WebGL code and the demo is not working now
 Unfortunately, there is no easy way to debug WebGL code, and I can't find any debugging tool for setting breakpoints in WebGL. For the moment, I suggest to use [Spector.js](https://github.com/BabylonJS/Spector.js) to figure out what is happening with your WebGL code. It can tell you the input and output of your code.
 
