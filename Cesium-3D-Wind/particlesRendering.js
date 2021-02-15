@@ -42,7 +42,7 @@ class ParticlesRendering {
     }
 
     createSegmentsGeometry(userInput) {
-        const repeatVertex = 4;
+        const repeatVertex = 6;
 
         var st = [];
         for (var s = 0; s < userInput.particlesTextureSize; s++) {
@@ -56,11 +56,11 @@ class ParticlesRendering {
         st = new Float32Array(st);
 
         var normal = [];
-        const pointToUse = [-1, 1];
+        const pointToUse = [-1, 0, 1];
         const offsetSign = [-1, 1];
         for (var i = 0; i < userInput.maxParticles; i++) {
-            for (var j = 0; j < repeatVertex / 2; j++) {
-                for (var k = 0; k < repeatVertex / 2; k++) {
+            for (var j = 0; j < pointToUse.length; j++) {
+                for (var k = 0; k < offsetSign.length; k++) {
                     normal.push(pointToUse[j]);
                     normal.push(offsetSign[k]);
                     normal.push(0);
@@ -69,16 +69,26 @@ class ParticlesRendering {
         }
         normal = new Float32Array(normal);
 
-        const indexSize = 6 * userInput.maxParticles;
+        const indexSize = 12 * userInput.maxParticles;
         var vertexIndexes = new Uint32Array(indexSize);
         for (var i = 0, j = 0, vertex = 0; i < userInput.maxParticles; i++) {
             vertexIndexes[j++] = vertex + 0;
             vertexIndexes[j++] = vertex + 1;
             vertexIndexes[j++] = vertex + 2;
+
             vertexIndexes[j++] = vertex + 2;
             vertexIndexes[j++] = vertex + 1;
             vertexIndexes[j++] = vertex + 3;
-            vertex += 4;
+
+            vertexIndexes[j++] = vertex + 2;
+            vertexIndexes[j++] = vertex + 4;
+            vertexIndexes[j++] = vertex + 3;
+
+            vertexIndexes[j++] = vertex + 4;
+            vertexIndexes[j++] = vertex + 3;
+            vertexIndexes[j++] = vertex + 5;
+
+            vertex += repeatVertex;
         }
 
         var geometry = new Cesium.Geometry({
@@ -112,6 +122,9 @@ class ParticlesRendering {
                 geometry: this.createSegmentsGeometry(userInput),
                 primitiveType: Cesium.PrimitiveType.TRIANGLES,
                 uniformMap: {
+                    previousParticlesPosition: function () {
+                        return particlesComputing.particlesTextures.previousParticlesPosition;
+                    },
                     currentParticlesPosition: function () {
                         return particlesComputing.particlesTextures.currentParticlesPosition;
                     },
