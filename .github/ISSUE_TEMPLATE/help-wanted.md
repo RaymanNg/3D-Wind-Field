@@ -7,6 +7,8 @@ assignees: ''
 
 ---
 
+Please do Not post a issue asking for complete code specially for your purpose, this kind of issue is not welcomed.
+
 **Describe your problem**
 A clear and concise description of what your problem is.
 
