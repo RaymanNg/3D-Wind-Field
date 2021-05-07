@@ -18,9 +18,7 @@ const defaultParticleSystemOptions = {
 
 const globeLayers = [
     { name: "NaturalEarthII", type: "NaturalEarthII" },
-    { name: "WMS:Rainfall", type: "WMS", layer: "Precipitable_water_entire_atmosphere_single_layer", ColorScaleRange: '0.1,66.8' },
     { name: "WMS:Air Pressure", type: "WMS", layer: "Pressure_surface", ColorScaleRange: '51640,103500' },
-    { name: "WMS:Temperature", type: "WMS", layer: "Temperature_surface", ColorScaleRange: '204.1,317.5' },
     { name: "WMS:Wind Speed", type: "WMS", layer: "Wind_speed_gust_surface", ColorScaleRange: '0.1095,35.31' },
     { name: "WorldTerrain", type: "WorldTerrain" }
 ]
