@@ -1,6 +1,8 @@
 class Wind3D {
     constructor(panel, mode) {
         var options = {
+            // use Sentinel-2 instead of the default Bing Maps because Bing Maps sessions is limited
+            imageryProvider: new Cesium.IonImageryProvider({ assetId: 3954 }),
             baseLayerPicker: false,
             geocoder: false,
             infoBox: false,
@@ -100,7 +102,7 @@ class Wind3D {
             }
             case "WorldTerrain": {
                 this.viewer.imageryLayers.addImageryProvider(
-                    Cesium.createWorldImagery()
+                    new Cesium.IonImageryProvider({ assetId: 3954 })
                 );
                 this.viewer.terrainProvider = Cesium.createWorldTerrain();
                 break;
