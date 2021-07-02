@@ -7,6 +7,8 @@ class Wind3D {
             geocoder: false,
             infoBox: false,
             fullscreenElement: 'cesiumContainer',
+            // useBrowserRecommendedResolution can be set to false to improve the render quality
+            // useBrowserRecommendedResolution: false,
             scene3DOnly: true
         }
 
