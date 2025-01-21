@@ -25,5 +25,5 @@ void main() {
     if (trailsDepth < globeDepth) {
         gl_FragColor = gl_FragColor + trailsColor;
     }
-    gl_FragDepthEXT = min(pointsDepth, trailsDepth);
+    gl_FragDepth = min(pointsDepth, trailsDepth);
 }

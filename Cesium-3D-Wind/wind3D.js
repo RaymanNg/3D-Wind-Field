@@ -9,7 +9,10 @@ class Wind3D {
             fullscreenElement: 'cesiumContainer',
             // useBrowserRecommendedResolution can be set to false to improve the render quality
             // useBrowserRecommendedResolution: false,
-            scene3DOnly: true
+            scene3DOnly: true,
+            contextOptions: {
+                requestWebgl1: true,
+            },
         }
 
         if (mode.debug) {
@@ -85,10 +88,12 @@ class Wind3D {
         var globeLayer = userInput.globeLayer;
         switch (globeLayer.type) {
             case "NaturalEarthII": {
-                this.viewer.imageryLayers.addImageryProvider(
-                    new Cesium.TileMapServiceImageryProvider({
-                        url: Cesium.buildModuleUrl('Assets/Textures/NaturalEarthII')
-                    })
+                this.viewer.imageryLayers.add(
+                    Cesium.ImageryLayer.fromProviderAsync(
+                        Cesium.TileMapServiceImageryProvider.fromUrl(
+                            Cesium.buildModuleUrl("Assets/Textures/NaturalEarthII"),
+                        )
+                    )
                 );
                 break;
             }
@@ -103,10 +108,10 @@ class Wind3D {
                 break;
             }
             case "WorldTerrain": {
-                this.viewer.imageryLayers.addImageryProvider(
-                    new Cesium.IonImageryProvider({ assetId: 3954 })
+                this.viewer.imageryLayers.add(
+                    Cesium.ImageryLayer.fromProviderAsync(Cesium.IonImageryProvider.fromAssetId(3954))
                 );
-                this.viewer.terrainProvider = Cesium.createWorldTerrain();
+                this.viewer.scene.setTerrain(Cesium.Terrain.fromWorldTerrain());
                 break;
             }
         }
