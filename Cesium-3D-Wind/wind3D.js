@@ -9,10 +9,7 @@ class Wind3D {
             fullscreenElement: 'cesiumContainer',
             // useBrowserRecommendedResolution can be set to false to improve the render quality
             // useBrowserRecommendedResolution: false,
-            scene3DOnly: true,
-            contextOptions: {
-                requestWebgl1: true,
-            },
+            scene3DOnly: true
         }
 
         if (mode.debug) {

@@ -10,7 +10,7 @@ class ParticlesComputing {
             context: context,
             width: data.dimensions.lon,
             height: data.dimensions.lat * data.dimensions.lev,
-            pixelFormat: Cesium.PixelFormat.LUMINANCE,
+            pixelFormat: Cesium.PixelFormat.RED, // The combination of format and type values should follow the WebGL 2.0 Specification
             pixelDatatype: Cesium.PixelDatatype.FLOAT,
             flipY: false,
             sampler: new Cesium.Sampler({

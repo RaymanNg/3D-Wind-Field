@@ -1,6 +1,6 @@
-attribute vec2 st;
+in vec2 st;
 // it is not normal itself, but used to control lines drawing
-attribute vec3 normal; // (point to use, offset sign, not used component)
+in vec3 normal; // (point to use, offset sign, not used component)
 
 uniform sampler2D previousParticlesPosition;
 uniform sampler2D currentParticlesPosition;
@@ -105,13 +105,13 @@ vec4 calculateOffsetOnMiterDirection(adjacentPoints projectedCoordinates, float 
 void main() {
     vec2 particleIndex = st;
 
-    vec3 previousPosition = texture2D(previousParticlesPosition, particleIndex).rgb;
-    vec3 currentPosition = texture2D(currentParticlesPosition, particleIndex).rgb;
-    vec3 nextPosition = texture2D(postProcessingPosition, particleIndex).rgb;
+    vec3 previousPosition = texture(previousParticlesPosition, particleIndex).rgb;
+    vec3 currentPosition = texture(currentParticlesPosition, particleIndex).rgb;
+    vec3 nextPosition = texture(postProcessingPosition, particleIndex).rgb;
 
-    float isAnyRandomPointUsed = texture2D(postProcessingPosition, particleIndex).a +
-        texture2D(currentParticlesPosition, particleIndex).a +
-        texture2D(previousParticlesPosition, particleIndex).a;
+    float isAnyRandomPointUsed = texture(postProcessingPosition, particleIndex).a +
+        texture(currentParticlesPosition, particleIndex).a +
+        texture(previousParticlesPosition, particleIndex).a;
 
     adjacentPoints projectedCoordinates;
     if (isAnyRandomPointUsed > 0.0) {
